@@ -1,0 +1,33 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = OposTest.exe OposConfig.exe OposDatecs.dll OposDatecsTest.exe \
+  OposDatecsTestLib.dll
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+OposConfig.exe: OposConfig\OposConfig.dpr
+  $(DCC)
+
+OposTest.exe: OposTest\OposTest.dpr
+  $(DCC)
+
+OposDatecs.dll: OposDatecs\OposDatecs.dpr
+  $(DCC)
+
+OposDatecsTestLib.dll: ..\Test\OposDatecsTest\OposDatecsTestLib.dpr
+  $(DCC)
+
+OposDatecsTest.exe: ..\Test\OposDatecsTest\OposDatecsTest.dpr
+  $(DCC)
+
+
