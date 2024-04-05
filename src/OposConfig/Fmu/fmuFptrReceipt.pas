@@ -14,8 +14,7 @@ uses
   // This
   PrinterParameters, FiscalPrinterDevice, Grids, TntGrids, Buttons,
   ToolWin, ComCtrls, SynEditHighlighter, SynHighlighterXML, ExtCtrls,
-  WebkassaImpl, SalesReceipt, ReceiptTemplate, TextDocument, LogFile,
-  PrinterTypes;
+  SalesReceipt, ReceiptTemplate, TextDocument, LogFile, PrinterTypes;
 
 type
   { TfmFptrReceipt }
@@ -70,22 +69,14 @@ procedure TfmFptrReceipt.UpdateReceiptText2(const TemplateXml: string);
 var
   i: Integer;
   TextItem: TDocItem;
-  Driver: TWebkassaImpl;
   Receipt: TSalesReceipt;
   ItemName: WideString;
 const
   ReceiptItemsCount = 2;
   FontSizeNormal = 8;
   FontSizeDouble = 16;
-  AnswerJson =
-    '{"Data":{"CheckNumber":"1158917320297","DateTime":"19.07.2023 20:09:49",' +
-    '"OfflineMode":false,"CashboxOfflineMode":false,"Cashbox":{"UniqueNumber":'+
-    '"SWK00033059","RegistrationNumber":"427490326691","IdentityNumber":"657",'+
-    '"Address":"Алматы","Ofd":{"Name":"АО \"КазТранском\"","Host":"dev.kofd.kz/consumer",'+
-    '"Code":3}},"CheckOrderNumber":2,"ShiftNumber":100,"EmployeeName":"webkassa4@softit.kz",'+
-    '"TicketUrl":"http://dev.kofd.kz/consumer?i=1158917320297&f=427490326691&s=15443.72&t=20230306T200949",'+
-    '"TicketPrintUrl":"https://devkkm.webkassa.kz/Ticket?chb=SWK00033059&sh=100&extnum=92D51F08-13CF-428E-AF2F-67B6E8BDE994"}}';
 begin
+(*
   reReceipt.Lines.Clear;
   if TemplateXml = '' then Exit;
 
@@ -153,6 +144,7 @@ begin
     reReceipt.Lines.EndUpdate;
     reReceipt.Invalidate;
   end;
+*)  
 end;
 
 procedure TfmFptrReceipt.UpdatePage;

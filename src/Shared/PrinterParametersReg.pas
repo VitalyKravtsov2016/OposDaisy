@@ -173,23 +173,17 @@ begin
       if Reg.ValueExists('NumTrailerLines') then
         Parameters.NumTrailerLines := Reg.ReadInteger('NumTrailerLines');
 
-      if Reg.ValueExists('WebkassaAddress') then
-        Parameters.WebkassaAddress := Reg.ReadString('WebkassaAddress');
+      if Reg.ValueExists('ServerAddress') then
+        Parameters.ServerAddress := Reg.ReadString('ServerAddress');
 
-      if Reg.ValueExists('ConnectTimeout') then
-        Parameters.ConnectTimeout := Reg.ReadInteger('ConnectTimeout');
+      if Reg.ValueExists('ServerConnectTimeout') then
+        Parameters.ServerConnectTimeout := Reg.ReadInteger('ServerConnectTimeout');
 
-      if Reg.ValueExists('Login') then
-        Parameters.Login := Reg.ReadString('Login');
+      if Reg.ValueExists('ServerLogin') then
+        Parameters.ServerLogin := Reg.ReadString('ServerLogin');
 
-      if Reg.ValueExists('Password') then
-        Parameters.Password := Reg.ReadString('Password');
-
-      if Reg.ValueExists('CashboxNumber') then
-        Parameters.CashboxNumber := Reg.ReadString('CashboxNumber');
-
-      if Reg.ValueExists('PrinterName') then
-        Parameters.PrinterName := Reg.ReadString('PrinterName');
+      if Reg.ValueExists('ServerPassword') then
+        Parameters.ServerPassword := Reg.ReadString('ServerPassword');
 
       if Reg.ValueExists('PrinterType') then
         Parameters.PrinterType := Reg.ReadInteger('PrinterType');
@@ -206,20 +200,8 @@ begin
       if Reg.ValueExists('PaymentType4') then
         Parameters.PaymentType4 := Reg.ReadInteger('PaymentType4');
 
-      if Reg.ValueExists('RoundType') then
-        Parameters.RoundType := Reg.ReadInteger('RoundType');
-
-      if Reg.ValueExists('VATNumber') then
-        Parameters.VATNumber := Reg.ReadString('VATNumber');
-
-      if Reg.ValueExists('VATSeries') then
-        Parameters.VATSeries := Reg.ReadString('VATSeries');
-
       if Reg.ValueExists('AmountDecimalPlaces') then
         Parameters.AmountDecimalPlaces := Reg.ReadInteger('AmountDecimalPlaces');
-
-      if Reg.ValueExists('FontName') then
-        Parameters.FontName := Reg.ReadString('FontName');
 
       if Reg.ValueExists('RemoteHost') then
         Parameters.RemoteHost := Reg.ReadString('RemoteHost');
@@ -256,15 +238,6 @@ begin
 
       if Reg.ValueExists('DevicePollTime') then
         Parameters.DevicePollTime := Reg.ReadInteger('DevicePollTime');
-
-      if Reg.ValueExists('TranslationName') then
-        Parameters.TranslationName := Reg.ReadString('TranslationName');
-
-      if Reg.ValueExists('PrintBarcode') then
-        Parameters.PrintBarcode := Reg.ReadInteger('PrintBarcode');
-
-      if Reg.ValueExists('TranslationEnabled') then
-        Parameters.TranslationEnabled := Reg.ReadBool('TranslationEnabled');
 
       if Reg.ValueExists('TemplateEnabled') then
         Parameters.TemplateEnabled := Reg.ReadBool('TemplateEnabled');
@@ -343,21 +316,15 @@ begin
     Reg.WriteInteger('LogMaxCount', FParameters.LogMaxCount);
     Reg.WriteInteger('NumHeaderLines', FParameters.NumHeaderLines);
     Reg.WriteInteger('NumTrailerLines', FParameters.NumTrailerLines);
-    Reg.WriteString('WebkassaAddress', FParameters.WebkassaAddress);
-    Reg.WriteInteger('ConnectTimeout', FParameters.ConnectTimeout);
-    Reg.WriteString('Login', FParameters.Login);
-    Reg.WriteString('Password', FParameters.Password);
-    Reg.WriteString('CashboxNumber', FParameters.CashboxNumber);
-    Reg.WriteString('PrinterName', FParameters.PrinterName);
+    Reg.WriteString('ServerAddress', FParameters.ServerAddress);
+    Reg.WriteInteger('ServerConnectTimeout', FParameters.ServerConnectTimeout);
+    Reg.WriteString('ServerLogin', FParameters.ServerLogin);
+    Reg.WriteString('ServerPassword', FParameters.ServerPassword);
     Reg.WriteInteger('PrinterType', FParameters.PrinterType);
-    Reg.WriteString('FontName', FParameters.FontName);
     Reg.WriteInteger('PaymentType2', FParameters.PaymentType2);
     Reg.WriteInteger('PaymentType3', FParameters.PaymentType3);
     Reg.WriteInteger('PaymentType4', FParameters.PaymentType4);
     Reg.WriteBool('VatRateEnabled', FParameters.VatRateEnabled);
-    Reg.WriteInteger('RoundType', FParameters.RoundType);
-    Reg.WriteString('VATNumber', FParameters.VATNumber);
-    Reg.WriteString('VATSeries', FParameters.VATSeries);
     Reg.WriteInteger('AmountDecimalPlaces', FParameters.AmountDecimalPlaces);
     Reg.WriteString('RemoteHost', FParameters.RemoteHost);
     Reg.WriteInteger('RemotePort', FParameters.RemotePort);
@@ -372,9 +339,7 @@ begin
     Reg.WriteBool('ReconnectPort', FParameters.ReconnectPort);
     Reg.WriteInteger('SerialTimeout', FParameters.SerialTimeout);
     Reg.WriteInteger('DevicePollTime', FParameters.DevicePollTime);
-    Reg.WriteString('TranslationName', FParameters.TranslationName);
     Reg.WriteInteger('PrintBarcode', FParameters.PrintBarcode);
-    Reg.WriteBool('TranslationEnabled', FParameters.TranslationEnabled);
     Reg.WriteBool('TemplateEnabled', FParameters.TemplateEnabled);
     Reg.WriteString('CurrencyName', FParameters.CurrencyName);
     Reg.WriteInteger('LineSpacing', FParameters.LineSpacing);

@@ -21,7 +21,6 @@ uses
   OposEventsRCS in '..\Opos\OposEventsRCS.pas',
   DebugUtils in '..\Shared\DebugUtils.pas',
   DriverError in '..\Shared\DriverError.pas',
-  WebkassaClient in 'Units\WebkassaClient.pas',
   JsonUtils in '..\Shared\JsonUtils.pas',
   FiscalPrinterState in 'units\FiscalPrinterState.pas',
   CustomReceipt in 'units\CustomReceipt.pas',
@@ -51,11 +50,8 @@ uses
   uZintBarcode in '..\Shared\uZintBarcode.pas',
   uZintInterface in '..\Shared\uZintInterface.pas',
   OposDevice in '..\Opos\OposDevice.pas',
-  POSPrinterLog in '..\Opos\POSPrinterLog.pas',
-  EscPrinter in '..\Shared\EscPrinter.pas',
   ByteUtils in '..\Shared\ByteUtils.pas',
   PrinterPort in '..\Shared\PrinterPort.pas',
-  PosEscPrinter in '..\Shared\PosEscPrinter.pas',
   SerialPort in '..\Shared\SerialPort.pas',
   DeviceNotification in '..\Shared\DeviceNotification.pas',
   PortUtil in '..\Shared\PortUtil.pas',
@@ -71,13 +67,13 @@ uses
   PrinterTypes in '..\Shared\PrinterTypes.pas',
   BarcodeUtils in '..\Shared\BarcodeUtils.pas',
   DatecsPrinter in 'units\DatecsPrinter.pas',
-  ExellioFrame in 'units\ExellioFrame.pas',
-  ExellioTypes in 'units\ExellioTypes.pas',
+  DatecsTypes in 'units\DatecsTypes.pas',
   StrUtil in '..\Shared\StrUtil.pas',
   VariantUtils in '..\Shared\VariantUtils.pas',
   SerialPort2 in '..\Shared\SerialPort2.pas',
   LogFile2 in '..\Shared\LogFile2.pas',
-  DriverError2 in 'units\DriverError2.pas';
+  DriverError2 in 'units\DriverError2.pas',
+  DatecsPrinter2 in 'units\DatecsPrinter2.pas';
 
 exports
   DllGetClassObject,

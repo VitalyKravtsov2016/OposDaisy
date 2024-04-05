@@ -21,11 +21,11 @@ type
     procedure Lock;
     procedure Unlock;
     function GetLogger: ILogFile;
-    function GetDriver: TWebkassaImpl;
+    function GetDriver: TDatecsFiscalPrinter;
     function GetLock: TCriticalSection;
  public
     property Logger: ILogFile read GetLogger;
-    property Driver: TWebkassaImpl read GetDriver;
+    property Driver: TDatecsFiscalPrinter read GetDriver;
   public
     destructor Destroy; override;
 
@@ -355,10 +355,10 @@ begin
   Result := Driver.Logger;
 end;
 
-function ToleFiscalPrinter.GetDriver: TWebkassaImpl;
+function ToleFiscalPrinter.GetDriver: TDatecsFiscalPrinter;
 begin
   if FDriver = nil then
-    FDriver := TWebkassaImpl.Create(nil);
+    FDriver := TDatecsFiscalPrinter.Create(nil);
   Result := FDriver;
 end;
 

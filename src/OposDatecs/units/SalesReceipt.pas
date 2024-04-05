@@ -133,7 +133,6 @@ type
     property Charge: Currency read GetCharge;
     property RecType: TRecType read FRecType;
     property Items: TReceiptItems read FItems;
-    property RoundType: Integer read FRoundType;
     property Payments: TPayments read FPayments;
     property Discount: Currency read GetDiscount;
     property Charges: TAdjustments read FCharges;
@@ -207,7 +206,7 @@ end;
 procedure TSalesReceipt.Print(AVisitor: TObject);
 begin
   if FIsVoided then Exit;
-  TWebkassaImpl(AVisitor).Print(Self);
+  TDatecsFiscalPrinter(AVisitor).Print(Self);
 end;
 
 procedure TSalesReceipt.CheckAmount(Amount: Currency);
@@ -580,11 +579,9 @@ begin
   for i := 0 to FRecItems.Count-1 do
   begin
     Item := TSalesReceiptItem(FRecItems[i]);
-    Result := Result + Item.GetTotalAmount(RoundType);
+    Result := Result + Item.GetTotalAmount(FRoundType);
   end;
   Result := Result - Abs(FDiscounts.GetTotal) + Abs(FCharges.GetTotal);
-  if (RoundType = RoundTypeTotal)or(RoundType = RoundTypeItems) then
-    Result := Ceil(Result);
 end;
 
 function TSalesReceipt.GetTotalByVAT(VatInfo: Integer): Currency;

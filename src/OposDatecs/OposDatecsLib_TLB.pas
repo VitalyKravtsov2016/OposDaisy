@@ -12,10 +12,10 @@ unit OposDatecsLib_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 01.04.2024 17:36:28 from Type Library described below.
+// File generated on 04.04.2024 17:57:56 from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: D:\projects\OposDatecs\src\OposDatecs\OposDatecs.tlb (1)
+// Type Lib: C:\projects\OposDatecs\src\OposDatecs\OposDatecs.tlb (1)
 // LIBID: {DE419508-17BD-42CD-AB6D-B719B31EDE02}
 // LCID: 0
 // Helpfile: 

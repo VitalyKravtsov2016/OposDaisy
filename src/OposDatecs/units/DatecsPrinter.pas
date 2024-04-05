@@ -8,22 +8,93 @@ uses
   // Tnt
   TntSysUtils,
   // This
-  ExellioFrame, ExellioTypes, SerialPort2, StrUtil,
+  DatecsTypes, SerialPort2, StrUtil,
   DriverError2, LogFile2, VersionInfo, StringUtils, VariantUtils, MathUtils;
 
+const
+///////////////////////////////////////////////////////////////////////////////
+// ReportType constants
+
+  ReportTypeZ               = 0;
+  ReportTypeX               = 2;
+  ReportTypeEJ              = 5;
+  ReportTypeZNotPrint       = 6;
+  ReportTypeZByDepartments  = 8;
+  ReportTypeXByDepartments  = 9;
+
+(*
+Optional parameter, specifying type of the report.
+By default is ì0î.
+ì0î or ì1î > executes daily financial Z report (with clearing).
+The reports ends with text ì‘»— ¿À≈Õ ¡ŒÕî / ìFISCAL RECEIPTî or
+ìÕ≈‘»— ¿À≈Õ ¡ŒÕî / ìNON-FISCAL RECEIPTî (depends if FD is fiscalized).
+ì2î or ì3î > executes daily financial X report (without clearing).
+The reports ends with text ì—À”∆≈¡≈Õ ¡ŒÕî / ìSERVICE BONî or
+ìÕ≈‘»— ¿À≈Õ ¡ŒÕî / ìNON-FISCAL RECEIPTî (depends if FD is fiscalized).
+ì5î > In case of full FDís EJ, FD prints EJ content.
+Returns number of remaining free lines in EJ.
+If FD uses EJT, returns number of remaining free lines and total records in EJT.
+ì6î > executes daily financial Z report (with clearing) without printing on paper,
+but write it in EJT and FM (if FD is fiscalized).
+ì8î > executes periodic financial Z report by departments.
+No data is returned.
+ì9î > executes periodic financial X report by departments.
+No data is returned.
+*)
+
 type
+  { TReportAnswerRec }
+
+  TReportAnswerRec = record
+    ResultCode: Integer;
+    ReportNumber: Integer;
+    SalesTotalTax: array [1..8] of string;
+    RefundTotalTax: array [1..8] of string;
+  end;
+
+  { TDatecsCommand }
+
+  TDatecsCommand = record
+    Sequence: Byte;
+    Code: Byte;
+    Data: AnsiString;
+  end;
+
+  { TDatecsAnswer }
+
+  TDatecsAnswer = record
+    Sequence: Byte;
+    Code: Byte;
+    Data: WideString;
+    Status: AnsiString;
+  end;
+
+  { TDatecsFrame }
+
+  TDatecsFrame = class
+  public
+    class function GetCrc(const Data: AnsiString): AnsiString;
+    class function EncodeAnswer(const Data: TDatecsAnswer): AnsiString;
+    class function EncodeCommand(const Data: TDatecsCommand): AnsiString;
+    class function DecodeAnswer(const Data: AnsiString): TDatecsAnswer;
+    class function DecodeCommand(const Data: AnsiString): TDatecsCommand;
+    class function DecodeCommand2(const Data: AnsiString;
+      var Command: TDatecsCommand): Boolean;
+  end;
+
   { TDatecsPrinter }
 
   TDatecsPrinter = class
   private
+    Password: AnsiString;
     FTxData: string;
     FRxData: string;
     FPort: TSerialPort;
     FLastError: Integer;
     FShowError: Boolean;
     FStatus: TDatecsStatus;
-    FAnswer: TExellioAnswer;
-    FCommand: TExellioCommand;
+    FAnswer: TDatecsAnswer;
+    FCommand: TDatecsCommand;
     FLastErrorText: WideString;
     FS: array [1..11] of WideString;
     FPrinterEncoding: Integer;
@@ -58,12 +129,18 @@ type
     function EncodeDisplayText(const Text: WideString): AnsiString;
     function EncodePrinterText(const Text: WideString): AnsiString;
     function DecodePrinterText(const Text: AnsiString): WideString;
+    function DailyReport(const Pass: WideString;
+      ReportType: Integer): Integer;
+    function SendCmd(Command: Char; Params: array of const): Integer;
   public
     TxCount: Integer;
     function Send(const TxData: WideString): Integer; overload;
     function Send(const TxData: WideString; var RxData: string): Integer; overload;
     property Port: TSerialPort read FPort;
   public
+    function XReport: TReportAnswerRec;
+    function ZReport: TReportAnswerRec;
+
     function AbsDiscGrp(Grp: SYSINT; Dis: Double): Integer; safecall;
     function AbsDiscTax(Grp: SYSINT; Dis: Double): Integer; safecall;
     function AdvancePaper(iLines: SYSINT): Integer; safecall;
@@ -203,8 +280,7 @@ type
     function TotalEx(const Text: WideString; iPayMode: SYSINT;
       dSum: Double): Integer; safecall;
     function WaitWhilePrintEnd: Integer; safecall;
-    function XReport(const Pass: WideString): Integer; safecall;
-    function ZReport(const Pass: WideString): Integer; safecall;
+
     procedure ClosePort; safecall;
     procedure Debugger(bDebug: WordBool); safecall;
     procedure Set_StatusBytes(Index: Byte; const Value: WideString); safecall;
@@ -251,6 +327,7 @@ type
     function GetDrawerEnabled: Integer; safecall;
     function GetSmallFontEnabled: Integer; safecall;
     function SendData(const Data: WideString): Integer;
+    procedure Check(Code: Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -341,6 +418,121 @@ begin
   end;
 end;
 
+resourcestring
+  SInvalidPreambule = 'ÕÂ‚ÂÌÓ˚È ÍÓ‰ ÔÂ‡Ï·ÛÎ˚';
+
+// 	<01><LEN><SEQ><CMD><DATA><05><BCC><03>
+//	<01><LEN><SEQ><CMD><DATA><04><STATUS><05><BCC><03>
+
+class function TDatecsFrame.GetCrc(const Data: AnsiString): AnsiString;
+var
+  i: Integer;
+  Crc: Integer;
+begin
+  Crc := 0;
+  for i := 1 to Length(Data) do
+    Crc := Crc + Ord(Data[i]);
+  Result := IntToHex(Crc, 4);
+  for i := 1 to 4 do
+    Result[i] := Chr(StrToInt('$' + Result[i]) + $30);
+end;
+
+
+//	<01><LEN><SEQ><CMD><DATA><04><STATUS><05><BCC><03>
+
+class function TDatecsFrame.EncodeAnswer(
+  const Data: TDatecsAnswer): AnsiString;
+begin
+  Result :=
+    Chr(Length(Data.Data) + $2B) +
+    Chr(Data.Sequence) +
+    Chr(Data.Code) +
+    Data.Data + #04 +
+    Data.Status + #05;
+
+  Result := #01 + Result + GetCrc(Result) + #03;
+end;
+
+class function TDatecsFrame.DecodeAnswer(
+  const Data: AnsiString): TDatecsAnswer;
+var
+  Len: Integer;
+  FrameCrc: AnsiString;
+  FrameData: AnsiString;
+begin
+  if Data[1] <> #01 then
+    raise Exception.Create(SInvalidPreambule);
+
+  FrameData := Copy(Data, 2, Length(Data)-6);
+  FrameCrc := Copy(Data, Length(Data)-4, 4);
+  if GetCrc(FrameData) <> FrameCrc then
+    RaiseError(DATECS_E_CRC, SInvalidCrc);
+
+
+  Len := Ord(Data[2]) - $2B;
+  Result.Sequence := Ord(Data[3]);
+  Result.Code := Ord(Data[4]);
+  Result.Data := Copy(Data, 5, Len);
+  Result.Status := Copy(Data, Len + 6, 6);
+end;
+
+// 	<01><LEN><SEQ><CMD><DATA><05><BCC><03>
+
+class function TDatecsFrame.EncodeCommand(
+  const Data: TDatecsCommand): AnsiString;
+begin
+  Result :=
+    Chr(Length(Data.Data) + $24) +
+    Chr(Data.Sequence) +
+    Chr(Data.Code) +
+    Data.Data + #05;
+
+  Result := #01 + Result + GetCrc(Result) + #03;
+end;
+
+class function TDatecsFrame.DecodeCommand(
+  const Data: AnsiString): TDatecsCommand;
+var
+  Len: Integer;
+  FrameCrc: AnsiString;
+  FrameData: AnsiString;
+begin
+  if Data[1] <> #01 then
+    raise Exception.Create(SInvalidPreambule);
+
+  FrameData := Copy(Data, 2, Length(Data)-6);
+  FrameCrc := Copy(Data, Length(Data)-4, 4);
+  if GetCrc(FrameData) <> FrameCrc then
+    RaiseError(DATECS_E_CRC, SInvalidCrc);
+
+
+  Len := Ord(Data[2]) - $24;
+  Result.Sequence := Ord(Data[3]);
+  Result.Code := Ord(Data[4]);
+  Result.Data := Copy(Data, 5, Len);
+end;
+
+class function TDatecsFrame.DecodeCommand2(
+  const Data: AnsiString;
+  var Command: TDatecsCommand): Boolean;
+var
+  Len: Integer;
+  FrameCrc: AnsiString;
+  FrameData: AnsiString;
+begin
+  Result := False;
+  if Data[1] <> #01 then Exit;
+
+  FrameData := Copy(Data, 2, Length(Data)-6);
+  FrameCrc := Copy(Data, Length(Data)-4, 4);
+  if GetCrc(FrameData) <> FrameCrc then Exit;
+
+  Len := Ord(Data[2]) - $24;
+  Command.Sequence := Ord(Data[3]);
+  Command.Code := Ord(Data[4]);
+  Command.Data := Copy(Data, 5, Len);
+  Result := True;
+end;
 
 { TDatecsPrinter }
 
@@ -569,7 +761,7 @@ begin
     Exit;
   end;
 
-  if Status.AddOverflow then
+  if Status.SumsOverflow then
   begin
     Result := SetLastError(39);
     Exit;
@@ -619,7 +811,7 @@ begin
     FCommand.Sequence := TxCount;
     FCommand.Code := Ord(TxData[1]);
     FCommand.Data := Copy(TxData, 2, Length(TxData));
-    FTxData := TExellioFrame.EncodeCommand(FCommand);
+    FTxData := TDatecsFrame.EncodeCommand(FCommand);
 
     S := Format('0x%.2x, %s', [FCommand.Code, GetCommandName(FCommand.Code)]);
     Logger.Debug(S);
@@ -651,7 +843,7 @@ begin
       B := Port.ReadByte;
       FRxData := Port.Read(B - $20 + 4);
       FRxData := #$01 + Chr(B) + FRxData;
-      FAnswer := TExellioFrame.DecodeAnswer(FRxData);
+      FAnswer := TDatecsFrame.DecodeAnswer(FRxData);
       FAnswer.Data := DecodePrinterText(FAnswer.Data);
       DecodeStatus(FAnswer.Status, FStatus);
       Logger.Debug('<- ' + FAnswer.Data);
@@ -1830,16 +2022,51 @@ begin
   end;
 end;
 
-function TDatecsPrinter.XReport(const Pass: WideString): Integer;
+(*
+Closure Fiscal record number (4 digits).
+Tax1ÖTax8 Sales total/net amount by tax group ì¿îÖî«î.
+StTax1ÖStTax8 Refund total/net amount by tax group ì¿îÖî«î.
+*)
+
+function TDatecsPrinter.DailyReport(const Pass: WideString; ReportType: Integer): Integer;
 begin
-  Result := Send(#$45 + Pass + ',2');
+  Result := Send(#$45 + Pass + ',' + IntToStr(ReportType));
   DecodeParams(7);
 end;
 
-function TDatecsPrinter.ZReport(const Pass: WideString): Integer;
+function TDatecsPrinter.SendCmd(Command: Char; Params: array of const): Integer;
 begin
-  Result := Send(#$45 + Pass + ',0');
-  DecodeParams(7);
+
+end;
+
+function TDatecsPrinter.XReport: TReportAnswerRec;
+var
+  i: Integer;
+begin
+  Result.ResultCode := SendCmd(#$45, [Password, ReportTypeX]);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.ReportNumber := StrToInt(GetParam(1));
+    for i := 1 to 8 do
+      Result.SalesTotalTax[i] := GetParam(i + 1);
+    for i := 1 to 8 do
+      Result.RefundTotalTax[i] := GetParam(i + 9);
+  end;
+end;
+
+function TDatecsPrinter.ZReport: TReportAnswerRec;
+var
+  i: Integer;
+begin
+  Result.ResultCode := SendCmd(#$45, [Password, ReportTypeZ]);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.ReportNumber := StrToInt(GetParam(1));
+    for i := 1 to 8 do
+      Result.SalesTotalTax[i] := GetParam(i + 1);
+    for i := 1 to 8 do
+      Result.RefundTotalTax[i] := GetParam(i + 9);
+  end;
 end;
 
 function TDatecsPrinter.Get_s1: WideString;
@@ -1900,6 +2127,11 @@ end;
 function TDatecsPrinter.SendData(const Data: WideString): Integer;
 begin
   Result := Send(Data);
+end;
+
+procedure TDatecsPrinter.Check(Code: Integer);
+begin
+  { !!! }
 end;
 
 end.

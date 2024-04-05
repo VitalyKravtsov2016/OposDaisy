@@ -13,7 +13,7 @@ object fmPrinter: TfmPrinter
   OldCreateOrder = False
   DesignSize = (
     455
-    399)
+    400)
   PixelsPerInch = 96
   TextHeight = 13
   object lblResultCode: TTntLabel
@@ -64,18 +64,11 @@ object fmPrinter: TfmPrinter
     Top = 8
     Width = 441
     Height = 281
-    ActivePage = tsCommonParams
+    ActivePage = tsSerialParams
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     object tsCommonParams: TTabSheet
       Caption = #1054#1073#1097#1080#1077
-      object lblPrinterName: TTntLabel
-        Left = 8
-        Top = 56
-        Width = 103
-        Height = 13
-        Caption = #1053#1072#1079#1074#1072#1085#1080#1077' '#1087#1088#1080#1085#1090#1077#1088#1072':'
-      end
       object lblPrinterType: TTntLabel
         Left = 8
         Top = 24
@@ -118,16 +111,6 @@ object fmPrinter: TfmPrinter
         Height = 13
         Caption = #1042#1099#1089#1086#1090#1072' '#1089#1080#1084#1074#1086#1083#1086#1074':'
       end
-      object cbPrinterName: TTntComboBox
-        Left = 120
-        Top = 56
-        Width = 305
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        TabOrder = 1
-        OnChange = cbPrinterNameChange
-      end
       object cbPrinterType: TTntComboBox
         Left = 120
         Top = 24
@@ -136,7 +119,6 @@ object fmPrinter: TfmPrinter
         Style = csDropDownList
         ItemHeight = 13
         TabOrder = 0
-        OnChange = cbPrinterTypeChange
         Items.Strings = (
           'OPOS '#1087#1088#1080#1085#1090#1077#1088
           'Windows '#1087#1088#1080#1085#1090#1077#1088
@@ -151,7 +133,7 @@ object fmPrinter: TfmPrinter
         Height = 21
         Style = csDropDownList
         ItemHeight = 13
-        TabOrder = 2
+        TabOrder = 1
         OnChange = ModifiedClick
       end
       object seDevicePollTime: TSpinEdit
@@ -161,7 +143,7 @@ object fmPrinter: TfmPrinter
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 6
+        TabOrder = 5
         Value = 0
         OnClick = ModifiedClick
       end
@@ -172,7 +154,7 @@ object fmPrinter: TfmPrinter
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 5
+        TabOrder = 4
         Value = 0
         OnClick = ModifiedClick
       end
@@ -183,7 +165,7 @@ object fmPrinter: TfmPrinter
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 3
+        TabOrder = 2
         Value = 0
         OnClick = ModifiedClick
       end
@@ -194,7 +176,7 @@ object fmPrinter: TfmPrinter
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 4
+        TabOrder = 3
         Value = 0
         OnClick = ModifiedClick
       end
@@ -313,7 +295,7 @@ object fmPrinter: TfmPrinter
         Width = 113
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 0
         OnChange = ModifiedClick
       end
@@ -370,7 +352,7 @@ object fmPrinter: TfmPrinter
         Width = 113
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
+        ItemHeight = 13
         TabOrder = 4
         OnChange = ModifiedClick
       end

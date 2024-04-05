@@ -73,7 +73,7 @@ end;
 procedure TCashOutReceipt.Print(AVisitor: TObject);
 begin
   if FIsVoided then Exit;
-  TWebkassaImpl(AVisitor).Print(Self);
+  TDatecsFiscalPrinter(AVisitor).Print(Self);
 end;
 
 function TCashOutReceipt.GetPayment: Currency;

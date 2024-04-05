@@ -15,7 +15,7 @@ uses
   gnugettext,
   // This
   OPOSDatecsLib_TLB, LogFile, WException, VersionInfo, DriverError,
-  DatecsPrinter, FiscalPrinterState, ServiceVersion,
+  DatecsPrinter2, FiscalPrinterState, ServiceVersion,
   PrinterParameters, PrinterParametersX,
   CustomReceipt, NonFiscalDoc, CashInReceipt, CashOutReceipt,
   SalesReceipt, TextDocument, ReceiptItem, StringUtils, DebugUtils, VatRate,
@@ -72,7 +72,6 @@ type
     FExternalCheckNumber: WideString;
     FCodePage: Integer;
 
-    procedure PrintLine(Text: WideString);
     function GetReceiptItemText(ReceiptItem: TSalesReceiptItem;
       Item: TTemplateItem): WideString;
     function ReceiptItemByText(ReceiptItem: TSalesReceiptItem;
@@ -80,14 +79,8 @@ type
     function ReceiptFieldByText(Receipt: TSalesReceipt;
       Item: TTemplateItem): WideString;
     procedure AddItems(Items: TList);
-    function ReadReceiptJson(ShiftNumber: Integer;
-      const CheckNumber: WideString): WideString;
     procedure BeginDocument(APrintHeader: boolean);
     procedure UpdateTemplateItem(Item: TTemplateItem);
-    procedure PrintBarcodeAsGraphics(Barcode: TBarcodeRec);
-    procedure PrintDocItem(Item: TDocItem);
-    procedure PtrPrintNormal(Station: Integer; const Data: WideString);
-    function RenderBarcodeRec(var Barcode: TBarcodeRec): AnsiString;
     procedure DioPrintBarcode(var pData: Integer; var pString: WideString);
     procedure DioPrintBarcodeHex(var pData: Integer;
       var pString: WideString);
@@ -95,8 +88,7 @@ type
       var pString: WideString);
     procedure DioGetDriverParameter(var pData: Integer;
       var pString: WideString);
-    procedure DioGetReceiptResponse(var pData: Integer;
-      var pString: WideString);
+    function CreatePrinter: TDatecsPrinter;
   public
     procedure PrintDocumentSafe(Document: TTextDocument);
     procedure CheckCanPrint;
@@ -104,26 +96,13 @@ type
     function AmountToStr(Value: Currency): AnsiString;
     function AmountToOutStr(Value: Currency): AnsiString;
     function AmountToStrEq(Value: Currency): AnsiString;
-    function ReadDailyTotal: Currency;
-    function ReadRefundTotal: Currency;
-    function ReadSellTotal: Currency;
-    procedure CutPaper;
-    procedure ClearCashboxStatus;
-    procedure PrintText(Prefix, Text: WideString; RecLineChars: Integer);
-    procedure PrintTextLine(Prefix, Text: WideString;
-      RecLineChars: Integer);
     function CreateSerialPort: TSerialPort;
-    procedure PrintReceiptDuplicate(const pString: WideString);
-    procedure PrintReceiptDuplicate2(const pString: WideString);
   public
     procedure PrintReceiptTemplate(Receipt: TSalesReceipt; Template: TReceiptTemplate);
-    function GetJsonField(JsonText: WideString; const FieldName: WideString): Variant;
     function GetHeaderItemText(Receipt: TSalesReceipt; Item: TTemplateItem): WideString;
 
     procedure Initialize;
     procedure CheckEnabled;
-    function ReadGrossTotal: Currency;
-    function ReadGrandTotal: Currency;
     function IllegalError: Integer;
     procedure CheckState(AState: Integer);
     procedure SetPrinterState(Value: Integer);
@@ -134,19 +113,12 @@ type
     procedure Print(Receipt: TSalesReceipt); overload;
     function GetPrinterState: Integer;
     function DoRelease: Integer;
-    procedure UpdateUnits;
-    procedure UpdateCashiers;
-    procedure UpdateCashBoxes;
     procedure CheckCapSetVatTable;
-    procedure CheckPtr(AResultCode: Integer);
     function CreateReceipt(FiscalReceiptType: Integer): TCustomReceipt;
-    function GetUnitCode(const UnitName: WideString): Integer;
     procedure PrinterErrorEvent(ASender: TObject; ResultCode,
       ResultCodeExtended, ErrorLocus: Integer;
       var pErrorResponse: Integer);
-    procedure PrinterStatusUpdateEvent(ASender: TObject; Data: Integer);
     procedure PrintDocument(Document: TTextDocument);
-    procedure PrintXZReport(IsZReport: Boolean);
     function GetQuantity(Value: Integer): Double;
     procedure PrinterDirectIOEvent(ASender: TObject; EventNumber: Integer;
       var pData: Integer; var pString: WideString);
@@ -166,6 +138,9 @@ type
     FCheckTotal: Boolean;
     // boolean
     FDayOpened: Boolean;
+    FCapRecPresent: Boolean;
+    FCapJrnPresent: Boolean;
+    FCapSlpPresent: Boolean;
     FCapAdditionalLines: Boolean;
     FCapAmountAdjustment: Boolean;
     FCapAmountNotPaid: Boolean;
@@ -363,10 +338,8 @@ type
 
     function DecodeString(const Text: WideString): WideString;
     function EncodeString(const S: WideString): WideString;
-    procedure PrintQRCodeAsGraphics(const BarcodeData: AnsiString);
     function RenderQRCode(const BarcodeData: AnsiString): AnsiString;
     procedure PrintBarcode(const Barcode: string);
-    procedure PrintBarcode2(Barcode: TBarcodeRec);
 
     property Logger: ILogFile read FLogger;
     property Params: TPrinterParameters read FParams;
@@ -515,7 +488,6 @@ constructor TDatecsFiscalPrinter.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FLogger := TLogFile.Create;
-  FPrinter := TDatecsPrinter.Create;
   FDocument := TTextDocument.Create;
   FDuplicate := TTextDocument.Create;
   FReceipt := TCustomReceipt.Create;
@@ -621,7 +593,8 @@ begin
   try
     SetDeviceEnabled(False);
     OposDevice.ReleaseDevice;
-    Printer.ReleaseDevice;
+    Printer.Port.Close;
+
     Result := ClearResult;
   except
     on E: Exception do
@@ -772,8 +745,6 @@ begin
     CheckEnabled;
     CheckState(FPTR_PS_MONITOR);
     SetPrinterState(FPTR_PS_FISCAL_DOCUMENT);
-    Document.LineChars := Printer.RecLineChars;
-
     Result := ClearResult;
   except
     on E: Exception do
@@ -853,7 +824,7 @@ function TDatecsFiscalPrinter.CheckHealth(Level: Integer): Integer;
 begin
   try
     CheckEnabled;
-    CheckPtr(Printer.CheckHealth(Level));
+    { !!! }
     Result := ClearResult;
   except
     on E: Exception do
@@ -865,10 +836,8 @@ function TDatecsFiscalPrinter.Claim(Timeout: Integer): Integer;
 begin
   try
     FOposDevice.ClaimDevice(Timeout);
-    CheckPtr(Printer.ClaimDevice(Timeout));
     FParams.CheckPrameters;
-    ReadCashboxStatus;
-
+    Printer.Port.Open;
     Result := ClearResult;
   except
     on E: Exception do
@@ -890,7 +859,7 @@ function TDatecsFiscalPrinter.ClearOutput: Integer;
 begin
   try
     FOposDevice.CheckClaimed;
-    CheckPtr(Printer.ClearOutput);
+    { !!! }
     Result := ClearResult;
   except
     on E: Exception do
@@ -1005,14 +974,8 @@ procedure TDatecsFiscalPrinter.DioSetDriverParameter(var pData: Integer;
   var pString: WideString);
 begin
   case pData of
-    DriverParameterPrintEnabled: Params.PrintEnabled := StrToBool(pString);
     DriverParameterBarcode: Receipt.Barcode := pString;
-    DriverParameterExternalCheckNumber:
-    begin
-      if pString <> '' then
-        ExternalCheckNumber := pString;
-    end;
-    DriverParameterFiscalSign: Receipt.FiscalSign := pString;
+    DriverParameterPrintEnabled: Params.PrintEnabled := StrToBool(pString);
   end;
 end;
 
@@ -1020,97 +983,9 @@ procedure TDatecsFiscalPrinter.DioGetDriverParameter(var pData: Integer;
   var pString: WideString);
 begin
   case pData of
-    DriverParameterPrintEnabled: pString := BoolToStr(Params.PrintEnabled);
     DriverParameterBarcode: pString := Receipt.Barcode;
-    DriverParameterExternalCheckNumber: pString := ExternalCheckNumber;
-    DriverParameterFiscalSign: pString := Receipt.FiscalSign;
+    DriverParameterPrintEnabled: pString := BoolToStr(Params.PrintEnabled);
   end;
-end;
-
-procedure TDatecsFiscalPrinter.DioGetReceiptResponse(var pData: Integer;
-  var pString: WideString);
-begin
-  if AnsiCompareText(pString, 'CheckNumber') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.CheckNumber;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'DateTime') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.DateTime;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'OfflineMode') = 0 then
-  begin
-    pString := BoolToStr(FClient.SendReceiptCommand.Data.OfflineMode);
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'CashboxOfflineMode') = 0 then
-  begin
-    pString := BoolToStr(FClient.SendReceiptCommand.Data.CashboxOfflineMode);
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.UniqueNumber') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.UniqueNumber;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.RegistrationNumber') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.RegistrationNumber;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.IdentityNumber') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.IdentityNumber;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.Address') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.Address;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.Ofd.Code') = 0 then
-  begin
-    pString := IntToStr(FClient.SendReceiptCommand.Data.Cashbox.Ofd.Code);
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.Ofd.Host') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.Ofd.Host;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'Cashbox.Ofd.Name') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.Cashbox.Ofd.Name;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'CheckOrderNumber') = 0 then
-  begin
-    pString := IntToStr(FClient.SendReceiptCommand.Data.CheckOrderNumber);
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'ShiftNumber') = 0 then
-  begin
-    pString := IntToStr(FClient.SendReceiptCommand.Data.ShiftNumber);
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'EmployeeName') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.EmployeeName;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'TicketUrl') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.TicketUrl;
-    Exit;
-  end;
-  if AnsiCompareText(pString, 'TicketPrintUrl') = 0 then
-  begin
-    pString := FClient.SendReceiptCommand.Data.TicketPrintUrl;
-    Exit;
-  end;
-  RaiseIllegalError(Format('Receipt field "%s" not supported', [pString]));
 end;
 
 function TDatecsFiscalPrinter.DirectIO(Command: Integer; var pData: Integer;
@@ -1126,11 +1001,6 @@ begin
       DIO_PRINT_TRAILER: ;
       DIO_SET_DRIVER_PARAMETER: DioSetDriverParameter(pData, pString);
       DIO_GET_DRIVER_PARAMETER: DioGetDriverParameter(pData, pString);
-      DIO_PRINT_RECEIPT_DUPLICATE: PrintReceiptDuplicate2(pString);
-      DIO_GET_RECEIPT_RESPONSE_PARAM: DioGetReceiptResponse(pData, pString);
-      DIO_GET_RECEIPT_RESPONSE_FIELD: pString := GetJsonField(FClient.SendReceiptCommand.ResponseJson, pString);
-      DIO_GET_REQUEST_JSON_FIELD: pString := GetJsonField(FClient.CommandJson, pString);
-      DIO_GET_RESPONSE_JSON_FIELD: pString := GetJsonField(FClient.AnswerJson, pString);
     else
       if Receipt.IsOpened then
       begin
@@ -1170,7 +1040,6 @@ begin
       FDuplicateReceipt := False;
       FDuplicate.Assign(Document);
     end;
-    ClearCashboxStatus;
     SetPrinterState(FPTR_PS_MONITOR);
     Result := ClearResult;
   except
@@ -1230,105 +1099,6 @@ begin
   Result := FOposDevice.OpenResult;
 end;
 
-procedure TDatecsFiscalPrinter.ClearCashboxStatus;
-begin
-  FCashboxStatus.Free;
-  FCashboxStatus := nil;
-end;
-
-function TDatecsFiscalPrinter.ReadCashboxStatus: TlkJSONbase;
-var
-  Request: TCashboxRequest;
-begin
-  if FCashboxStatus = nil then
-  begin
-    Request := TCashboxRequest.Create;
-    try
-      Request.Token := Client.Token;
-      Request.CashboxUniqueNumber := Params.CashboxNumber;
-      Client.ReadCashboxStatus(Request);
-      FCashboxStatus := TlkJSON.ParseText(FClient.AnswerJson);
-    finally
-      Request.Free;
-    end;
-  end;
-  Result := FCashboxStatus;
-end;
-
-function TDatecsFiscalPrinter.ReadGrandTotal: Currency;
-begin
-  Result := ReadCashboxStatus.Get('Data').Get('CurrentState').Get(
-    'XReport').Get('SumInCashbox').Value;
-end;
-
-function TDatecsFiscalPrinter.ReadGrossTotal: Currency;
-var
-  Node: TlkJSONbase;
-begin
-  Node := ReadCashboxStatus.Get('Data').Get('CurrentState').Get('XReport').Get('StartNonNullable');
-  Result :=
-    Currency(Node.Get('Sell').Value) -
-    Currency(Node.Get('Buy').Value) -
-    Currency(Node.Get('ReturnSell').Value) +
-    Currency(Node.Get('ReturnBuy').Value);
-end;
-
-function TDatecsFiscalPrinter.ReadDailyTotal: Currency;
-var
-  Doc: TlkJSONbase;
-begin
-  Result := 0;
-  Doc := ReadCashboxStatus.Get('Data').Get('CurrentState').Get('XReport');
-  // Sell
-  Result :=  Result +
-    (Doc.Get('Sell').Get('Taken').Value -
-    Doc.Get('Sell').Get('Change').Value);
-  // Buy
-  Result :=  Result -
-    (Doc.Get('Buy').Get('Taken').Value -
-    Doc.Get('Buy').Get('Change').Value);
-  // ReturnSell
-  Result :=  Result -
-    (Doc.Get('ReturnSell').Get('Taken').Value -
-    Doc.Get('ReturnSell').Get('Change').Value);
-  // ReturnBuy
-  Result :=  Result +
-    (Doc.Get('ReturnBuy').Get('Taken').Value -
-    Doc.Get('ReturnBuy').Get('Change').Value);
-end;
-
-function TDatecsFiscalPrinter.ReadSellTotal: Currency;
-var
-  Doc: TlkJSONbase;
-begin
-  Result := 0;
-  Doc := ReadCashboxStatus.Get('Data').Get('CurrentState').Get('XReport');
-  // Sell
-  Result :=  Result +
-    (Doc.Get('Sell').Get('Taken').Value -
-    Doc.Get('Sell').Get('Change').Value);
-  // ReturnBuy
-  Result :=  Result +
-    (Doc.Get('ReturnBuy').Get('Taken').Value -
-    Doc.Get('ReturnBuy').Get('Change').Value);
-end;
-
-function TDatecsFiscalPrinter.ReadRefundTotal: Currency;
-var
-  Doc: TlkJSONbase;
-begin
-  Result := 0;
-  Doc := ReadCashboxStatus.Get('Data').Get('CurrentState').Get('XReport');
-  // Buy
-  Result :=  Result +
-    (Doc.Get('Buy').Get('Taken').Value -
-    Doc.Get('Buy').Get('Change').Value);
-  // ReturnSell
-  Result :=  Result +
-    (Doc.Get('ReturnSell').Get('Taken').Value -
-    Doc.Get('ReturnSell').Get('Change').Value);
-end;
-
 function TDatecsFiscalPrinter.GetData(DataItem: Integer; out OptArgs: Integer;
   out Data: WideString): Integer;
 var
@@ -1337,24 +1107,17 @@ begin
   try
     case DataItem of
       FPTR_GD_FIRMWARE: ;
-      FPTR_GD_PRINTER_ID: Data := Params.CashboxNumber;
+      FPTR_GD_PRINTER_ID: Data := ''; // Params.CashboxNumber; { !!! }
       FPTR_GD_CURRENT_TOTAL: Data := AmountToOutStr(Receipt.GetTotal());
-      FPTR_GD_DAILY_TOTAL: Data := AmountToOutStr(ReadDailyTotal);
-      FPTR_GD_GRAND_TOTAL: Data := AmountToOutStr(ReadGrandTotal);
+      FPTR_GD_DAILY_TOTAL: Data := ''; // AmountToOutStr(ReadDailyTotal); { !!! }
+      FPTR_GD_GRAND_TOTAL: Data := ''; // AmountToOutStr(ReadGrandTotal);
       FPTR_GD_MID_VOID: Data := AmountToOutStr(0);
       FPTR_GD_NOT_PAID: Data := AmountToOutStr(0);
       FPTR_GD_RECEIPT_NUMBER: Data := FCheckNumber;
-      FPTR_GD_REFUND: Data := AmountToOutStr(ReadRefundTotal);
+      FPTR_GD_REFUND: Data := ''; // AmountToOutStr(ReadRefundTotal); { !!! }
       FPTR_GD_REFUND_VOID: Data := AmountToOutStr(0);
-      FPTR_GD_Z_REPORT:
-      begin
-        ZReportNumber := ReadCashboxStatus.Get('Data').Get(
-          'CurrentState').Get('ShiftNumber').Value;
-        if ZReportNumber > 0 then
-          ZReportNumber := ZReportNumber - 1;
-        Data := IntToStr(ZReportNumber);
-      end;
-      FPTR_GD_FISCAL_REC: Data := AmountToOutStr(ReadSellTotal);
+      FPTR_GD_Z_REPORT:; { !!! }
+      FPTR_GD_FISCAL_REC: Data := ''; // AmountToOutStr(ReadSellTotal); { !!! }
       FPTR_GD_FISCAL_DOC,
       FPTR_GD_FISCAL_DOC_VOID,
       FPTR_GD_FISCAL_REC_VOID,
@@ -1366,7 +1129,7 @@ begin
       FPTR_GD_TENDER,
       FPTR_GD_LINECOUNT:
         Data := AmountToStr(0);
-      FPTR_GD_DESCRIPTION_LENGTH: Data := IntToStr(Printer.RecLineChars);
+      FPTR_GD_DESCRIPTION_LENGTH: Data := IntToStr(0); { !!! }
     else
       InvalidParameterValue('DataItem', IntToStr(DataItem));
     end;
@@ -1375,8 +1138,6 @@ begin
     on E: Exception do
       Result := HandleException(E);
   end;
-  Printer.CapStatisticsReporting
-
 end;
 
 function TDatecsFiscalPrinter.GetDate(out Date: WideString): Integer;
@@ -1434,29 +1195,29 @@ begin
       PIDXFptr_AsyncMode              : Result := BoolToInt[FAsyncMode];
       PIDXFptr_CheckTotal             : Result := BoolToInt[FCheckTotal];
       PIDXFptr_CountryCode            : Result := FCountryCode;
-      PIDXFptr_CoverOpen              : Result := BoolToInt[Printer.CoverOpen];
+      PIDXFptr_CoverOpen              : Result := 0; // BoolToInt[Printer.CoverOpen]; { !!! }
       PIDXFptr_DayOpened              : Result := BoolToInt[FDayOpened];
-      PIDXFptr_DescriptionLength      : Result := Printer.RecLineChars;
+      PIDXFptr_DescriptionLength      : Result := 0; { !!! }
       PIDXFptr_DuplicateReceipt       : Result := BoolToInt[FDuplicateReceipt];
       PIDXFptr_ErrorLevel             : Result := FErrorLevel;
       PIDXFptr_ErrorOutID             : Result := FErrorOutID;
       PIDXFptr_ErrorState             : Result := FErrorState;
       PIDXFptr_ErrorStation           : Result := FErrorStation;
       PIDXFptr_FlagWhenIdle           : Result := BoolToInt[FFlagWhenIdle];
-      PIDXFptr_JrnEmpty               : Result := BoolToInt[Printer.JrnEmpty];
-      PIDXFptr_JrnNearEnd             : Result := BoolToInt[Printer.JrnNearEnd];
-      PIDXFptr_MessageLength          : Result := Printer.RecLineChars;
+      PIDXFptr_JrnEmpty               : Result := 0; // BoolToInt[Printer.JrnEmpty];
+      PIDXFptr_JrnNearEnd             : Result := 0; // BoolToInt[Printer.JrnNearEnd];
+      PIDXFptr_MessageLength          : Result := 0; // Printer.RecLineChars;
       PIDXFptr_NumHeaderLines         : Result := FParams.NumHeaderLines;
       PIDXFptr_NumTrailerLines        : Result := FParams.NumTrailerLines;
       PIDXFptr_NumVatRates            : Result := FParams.VatRates.Count;
       PIDXFptr_PrinterState           : Result := FPrinterState.State;
       PIDXFptr_QuantityDecimalPlaces  : Result := FQuantityDecimalPlaces;
       PIDXFptr_QuantityLength         : Result := FQuantityLength;
-      PIDXFptr_RecEmpty               : Result := BoolToInt[Printer.RecEmpty];
-      PIDXFptr_RecNearEnd             : Result := BoolToInt[Printer.RecNearEnd];
+      PIDXFptr_RecEmpty               : Result := 0; // BoolToInt[Printer.RecEmpty];
+      PIDXFptr_RecNearEnd             : Result := 0; // BoolToInt[Printer.RecNearEnd];
       PIDXFptr_RemainingFiscalMemory  : Result := FRemainingFiscalMemory;
-      PIDXFptr_SlpEmpty               : Result := BoolToInt[Printer.SlpEmpty];
-      PIDXFptr_SlpNearEnd             : Result := BoolToInt[Printer.SlpNearEnd];
+      PIDXFptr_SlpEmpty               : Result := 0; // BoolToInt[Printer.SlpEmpty];
+      PIDXFptr_SlpNearEnd             : Result := 0; // BoolToInt[Printer.SlpNearEnd];
       PIDXFptr_SlipSelection          : Result := FSlipSelection;
       PIDXFptr_TrainingModeActive     : Result := BoolToInt[False];
       PIDXFptr_ActualCurrency         : Result := FActualCurrency;
@@ -1470,16 +1231,16 @@ begin
       PIDXFptr_CapAmountAdjustment        : Result := BoolToInt[FCapAmountAdjustment];
       PIDXFptr_CapAmountNotPaid           : Result := BoolToInt[FCapAmountNotPaid];
       PIDXFptr_CapCheckTotal              : Result := BoolToInt[FCapCheckTotal];
-      PIDXFptr_CapCoverSensor             : Result := BoolToInt[Printer.CapCoverSensor];
+      PIDXFptr_CapCoverSensor             : Result := 0; //BoolToInt[Printer.CapCoverSensor];
       PIDXFptr_CapDoubleWidth             : Result := BoolToInt[FCapDoubleWidth];
       PIDXFptr_CapDuplicateReceipt        : Result := BoolToInt[FCapDuplicateReceipt];
       PIDXFptr_CapFixedOutput             : Result := BoolToInt[FCapFixedOutput];
       PIDXFptr_CapHasVatTable             : Result := BoolToInt[FCapHasVatTable];
       PIDXFptr_CapIndependentHeader       : Result := BoolToInt[FCapIndependentHeader];
       PIDXFptr_CapItemList                : Result := BoolToInt[FCapItemList];
-      PIDXFptr_CapJrnEmptySensor          : Result := BoolToInt[Printer.CapJrnEmptySensor];
-      PIDXFptr_CapJrnNearEndSensor        : Result := BoolToInt[Printer.CapJrnNearEndSensor];
-      PIDXFptr_CapJrnPresent              : Result := BoolToInt[Printer.CapJrnPresent];
+      PIDXFptr_CapJrnEmptySensor          : Result := 0; // BoolToInt[Printer.CapJrnEmptySensor];
+      PIDXFptr_CapJrnNearEndSensor        : Result := 0; // BoolToInt[Printer.CapJrnNearEndSensor];
+      PIDXFptr_CapJrnPresent              : Result := 0; // BoolToInt[Printer.CapJrnPresent];
       PIDXFptr_CapNonFiscalMode           : Result := BoolToInt[FCapNonFiscalMode];
       PIDXFptr_CapOrderAdjustmentFirst    : Result := BoolToInt[FCapOrderAdjustmentFirst];
       PIDXFptr_CapPercentAdjustment       : Result := BoolToInt[FCapPercentAdjustment];
@@ -1487,9 +1248,9 @@ begin
       PIDXFptr_CapPowerLossReport         : Result := BoolToInt[FCapPowerLossReport];
       PIDXFptr_CapPredefinedPaymentLines  : Result := BoolToInt[FCapPredefinedPaymentLines];
       PIDXFptr_CapReceiptNotPaid          : Result := BoolToInt[FCapReceiptNotPaid];
-      PIDXFptr_CapRecEmptySensor          : Result := BoolToInt[Printer.CapRecEmptySensor];
-      PIDXFptr_CapRecNearEndSensor        : Result := BoolToInt[Printer.CapRecNearEndSensor];
-      PIDXFptr_CapRecPresent              : Result := BoolToInt[Printer.CapRecPresent];
+      PIDXFptr_CapRecEmptySensor          : Result := 0; // BoolToInt[Printer.CapRecEmptySensor];
+      PIDXFptr_CapRecNearEndSensor        : Result := 0; // BoolToInt[Printer.CapRecNearEndSensor];
+      PIDXFptr_CapRecPresent              : Result := BoolToInt[FCapRecPresent];
       PIDXFptr_CapRemainingFiscalMemory   : Result := BoolToInt[FCapRemainingFiscalMemory];
       PIDXFptr_CapReservedWord            : Result := BoolToInt[FCapReservedWord];
       PIDXFptr_CapSetHeader               : Result := BoolToInt[FCapSetHeader];
@@ -1497,11 +1258,11 @@ begin
       PIDXFptr_CapSetStoreFiscalID        : Result := BoolToInt[FCapSetStoreFiscalID];
       PIDXFptr_CapSetTrailer              : Result := BoolToInt[FCapSetTrailer];
       PIDXFptr_CapSetVatTable             : Result := BoolToInt[FCapSetVatTable];
-      PIDXFptr_CapSlpEmptySensor          : Result := BoolToInt[Printer.CapSlpEmptySensor];
+      PIDXFptr_CapSlpEmptySensor          : Result := 0; // BoolToInt[Printer.CapSlpEmptySensor];
       PIDXFptr_CapSlpFiscalDocument       : Result := BoolToInt[FCapSlpFiscalDocument];
       PIDXFptr_CapSlpFullSlip             : Result := BoolToInt[FCapSlpFullSlip];
-      PIDXFptr_CapSlpNearEndSensor        : Result := BoolToInt[Printer.CapSlpNearEndSensor];
-      PIDXFptr_CapSlpPresent              : Result := BoolToInt[Printer.CapSlpPresent];
+      PIDXFptr_CapSlpNearEndSensor        : Result := 0; // BoolToInt[Printer.CapSlpNearEndSensor];
+      PIDXFptr_CapSlpPresent              : Result := 0; // BoolToInt[Printer.CapSlpPresent];
       PIDXFptr_CapSlpValidation           : Result := BoolToInt[FCapSlpValidation];
       PIDXFptr_CapSubAmountAdjustment     : Result := BoolToInt[FCapSubAmountAdjustment];
       PIDXFptr_CapSubPercentAdjustment    : Result := BoolToInt[FCapSubPercentAdjustment];
@@ -1564,9 +1325,9 @@ function TDatecsFiscalPrinter.GetTotalizer(VatID, OptArgs: Integer;
     Result := 0;
     case OptArgs of
       FPTR_TT_DOCUMENT: Result := 0;
-      FPTR_TT_DAY: Result := ReadDailyTotal;
+      FPTR_TT_DAY: Result := 0; // ReadDailyTotal; { !!! }
       FPTR_TT_RECEIPT: Result := Receipt.GetTotal;
-      FPTR_TT_GRAND: Result := ReadGrandTotal;
+      FPTR_TT_GRAND: Result := 0; // ReadGrandTotal; { !!! }
     else
       RaiseIllegalError(Format('OptArgs value not supported, %d', [OptArgs]));
     end;
@@ -1961,8 +1722,6 @@ begin
       1: PaymentType := Params.PaymentType2;
       2: PaymentType := Params.PaymentType3;
       3: PaymentType := Params.PaymentType4;
-    else
-      PaymentType := PaymentTypeCash;
     end;
 
     FReceipt.PrintRecTotal(Total, Payment, IntToStr(PaymentType));
@@ -2026,7 +1785,8 @@ begin
     CheckState(FPTR_PS_MONITOR);
     SetPrinterState(FPTR_PS_REPORT);
     try
-      PrintXZReport(False);
+      Printer.Check(Printer.XReport.ResultCode);
+      Printer.WaitWhilePrintEnd;
     finally
       SetPrinterState(FPTR_PS_MONITOR);
     end;
@@ -2037,161 +1797,14 @@ begin
   end;
 end;
 
-procedure TDatecsFiscalPrinter.PrintXZReport(IsZReport: Boolean);
-var
-  i: Integer;
-  Line1: WideString;
-  Line2: WideString;
-  Text: WideString;
-  Total: Currency;
-  Separator: WideString;
-  Command: TZXReportCommand;
-
-  Doc: TlkJSONbase;
-  Node: TlkJSONbase;
-  Count: Integer;
-  Amount: Currency;
-  SellNode: TlkJSONbase;
-  OperationsNode: TlkJSONbase;
-begin
-  CheckCanPrint;
-
-  Command := TZXReportCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    if IsZReport then
-      FClient.ZReport(Command)
-    else
-      FClient.XReport(Command);
-
-    ClearCashboxStatus;
-    Doc := TlkJSON.ParseText(FClient.AnswerJson);
-
-    Total :=
-      (Command.Data.EndNonNullable.Sell - Command.Data.StartNonNullable.Sell) -
-      (Command.Data.EndNonNullable.Buy - Command.Data.StartNonNullable.Buy) -
-      (Command.Data.EndNonNullable.ReturnSell - Command.Data.StartNonNullable.ReturnSell) +
-      (Command.Data.EndNonNullable.ReturnBuy - Command.Data.StartNonNullable.ReturnBuy);
-
-    BeginDocument(True);
-    Separator := StringOfChar('-', Document.LineChars);
-    Document.AddLines('»ÕÕ/¡»Õ', Command.Data.CashboxRN);
-    Document.AddLines('«ÕÃ', Command.Data.CashboxSN);
-    Document.AddLines(' Ó‰   Ã  √ƒ (–ÕÃ)', Command.Data.CashboxRN);
-    if IsZReport then
-      Document.AddLine(Document.AlignCenter('Z-Œ“◊≈“'))
-    else
-      Document.AddLine(Document.AlignCenter('X-Œ“◊≈“'));
-    Document.AddLine(Document.AlignCenter(Format('—Ã≈Õ¿ π%d', [Command.Data.ShiftNumber])));
-    Document.AddLine(Document.AlignCenter(Format('%s-%s', [Command.Data.StartOn, Command.Data.ReportOn])));
-    Node := Doc.Get('Data').Get('Sections');
-    if Node.Count > 0 then
-    begin
-      Document.AddLine(Separator);
-      Document.AddLine(Document.AlignCenter('Œ“◊≈“ œŒ —≈ ÷»ﬂÃ'));
-      Document.AddLine(Separator);
-      for i := 0 to Node.Count-1 do
-      begin
-        Count := Node.Child[i].Get('Code').Value;
-        Document.AddLines('—≈ ÷»ﬂ', IntToStr(Count + 1));
-        OperationsNode := Node.Child[i].Field['Operations'];
-        if OperationsNode <> nil then
-        begin
-          SellNode := OperationsNode.Field['Sell'];
-          if SellNode <> nil then
-          begin
-            Count := SellNode.Get('Count').Value;
-            Amount := SellNode.Get('Amount').Value;
-            Document.AddLines(Format('%.4d œ–Œƒ¿∆', [Count]), AmountToStr(Amount));
-          end;
-        end;
-      end;
-    end;
-    Document.AddLine(Separator);
-    if IsZReport then
-      Document.AddLine(Document.AlignCenter('Œ“◊≈“ — √¿ÿ≈Õ»≈Ã'))
-    else
-      Document.AddLine(Document.AlignCenter('Œ“◊≈“ ¡≈« √¿ÿ≈Õ»ﬂ'));
-    Document.AddLine(Separator);
-    Document.AddLine('Õ≈Œ¡Õ”À. —”ÃÃ€ Õ¿ Õ¿◊¿ÀŒ —Ã≈Õ€');
-    Document.AddLines('œ–Œƒ¿∆', AmountToStr(Command.Data.StartNonNullable.Sell));
-    Document.AddLines('œŒ ”œŒ ', AmountToStr(Command.Data.StartNonNullable.Buy));
-    Document.AddLines('¬Œ«¬–¿“Œ¬ œ–Œƒ¿∆', AmountToStr(Command.Data.StartNonNullable.ReturnSell));
-    Document.AddLines('¬Œ«¬–¿“Œ¬ œŒ ”œŒ ', AmountToStr(Command.Data.StartNonNullable.ReturnBuy));
-
-    Document.AddLine('◊≈ Œ¬ œ–Œƒ¿∆');
-    Line1 := Format('%.4d', [Command.Data.Sell.Count]);
-    Line2 := AmountToStr(Total);
-    Text := Line1 + StringOfChar(' ', (Document.LineChars div 2)-Length(Line1)-Length(Line2)) + Line2;
-    Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-    AddPayments(Document, Command.Data.Sell.PaymentsByTypesApiModel);
-
-    Document.AddLine('◊≈ Œ¬ œŒ ”œŒ ');
-    Line1 := Format('%.4d', [Command.Data.Buy.Count]);
-    Line2 := AmountToStr(Command.Data.Buy.Taken);
-    Text := Line1 + StringOfChar(' ', (Document.LineChars div 2)-Length(Line1)-Length(Line2)) + Line2;
-    Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-    AddPayments(Document, Command.Data.Buy.PaymentsByTypesApiModel);
-
-    Document.AddLine('◊≈ Œ¬ ¬Œ«¬–¿“Œ¬ œ–Œƒ¿∆');
-    Line1 := Format('%.4d', [Command.Data.ReturnSell.Count]);
-    Line2 := AmountToStr(Command.Data.ReturnSell.Taken);
-    Text := Line1 + StringOfChar(' ', (Document.LineChars div 2)-Length(Line1)-Length(Line2)) + Line2;
-    Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-    AddPayments(Document, Command.Data.ReturnSell.PaymentsByTypesApiModel);
-
-    Document.AddLine('◊≈ Œ¬ ¬Œ«¬–¿“Œ¬ œŒ ”œŒ ');
-    Line1 := Format('%.4d', [Command.Data.ReturnBuy.Count]);
-    Line2 := AmountToStr(Command.Data.ReturnBuy.Taken);
-    Text := Line1 + StringOfChar(' ', (Document.LineChars div 2)-Length(Line1)-Length(Line2)) + Line2;
-    Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-    AddPayments(Document, Command.Data.ReturnBuy.PaymentsByTypesApiModel);
-
-    Document.AddLine('¬Õ≈—≈Õ»…');
-    Node := Doc.Get('Data').Get('MoneyPlacementOperations').Get('Deposit');
-    Count := Node.Get('Count').Value;
-    Amount := Node.Get('Amount').Value;
-    Document.AddLines(Format('%.4d', [Count]), AmountToStr(Amount));
-    Document.AddLine('»«⁄ﬂ“»…');
-    Node := Doc.Get('Data').Get('MoneyPlacementOperations').Get('WithDrawal');
-    Count := Node.Get('Count').Value;
-    Amount := Node.Get('Amount').Value;
-    Document.AddLines(Format('%.4d', [Count]), AmountToStr(Amount));
-
-    Document.AddLines('Õ¿À»◊Õ€’ ¬  ¿——≈', AmountToStr(Command.Data.SumInCashbox));
-    Document.AddLines('¬€–”◊ ¿', AmountToStr(Total));
-    Document.AddLine('Õ≈Œ¡Õ”À. —”ÃÃ€ Õ¿  ŒÕ≈÷ —Ã≈Õ€');
-    Document.AddLines('œ–Œƒ¿∆', AmountToStr(Command.Data.EndNonNullable.Sell));
-    Document.AddLines('œŒ ”œŒ ', AmountToStr(Command.Data.EndNonNullable.Buy));
-    Document.AddLines('¬Œ«¬–¿“Œ¬ œ–Œƒ¿∆', AmountToStr(Command.Data.EndNonNullable.ReturnSell));
-    Document.AddLines('¬Œ«¬–¿“Œ¬ œŒ ”œŒ ', AmountToStr(Command.Data.EndNonNullable.ReturnBuy));
-    Document.AddLines('—‘ÓÏËÓ‚‡ÌÓ Œ‘ƒ: ', Command.Data.Ofd.Name);
-    PrintDocumentSafe(Document);
-  finally
-    Command.Free;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.AddPayments(Document: TTextDocument; Payments: TPaymentsByType);
-var
-  i: Integer;
-  Payment: TPaymentByType;
-begin
-  for i := 0 to Payments.Count-1 do
-  begin
-    Payment := Payments[i];
-    Document.AddLines(GetPaymentName(Payment._Type), AmountToStr(Payment.Sum));
-  end;
-end;
-
 function TDatecsFiscalPrinter.PrintZReport: Integer;
 begin
   try
     CheckState(FPTR_PS_MONITOR);
     SetPrinterState(FPTR_PS_REPORT);
     try
-      PrintXZReport(True);
+      Printer.Check(Printer.ZReport.ResultCode);
+      Printer.WaitWhilePrintEnd;
     finally
       SetPrinterState(FPTR_PS_MONITOR);
     end;
@@ -2272,8 +1885,8 @@ begin
       raiseIllegalError('Invalid line number');
 
     LineText := Text;
-    if DoubleWidth then
-      LineText := ESC_DoubleWide + LineText;
+    //if DoubleWidth then
+    //  LineText := ESC_DoubleWide + LineText;
 
     FParams.Header[LineNumber-1] := LineText;
     SaveUsrParameters(FParams, FOposDevice.DeviceName, FLogger);
@@ -2307,20 +1920,20 @@ begin
       PIDX_PowerNotify:
       begin
         FOposDevice.PowerNotify := Number;
-        Printer.PowerNotify := Number;
+        //Printer.PowerNotify := Number; { !!! }
       end;
 
       PIDX_BinaryConversion:
       begin
         FOposDevice.BinaryConversion := Number;
-        Printer.BinaryConversion := Number;
+        //Printer.BinaryConversion := Number; { !!! }
       end;
 
       // Specific
       PIDXFptr_AsyncMode:
       begin
         FAsyncMode := IntToBool(Number);
-        Printer.AsyncMode := IntToBool(Number);
+        //Printer.AsyncMode := IntToBool(Number); { !!! }
       end;
 
       PIDXFptr_CheckTotal: FCheckTotal := IntToBool(Number);
@@ -2336,7 +1949,7 @@ begin
       PIDXFptr_FlagWhenIdle:
       begin
         FFlagWhenIdle := IntToBool(Number);
-        Printer.FlagWhenIdle  := IntToBool(Number);
+        //Printer.FlagWhenIdle  := IntToBool(Number); { !!! }
       end;
       PIDXFptr_MessageType:
         FMessageType := Number;
@@ -2347,7 +1960,7 @@ begin
       PIDX_FreezeEvents:
       begin
         FOposDevice.FreezeEvents := Number <> 0;
-        Printer.FreezeEvents := Number <> 0;
+        //Printer.FreezeEvents := Number <> 0; { !!! }
       end;
     end;
 
@@ -2399,8 +2012,8 @@ begin
       raiseIllegalError('Invalid line number');
 
     LineText := Text;
-    if DoubleWidth then
-      LineText := ESC_DoubleWide + LineText;
+    //if DoubleWidth then
+    //  LineText := ESC_DoubleWide + LineText;
 
     Params.Trailer[LineNumber-1] := LineText;
     SaveUsrParameters(FParams, FOposDevice.DeviceName, FLogger);
@@ -2482,26 +2095,6 @@ begin
   Result := IllegalError;
 end;
 
-procedure TDatecsFiscalPrinter.CheckPtr(AResultCode: Integer);
-begin
-  if AResultCode <> OPOS_SUCCESS then
-  begin
-    raise EOPOSException.Create(Printer.ErrorString,
-      Printer.ResultCode, Printer.ResultCodeExtended);
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrinterStatusUpdateEvent(ASender: TObject; Data: Integer);
-begin
-  Logger.Debug(Format('StatusUpdateEvent: %d, %s', [
-    Data, PtrStatusUpdateEventText(Data)]));
-
-  if IsValidOposStatusUpdateEvent(Data) or IsValidFptrStatusUpdateEvent(Data) then
-  begin
-    OposDevice.StatusUpdateEvent(Data);
-  end;
-end;
-
 procedure TDatecsFiscalPrinter.PrinterErrorEvent(ASender: TObject; ResultCode: Integer;
   ResultCodeExtended: Integer; ErrorLocus: Integer; var pErrorResponse: Integer);
 begin
@@ -2537,23 +2130,12 @@ begin
     Logger.FilePath := FParams.LogFilePath;
     Logger.DeviceName := DeviceName;
 
-    FClient.Login := FParams.Login;
-    FClient.Password := FParams.Password;
-    FClient.ConnectTimeout := FParams.ConnectTimeout;
-    FClient.Address := FParams.WebkassaAddress;
-    FClient.CashboxNumber := FParams.CashboxNumber;
-    FClient.RegKeyName := TPrinterParametersReg.GetUsrKeyName(DeviceName);
-    if FLoadParamsEnabled then
-    begin
-      FClient.LoadParams;
-    end;
-
     if FPrinter = nil then
     begin
-      FPrinter := CreatePrinter;
+      //FPrinter := TDatecsPrinter.Create(FLogger, FPort); { !!! }
     end;
-    CheckPtr(Printer.Open(FParams.PrinterName));
-    FOposDevice.CapPowerReporting := Printer.CapPowerReporting;
+    // (FParams.PrinterName))
+    Printer.Port.Open;
 
     Logger.Debug(Logger.Separator);
     Logger.Debug('LOG START');
@@ -2576,78 +2158,26 @@ begin
   end;
 end;
 
-function TDatecsFiscalPrinter.CreatePrinter: IOPOSPOSPrinter;
-var
-  POSPrinter: TOPOSPOSPrinter;
-  PosWinPrinter: TPosWinPrinter;
-  PosEscPrinter: TPosEscPrinter;
-  PrinterPort: IPrinterPort;
-  SocketParams: TSocketParams;
+function TDatecsFiscalPrinter.CreatePrinter: TDatecsPrinter;
 begin
-  FPrinterObj.Free;
+(*
   case Params.PrinterType of
-    PrinterTypePosPrinter:
+    PrinterTypeSerial:
     begin
-      PosPrinter := TOPOSPOSPrinter.Create(nil);
-      PosPrinter.OnStatusUpdateEvent := PrinterStatusUpdateEvent;
-      PosPrinter.OnErrorEvent := PrinterErrorEvent;
-      PosPrinter.OnDirectIOEvent := PrinterDirectIOEvent;
-      PosPrinter.OnOutputCompleteEvent := PrinterOutputCompleteEvent;
-      FPrinterLog := TPosPrinterLog.Create2(nil, PosPrinter.ControlInterface, Logger);
-      FPrinterObj := FPrinterLog;
-      Result := FPrinterLog;
+      Result := TDatecsPrinter.Create;
     end;
-    PrinterTypeWinPrinter:
+    PrinterTypeNetwork:
     begin
-      PosWinPrinter := TPosWinPrinter.Create2(nil, Logger);
-      PosWinPrinter.FontName := Params.FontName;
-      FPrinterObj := PosWinPrinter;
-      Result := PosWinPrinter;
+      Result := TDatecsPrinter.Create;
     end;
-    PrinterTypeEscPrinterSerial:
+    PrinterTypeJson:
     begin
-      PrinterPort := CreateSerialPort;
-      PosEscPrinter := TPosEscPrinter.Create2(nil, PrinterPort, Logger);
-      PosEscPrinter.OnStatusUpdateEvent := PrinterStatusUpdateEvent;
-      PosEscPrinter.OnErrorEvent := PrinterErrorEvent;
-      PosEscPrinter.OnDirectIOEvent := PrinterDirectIOEvent;
-      PosEscPrinter.OnOutputCompleteEvent := PrinterOutputCompleteEvent;
-      PosEscPrinter.FontName := Params.FontName;
-      PosEscPrinter.DevicePollTime := Params.DevicePollTime;
-      FPrinterObj := PosEscPrinter;
-      Result := PosEscPrinter;
+      Result := TDatecsPrinter.Create;
     end;
-    PrinterTypeEscPrinterNetwork:
-    begin
-      SocketParams.RemoteHost := Params.RemoteHost;
-      SocketParams.RemotePort := Params.RemotePort;
-      SocketParams.ByteTimeout := Params.ByteTimeout;
-      SocketParams.MaxRetryCount := 1;
-      PrinterPort := TSocketPort.Create(SocketParams, Logger);
-      PosEscPrinter := TPosEscPrinter.Create2(nil, PrinterPort, Logger);
-      PosEscPrinter.OnStatusUpdateEvent := PrinterStatusUpdateEvent;
-      PosEscPrinter.OnErrorEvent := PrinterErrorEvent;
-      PosEscPrinter.OnDirectIOEvent := PrinterDirectIOEvent;
-      PosEscPrinter.OnOutputCompleteEvent := PrinterOutputCompleteEvent;
-      PosEscPrinter.FontName := Params.FontName;
-      PosEscPrinter.DevicePollTime := Params.DevicePollTime;
-      FPrinterObj := PosEscPrinter;
-      Result := PosEscPrinter;
-    end;
-    PrinterTypeEscPrinterWindows:
-    begin
-      PrinterPort := TRawPrinterPort.Create(Logger, Params.PrinterName);
-      PosEscPrinter := TPosEscPrinter.Create2(nil, PrinterPort, Logger);
-      PosEscPrinter.OnStatusUpdateEvent := PrinterStatusUpdateEvent;
-      PosEscPrinter.OnErrorEvent := PrinterErrorEvent;
-      PosEscPrinter.OnDirectIOEvent := PrinterDirectIOEvent;
-      PosEscPrinter.OnOutputCompleteEvent := PrinterOutputCompleteEvent;
-      PosEscPrinter.FontName := Params.FontName;
-      PosEscPrinter.DevicePollTime := Params.DevicePollTime;
-      FPrinterObj := PosEscPrinter;
-      Result := PosEscPrinter;
-    end;
+  else
+    raise Exception.Create('Invalid PrinterType value');
   end;
+*)  
 end;
 
 function TDatecsFiscalPrinter.CreateSerialPort: TSerialPort;
@@ -2673,7 +2203,7 @@ begin
 
     SetDeviceEnabled(False);
     FOposDevice.Close;
-    Printer.Close;
+    Printer.Port.Close;
     Result := ClearResult;
   except
     on E: Exception do
@@ -2751,39 +2281,10 @@ begin
   begin
     if Value then
     begin
-      Printer.DeviceEnabled := True;
-      CheckPtr(Printer.ResultCode);
-
-      CharacterSetList := Printer.CharacterSetList;
-      if IsCharacterSetSupported(CharacterSetList, PTR_CS_UNICODE) then
-      begin
-        Printer.CharacterSet := PTR_CS_UNICODE;
-      end else
-      begin
-        if IsCharacterSetSupported(CharacterSetList, PTR_CS_WINDOWS) then
-          Printer.CharacterSet := PTR_CS_WINDOWS;
-      end;
-
-      FPtrMapCharacterSet := Printer.CapMapCharacterSet;
-      if FPtrMapCharacterSet then
-        Printer.MapCharacterSet := True;
-
-      if Params.RecLineChars <> 0 then
-      begin
-        Printer.RecLineChars := Params.RecLineChars;
-      end;
-      if Params.LineSpacing >= 0 then
-      begin
-        Printer.RecLineSpacing := Params.LineSpacing;
-      end;
-      if Params.RecLineHeight <> 0 then
-      begin
-        Printer.RecLineHeight := Params.RecLineHeight;
-      end;
+      { !!! }
     end else
     begin
-      FClient.Disconnect;
-      Printer.DeviceEnabled := False;
+      //Printer.Disconnect; { !!! }
     end;
     FDeviceEnabled := Value;
     FOposDevice.DeviceEnabled := Value;
@@ -2804,148 +2305,13 @@ begin
 end;
 
 procedure TDatecsFiscalPrinter.Print(Receipt: TCashInReceipt);
-var
-  Command: TMoneyOperationCommand;
 begin
-  Command := TMoneyOperationCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.OperationType := OperationTypeCashIn;
-    Command.Request.Sum := Receipt.GetTotal;
-    Command.Request.ExternalCheckNumber := FExternalCheckNumber;
-    FClient.Execute(Command);
-    // Create Document
-    Document.AddLine('¡»Õ ' + Command.Data.Cashbox.RegistrationNumber);
-    Document.AddLine(Format('«ÕÃ %s »Õ  Œ‘ƒ %s', [Command.Data.Cashbox.UniqueNumber,
-      Command.Data.Cashbox.IdentityNumber]));
-    Document.AddLine('ƒ‡Ú‡: ' + Command.Data.DateTime);
-    Document.AddText(Receipt.Lines.Text);
-    Document.AddLines('¬Õ≈—≈Õ»≈ ƒ≈Õ≈√ ¬  ¿——”', AmountToStrEq(Receipt.GetTotal), STYLE_BOLD);
-    Document.AddLines('Õ¿À»◊Õ€’ ¬  ¿——≈', AmountToStrEq(Command.Data.Sum), STYLE_BOLD);
-    Document.AddText(Receipt.Trailer.Text);
-    // Print
-    PrintDocumentSafe(Document);
-  finally
-    Command.Free;
-  end;
+  { !!! }
 end;
 
 procedure TDatecsFiscalPrinter.Print(Receipt: TCashOutReceipt);
-var
-  Command: TMoneyOperationCommand;
 begin
-  Command := TMoneyOperationCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.OperationType := OperationTypeCashOut;
-    Command.Request.Sum := Receipt.GetTotal;
-    Command.Request.ExternalCheckNumber := FExternalCheckNumber;
-    FClient.Execute(Command);
-    //
-    Document.AddLine('¡»Õ ' + Command.Data.Cashbox.RegistrationNumber);
-    Document.AddLine(Format('«ÕÃ %s »Õ  Œ‘ƒ %s', [Command.Data.Cashbox.UniqueNumber,
-      Command.Data.Cashbox.IdentityNumber]));
-    Document.AddLine('ƒ‡Ú‡: ' + Command.Data.DateTime);
-    Document.AddText(Receipt.Lines.Text);
-    Document.AddLines('»«⁄ﬂ“»≈ ƒ≈Õ≈√ »«  ¿——€', AmountToStrEq(Receipt.GetTotal), STYLE_BOLD);
-    Document.AddLines('Õ¿À»◊Õ€’ ¬  ¿——≈', AmountToStrEq(Command.Data.Sum), STYLE_BOLD);
-    Document.AddText(Receipt.Trailer.Text);
-    // print
-    PrintDocumentSafe(Document);
-  finally
-    Command.Free;
-  end;
-end;
-
-function TDatecsFiscalPrinter.GetUnitCode(const UnitName: WideString): Integer;
-var
-  i: Integer;
-  Item: TUnitItem;
-begin
-  UpdateUnits;
-
-  Result := 0;
-  for i := 0 to FUnits.Count-1 do
-  begin
-    Item := FUnits.Items[i] as TUnitItem;
-    if AnsiCompareText(UnitName, Item.NameRu) = 0 then
-    begin
-      Result := Item.Code;
-      Break;
-    end;
-    if AnsiCompareText(UnitName, Item.NameKz) = 0 then
-    begin
-      Result := Item.Code;
-      Break;
-    end;
-    if AnsiCompareText(UnitName, Item.NameEn) = 0 then
-    begin
-      Result := Item.Code;
-      Break;
-    end;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.UpdateUnits;
-var
-  Command: TReadUnitsCommand;
-begin
-  if FUnitsUpdated then Exit;
-  Command := TReadUnitsCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    FClient.ReadUnits(Command);
-    FUnits.Assign(Command.Data);
-    FUnitsUpdated := True;
-  finally
-    Command.FRee;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.UpdateCashBoxes;
-var
-  ACashBox: TCashBox;
-  Command: TCashboxesCommand;
-begin
-  if FCashBoxesUpdated then Exit;
-  Command := TCashboxesCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    FClient.ReadCashBoxes(Command);
-    FCashBoxes.Assign(Command.Data.List);
-    ACashBox := FCashBoxes.ItemByUniqueNumber(Params.CashboxNumber);
-    if ACashBox <> nil then
-    begin
-      FCashBox.Assign(ACashBox);
-    end;
-    FCashBoxesUpdated := True;
-  finally
-    Command.FRee;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.UpdateCashiers;
-var
-  ACashier: TCashier;
-  Command: TCashierCommand;
-begin
-  if FCashiersUpdated then Exit;
-  Command := TCashierCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    FClient.ReadCashiers(Command);
-    FCashiers.Assign(Command.Data);
-    ACashier := FCashiers.ItemByEMail(Params.Login);
-    if ACashier <> nil then
-    begin
-      FCashier.Assign(ACashier);
-    end;
-    FCashiersUpdated := True;
-  finally
-    Command.FRee;
-  end;
+  { !!! }
 end;
 
 function TDatecsFiscalPrinter.GetVatRate(Code: Integer): TVatRate;
@@ -2958,422 +2324,8 @@ begin
 end;
 
 procedure TDatecsFiscalPrinter.Print(Receipt: TSalesReceipt);
-
-  function RecTypeToOperationType(RecType: TRecType): Integer;
-  begin
-    case RecType of
-      rtBuy    : Result := OperationTypeBuy;
-      rtRetBuy : Result := OperationTypeRetBuy;
-      rtSell   : Result := OperationTypeSell;
-      rtRetSell: Result := OperationTypeRetSell;
-    else
-      raise Exception.CreateFmt('Invalid receipt type, %d', [Ord(RecType)]);
-    end;
-  end;
-
-var
-  i: Integer;
-  Payment: TPayment;
-  Adjustment: TAdjustment;
-  VatRate: TVatRate;
-  Item: TSalesReceiptItem;
-  ReceiptItem: TReceiptItem;
-  Position: TTicketItem;
-  Modifier: TTicketModifier;
-  Command: TSendReceiptCommand;
 begin
-  Command := TSendReceiptCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.OperationType := RecTypeToOperationType(Receipt.RecType);
-    Command.Request.Change := Receipt.Change;
-    Command.Request.RoundType := FParams.RoundType;
-    Command.Request.ExternalCheckNumber := FExternalCheckNumber;
-    Command.Request.CustomerEmail := Receipt.CustomerEmail;
-    Command.Request.CustomerPhone := Receipt.CustomerPhone;
-    Command.Request.CustomerXin := Receipt.CustomerINN;
-
-    // Items
-    for i := 0 to Receipt.Items.Count-1 do
-    begin
-      ReceiptItem := Receipt.Items[i];
-      if ReceiptItem is TSalesReceiptItem then
-      begin
-        Item := ReceiptItem as TSalesReceiptItem;
-
-        VatRate := GetVatRate(Item.VatInfo);
-        Position := Command.Request.Positions.Add as TTicketItem;
-        if Item.UnitPrice <> 0 then
-        begin
-          Position.Count := Item.Quantity;
-          Position.Price := Item.UnitPrice;
-        end else
-        begin
-          Position.Count := 1;
-          Position.Price := Item.Price;
-        end;
-        Position.PositionName := Item.Description;
-        Position.DisplayName := Item.Description;
-        Position.PositionCode := IntToStr(i+1);
-        Position.Discount := Abs(Item.GetDiscount.Amount);
-        Position.Markup := Abs(Item.GetCharge.Amount);
-        Position.IsStorno := False;
-        Position.MarkupDeleted := False;
-        Position.DiscountDeleted := False;
-        Position.UnitCode := GetUnitCode(Item.UnitName);
-        Position.SectionCode := 0;
-        Position.Mark := Item.MarkCode;
-        Position.GTIN := '';
-        Position.Productld := 0;
-        Position.WarehouseType := 0;
-        if VatRate = nil then
-        begin
-          Position.Tax := 0;
-          Position.TaxPercent := 0;
-          Position.TaxType := TaxTypeNoTax;
-        end else
-        begin
-          Position.Tax := Abs(VatRate.GetTax(Item.GetTotalAmount(Params.RoundType)));
-          Position.TaxType := TaxTypeVAT;
-          Position.TaxPercent := VatRate.Rate;
-        end;
-      end;
-    end;
-    // Discounts
-    for i := 0 to Receipt.Discounts.Count-1 do
-    begin
-      Adjustment := Receipt.Discounts[i];
-      Modifier := Command.Request.TicketModifiers.Add as TTicketModifier;
-
-      Modifier.Sum := Abs(Adjustment.Total);
-      Modifier.Text := Adjustment.Description;
-      Modifier._Type := ModifierTypeDiscount;
-      Modifier.TaxType := TaxTypeNoTax;
-      Modifier.Tax := 0;
-    end;
-    // Charges
-    for i := 0 to Receipt.Charges.Count-1 do
-    begin
-      Adjustment := Receipt.Charges[i];
-      Modifier := Command.Request.TicketModifiers.Add as TTicketModifier;
-
-      Modifier.Sum := Abs(Adjustment.Total);
-      Modifier.Text := Adjustment.Description;
-      Modifier._Type := ModifierTypeCharge;
-      Modifier.TaxType := TaxTypeNoTax;
-      Modifier.Tax := 0;
-    end;
-    // Payments
-    for i := Low(Receipt.Payments) to High(Receipt.Payments) do
-    begin
-      if Receipt.Payments[i] <> 0 then
-      begin
-        Payment := Command.Request.Payments.Add as TPayment;
-        Payment.PaymentType := i;
-        Payment.Sum := Receipt.Payments[i];
-      end;
-    end;
-    FClient.SendReceipt(Command);
-    FCheckNumber := Command.Data.CheckNumber;
-
-    if Params.TemplateEnabled then
-    begin
-      Receipt.ReguestJson := FClient.CommandJson;
-      Receipt.AnswerJson := FClient.AnswerJson;
-      Receipt.ReceiptJson := ReadReceiptJson(Command.Data.ShiftNumber, Command.Data.CheckNumber);
-      PrintReceiptTemplate(Receipt, Params.Template);
-    end else
-    begin
-      PrintReceipt(Receipt, Command);
-    end;
-    PrintDocumentSafe(Document);
-    Printer.RecLineChars := Params.RecLineChars;
-  finally
-    Command.Free;
-  end;
-end;
-
-function TDatecsFiscalPrinter.ReadReceiptJson(ShiftNumber: Integer;
-  const CheckNumber: WideString): WideString;
-var
-  Command: TReceiptCommand;
-begin
-  if FTestMode then
-  begin
-    Result := FReceiptJson;
-    Exit;
-  end;
-
-  Command := TReceiptCommand.Create;
-  try
-    Command.Request.Token := Client.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.Number := CheckNumber;
-    Command.Request.ShiftNumber := ShiftNumber;
-    FClient.ReadReceipt(Command);
-    Result := FClient.AnswerJson;
-  finally
-    Command.Free;
-  end;
-end;
-
-function GetPaperKind(WidthInDots: Integer): Integer;
-begin
-  Result := PaperKind80mm;
-  if WidthInDots <= 58 then
-    Result := PaperKind58mm;
-end;
-
-(*
-"             “ŒŒ SOFT IT KAZAKHSTAN             ",
-"                ¡»Õ 131240010479                ",
-"Õƒ— —ÂËˇ 00000                        π 0000000",
-"------------------------------------------------",
-"                      Œ‘ƒ 2                     ",
-"                    —ÏÂÌ‡ 178                   ",
-"            œÓˇ‰ÍÓ‚˚È ÌÓÏÂ ˜ÂÍ‡ π2            ",
-"◊ÂÍ π925871425876",
-" ‡ÒÒË webkassa4@softit.kz",
-"
-œ–Œƒ¿∆¿",
-"------------------------------------------------",
-"  1. œÓÁËˆËˇ ˜ÂÍ‡ 1",
-"   123,456 ¯Ú x 123,45",
-"   —ÍË‰Í‡                                 -12,00",
-"   Õ‡ˆÂÌÍ‡                                +13,00",
-"   —ÚÓËÏÓÒÚ¸                           15†241,64",
-"  2. œÓÁËˆËˇ ˜ÂÍ‡ 2",
-"   12,456 ¯Ú x 12,45",
-"   —ÍË‰Í‡                                 -12,00",
-"   Õ‡ˆÂÌÍ‡                                +13,00",
-"   —ÚÓËÏÓÒÚ¸                              156,08",
-"  3. œÓÁËˆËˇ ˜ÂÍ‡ 1",
-"   2 ¯Ú x 23,00",
-"   —ÚÓËÏÓÒÚ¸                               46,00",
-"------------------------------------------------",
-"Õ‡ÎË˜Ì˚Â:                                 800,00",
-"¡‡ÌÍÓ‚ÒÍ‡ˇ Í‡Ú‡:                      14†597,72",
-"Õ‡ÎË˜Ì˚Â:                                  46,00",
-"—ÍË‰Í‡:                                    24,00",
-"Õ‡ˆÂÌÍ‡:                                   26,00",
-"»“Œ√Œ:                                  15443,72",
-"‚ Ú.˜. Õƒ— 12%:                          1649,75",
-"------------------------------------------------",
-"‘ËÒÍ‡Î¸Ì˚È ÔËÁÌ‡Í: 925871425876",
-"¬ÂÏˇ: 26.08.2022 21:00:14",
-"ÚÂÒÚ",
-"ŒÔÂ‡ÚÓ ÙËÒÍ‡Î¸Ì˚ı ‰‡ÌÌ˚ı: ¿Œ \" ‡Á“‡ÌÒÍÓÏ\"",
-"ƒÎˇ ÔÓ‚ÂÍË ˜ÂÍ‡ Á‡È‰ËÚÂ Ì‡ Ò‡ÈÚ: ",
-"dev.kofd.kz/consumer",
-"------------------------------------------------",
-"                 ‘»— ¿À‹Õ€… ◊≈K                 ",
-"http://dev.kofd.kz/consumer?i=925871425876&f=211030200207&s=15443.72&t=20220826T210014",
-"                  »Õ  Œ‘ƒ: 270                  ",
-"          Ó‰   Ã  √ƒ (–ÕÃ): 211030200207        ",
-"                «ÕÃ: SWK00032685                ",
-"                   WEBKASSA.KZ                  ",
-
-
-
-*)
-
-function OperationTypeToText(OperationType: Integer): WideString;
-begin
-  Result := '';
-  case OperationType of
-    OperationTypeBuy: Result := 'œŒ ”œ ¿';
-    OperationTypeRetBuy: Result := '¬Œ«¬–¿“ œŒ ”œ »';
-    OperationTypeSell: Result := 'œ–Œƒ¿∆¿';
-    OperationTypeRetSell: Result := '¬Œ«¬–¿“ œ–Œƒ¿∆»';
-  end;
-end;
-
-
-procedure TDatecsFiscalPrinter.PrintReceipt(Receipt: TSalesReceipt;
-  Command: TSendReceiptCommand);
-var
-  i: Integer;
-  Text: WideString;
-  VatRate: TVatRate;
-  Amount: Currency;
-  TextItem: TRecTexItem;
-  ReceiptItem: TReceiptItem;
-  RecItem: TSalesReceiptItem;
-  ItemQuantity: Double;
-  UnitPrice: Currency;
-  Adjustment: TAdjustmentRec;
-  BarcodeItem: TBarcodeItem;
-begin
-  Document.Addlines(Format('Õƒ— —ÂËˇ %s', [Params.VATSeries]),
-    Format('π %s', [Params.VATNumber]));
-  Document.AddSeparator;
-  Document.AddLine(Document.AlignCenter(Params.CashboxNumber));
-  Document.AddLine(Document.AlignCenter(Format('—Ã≈Õ¿ π%d', [Command.Data.ShiftNumber])));
-  Document.AddLine(OperationTypeToText(Command.Request.OperationType));
-
-  //Document.AddLine(AlignCenter(Format('œÓˇ‰ÍÓ‚˚È ÌÓÏÂ ˜ÂÍ‡ π%d', [Command.Data.DocumentNumber])));
-  //Document.AddLine(Format('◊ÂÍ π%s', [Command.Data.CheckNumber]));
-  //Document.AddLine(Format(' ‡ÒÒË %s', [Command.Data.EmployeeName]));
-  //Document.AddLine(UpperCase(Command.Data.OperationTypeText));
-  Document.AddSeparator;
-
-
-  for i := 0 to Receipt.Items.Count-1 do
-  begin
-    ReceiptItem := Receipt.Items[i];
-    if ReceiptItem is TSalesReceiptItem then
-    begin
-      RecItem := ReceiptItem as TSalesReceiptItem;
-      //Document.AddLine(Format('%3d. %s', [RecItem.Number, RecItem.Description]));
-      Document.AddLine(RecItem.Description);
-
-      ItemQuantity := 1;
-      UnitPrice := RecItem.Price;
-      if RecItem.Quantity <> 0 then
-      begin
-        ItemQuantity := RecItem.Quantity;
-        UnitPrice := RecItem.UnitPrice;
-      end;
-      Document.AddLine(Format('   %.3f %s x %s %s', [ItemQuantity,
-        RecItem.UnitName, AmountToStr(UnitPrice), Params.CurrencyName]));
-      // —ÍË‰Í‡
-      Adjustment := RecItem.GetDiscount;
-      if Adjustment.Amount <> 0 then
-      begin
-        if Adjustment.Name = '' then
-          Adjustment.Name := '—ÍË‰Í‡';
-        Document.AddLines('   ' + Adjustment.Name,
-          '-' + AmountToStr(Abs(Adjustment.Amount)));
-      end;
-      // Õ‡ˆÂÌÍ‡
-      Adjustment := RecItem.GetCharge;
-      if Adjustment.Amount <> 0 then
-      begin
-        if Adjustment.Name = '' then
-          Adjustment.Name := 'Õ‡ˆÂÌÍ‡';
-        Document.AddLines('   ' + Adjustment.Name,
-          '+' + AmountToStr(Abs(Adjustment.Amount)));
-      end;
-      Document.AddLines('   —ÚÓËÏÓÒÚ¸', AmountToStr(RecItem.GetTotalAmount(Receipt.RoundType)));
-    end;
-    // Text
-    if ReceiptItem is TRecTexItem then
-    begin
-      TextItem := ReceiptItem as TRecTexItem;
-      Document.AddLine(TextItem.Text, TextItem.Style);
-    end;
-    // Barcode
-    if ReceiptItem is TBarcodeItem then
-    begin
-      BarcodeItem := ReceiptItem as TBarcodeItem;
-      Document.AddBarcode(BarcodeItem.Barcode);
-    end;
-  end;
-  Document.AddSeparator;
-  // —ÍË‰Í‡ Ì‡ ˜ÂÍ
-  Amount := Receipt.GetDiscount;
-  if Amount <> 0 then
-  begin
-    Document.AddLines('—ÍË‰Í‡:', AmountToStr(Amount));
-  end;
-  // Õ‡ˆÂÌÍ‡ Ì‡ ˜ÂÍ
-  Amount := Receipt.GetCharge;
-  if Amount <> 0 then
-  begin
-    Document.AddLines('Õ‡ˆÂÌÍ‡:', AmountToStr(Amount));
-  end;
-  // »“Œ√
-  Text := Document.ConcatLines('»“Œ√', AmountToStrEq(Receipt.GetTotal), Document.LineChars div 2);
-  Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-  // Payments
-  for i := Low(Receipt.Payments) to High(Receipt.Payments) do
-  begin
-    Amount := Receipt.Payments[i];
-    if Amount <> 0 then
-    begin
-      Document.AddLines(GetPaymentName(i) + ':', AmountToStrEq(Amount));
-    end;
-  end;
-  if Receipt.Change <> 0 then
-  begin
-    Document.AddLines('  —ƒ¿◊¿', AmountToStrEq(Receipt.Change));
-  end;
-
-  // VAT amounts
-  for i := 0 to Params.VatRates.Count-1 do
-  begin
-    VatRate := Params.VatRates[i];
-    Amount := Receipt.GetTotalByVAT(VatRate.Code);
-    if Amount <> 0 then
-    begin
-      Amount := Receipt.RoundAmount(Amount * VATRate.Rate / (100 + VATRate.Rate));
-      Document.AddLines(Format('‚ Ú.˜. %s', [VATRate.Name]),
-        AmountToStrEq(Amount));
-    end;
-  end;
-  Document.AddSeparator;
-  if Receipt.FiscalSign = '' then
-  begin
-    Receipt.FiscalSign := Command.Data.CheckNumber;
-  end;
-  Document.AddLine('‘ËÒÍ‡Î¸Ì˚È ÔËÁÌ‡Í: ' + Receipt.FiscalSign);
-  Document.AddLine('¬ÂÏˇ: ' + Command.Data.DateTime);
-  Document.AddLine('ŒÔÂ‡ÚÓ ÙËÒÍ‡Î¸Ì˚ı ‰‡ÌÌ˚ı:');
-  Document.AddLine(Command.Data.Cashbox.Ofd.Name);
-  Document.AddLine('ƒÎˇ ÔÓ‚ÂÍË ˜ÂÍ‡ Á‡È‰ËÚÂ Ì‡ Ò‡ÈÚ:');
-  Document.AddLine(Command.Data.Cashbox.Ofd.Host);
-  Document.AddSeparator;
-  Document.AddLine(Document.AlignCenter('‘»— ¿À‹Õ€… ◊≈K'));
-  Document.AddItem(Command.Data.TicketUrl, STYLE_QR_CODE);
-  Document.AddLine('');
-  Document.AddLine(Document.AlignCenter('»Õ  Œ‘ƒ: ' + Command.Data.Cashbox.IdentityNumber));
-  Document.AddLine(Document.AlignCenter(' Ó‰   Ã  √ƒ (–ÕÃ): ' + Command.Data.Cashbox.RegistrationNumber));
-  Document.AddLine(Document.AlignCenter('«ÕÃ: ' + Command.Data.Cashbox.UniqueNumber));
-  Document.AddText(Receipt.Trailer.Text);
-end;
-
-function TDatecsFiscalPrinter.GetJsonField(JsonText: WideString;
-  const FieldName: WideString): Variant;
-var
-  P: Integer;
-  S: WideString;
-  Root: TlkJSONbase;
-  Json: TlkJSONbase;
-  Field: WideString;
-begin
-  Result := '';
-  if JsonText = '' then Exit;
-  if FieldName = '' then Exit;
-
-  Json := TlkJSON.ParseText(JsonText);
-  if Json <> nil then
-  begin
-    Root := Json;
-    S := FieldName;
-    Result := '';
-    repeat
-      P := Pos('.', S);
-      if P <> 0 then
-      begin
-        Field := Copy(S, 1, P-1);
-        S := Copy(S, P+1, Length(S));
-      end else
-      begin
-        Field := S;
-      end;
-      Root := Root.Field[Field];
-      if Root = nil then
-      begin
-        Result := '';
-        Exit;
-        { !!! }
-        //raise Exception.CreateFmt('Field %s not found', [FieldName]);
-      end;
-    until P = 0;
-    Result := Root.Value;
-    Json.Free;
-  end;
+  { !!! }
 end;
 
 function TDatecsFiscalPrinter.GetHeaderItemText(Receipt: TSalesReceipt;
@@ -3384,9 +2336,6 @@ begin
     TEMPLATE_TYPE_PARAM: Result := Params.ItemByText(Item.Text);
     TEMPLATE_TYPE_ITEM_FIELD: Result := ReceiptFieldByText(Receipt, Item);
     TEMPLATE_TYPE_SEPARATOR: Result := StringOfChar('-', Item.LineChars);
-    TEMPLATE_TYPE_JSON_REQ_FIELD: Result := GetJsonField(Receipt.ReguestJson, Item.Text);
-    TEMPLATE_TYPE_JSON_ANS_FIELD: Result := GetJsonField(Receipt.AnswerJson, Item.Text);
-    TEMPLATE_TYPE_JSON_REC_FIELD: Result := GetJsonField(Receipt.ReceiptJson, Item.Text);
     TEMPLATE_TYPE_NEWLINE: Result := CRLF;
   else
     Result := '';
@@ -3752,11 +2701,7 @@ end;
 
 procedure TDatecsFiscalPrinter.CheckCanPrint;
 begin
-  if Printer.CapRecEmptySensor and Printer.RecEmpty then
-    raiseOposFptrRecEmpty;
-
-  if Printer.CapCoverSensor and Printer.CoverOpen then
-    raiseOposFptrCoverOpened;
+  { !!! }
 end;
 
 procedure TDatecsFiscalPrinter.PrintDocumentSafe(Document: TTextDocument);
@@ -3777,229 +2722,32 @@ end;
 
 procedure TDatecsFiscalPrinter.PrintDocument(Document: TTextDocument);
 var
-  i: Integer;
   TickCount: DWORD;
 begin
   Logger.Debug('PrintDocument');
   TickCount := GetTickCount;
-
-  CheckPtr(Printer.CheckHealth(OPOS_CH_INTERNAL));
   CheckCanPrint;
-
-  FCapRecBold := Printer.CapRecBold;
-  FCapRecDwideDhigh := Printer.CapRecDwideDhigh;
-
-  FLineChars := Printer.RecLineChars;
-  FLineHeight := Printer.RecLineHeight;
-  FLineSpacing := Printer.RecLineSpacing;
-
-  if Printer.CapTransaction then
-  begin
-    CheckPtr(Printer.TransactionPrint(PTR_S_RECEIPT, PTR_TP_TRANSACTION));
-  end;
-  for i := 0 to Document.Items.Count-1 do
-  begin
-    PrintDocItem(Document.Items[i]);
-  end;
-
-  CutPaper;
-  if Printer.CapTransaction then
-  begin
-    CheckPtr(Printer.TransactionPrint(PTR_S_RECEIPT, PTR_TP_NORMAL));
-  end;
-  CheckPtr(Printer.CheckHealth(OPOS_CH_INTERNAL));
+  { !!! }
   Logger.Debug(Format('PrintDocument, time=%d ms', [GetTickCount-TickCount]));
-end;
-
-procedure TDatecsFiscalPrinter.PrinTDocItem(Item: TDocItem);
-var
-  Text: WideString;
-  Barcode: TBarcodeRec;
-begin
-  if (Item.LineChars <> 0)and(Item.LineChars <> FLineChars) then
-  begin
-    Printer.RecLineChars := Item.LineChars;
-    FLineChars := Item.LineChars;
-  end;
-  if (Item.LineHeight <> 0)and(Item.LineHeight <> FLineHeight) then
-  begin
-    Printer.RecLineHeight := Item.LineHeight;
-    FLineHeight := Item.LineHeight;
-  end;
-  if (Item.LineSpacing <> 0)and(Item.LineSpacing <> FLineSpacing) then
-  begin
-    Printer.RecLineSpacing := Item.LineSpacing;
-    FLineSpacing := Item.LineSpacing;
-  end;
-
-
-  case Item.Style of
-    STYLE_QR_CODE:
-    begin
-      Barcode.Data := Item.Text;
-      Barcode.Text := Item.Text;
-      Barcode.Height := 0;
-      Barcode.BarcodeType := DIO_BARCODE_QRCODE;
-      Barcode.ModuleWidth := 4;
-      Barcode.Alignment := BARCODE_ALIGNMENT_CENTER;
-      Barcode.Parameter1 := 0;
-      Barcode.Parameter2 := 0;
-      Barcode.Parameter3 := 0;
-      Barcode.Parameter4 := 0;
-      Barcode.Parameter5 := 0;
-      PrintBarcode2(Barcode);
-    end;
-    STYLE_BARCODE:
-    begin
-      Barcode := StrToBarcode(Item.Text);
-      PrintBarcode2(Barcode);
-    end;
-  else
-    Text := Item.Text;
-    FPrefix := '';
-    // DWDH
-    if Item.Style = STYLE_DWIDTH_HEIGHT then
-    begin
-      if FCapRecDwideDhigh then
-        FPrefix := ESC_DoubleHighWide;
-    end;
-    // BOLD
-    if Item.Style = STYLE_BOLD then
-    begin
-      if FCapRecBold then
-        FPrefix := ESC_Bold;
-    end;
-
-    Text := Params.GetTranslationText(Text);
-    PtrPrintNormal(PTR_S_RECEIPT, FPrefix + Text);
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PtrPrintNormal(Station: Integer; const Data: WideString);
-var
-  Text: AnsiString;
-begin
-  if FPtrMapCharacterSet then
-  begin
-    CheckPtr(Printer.PrintNormal(Station, Data));
-  end else
-  begin
-    Text := WideStringToAnsiString(FCodePage, Data);
-    CheckPtr(Printer.PrintNormal(Station, Data));
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintLine(Text: WideString);
-begin
-  Text := Params.GetTranslationText(Text);
-  PtrPrintNormal(PTR_S_RECEIPT, Text + CRLF);
-end;
-
-
-procedure TDatecsFiscalPrinter.PrintText(Prefix, Text: WideString; RecLineChars: Integer);
-var
-  i: Integer;
-  Lines: TTntStrings;
-begin
-  Lines := TTntStringList.Create;
-  try
-    Lines.Text := Text;
-    for i := 0 to Lines.Count-1 do
-    begin
-      PrintTextLine(Prefix, Lines[i], RecLineChars);
-    end;
-  finally
-    Lines.Free;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintTextLine(Prefix, Text: WideString; RecLineChars: Integer);
-var
-  Line: WideString;
-begin
-  if RecLineChars = 0 then
-    raise Exception.Create('RecLineChars = 0');
-
-  while True do
-  begin
-    Line := Prefix + Copy(Text, 1, RecLineChars);
-    PrintLine(Line);
-    Text := Copy(Text, RecLineChars + 1, Length(Text));
-    if Length(Text) = 0 then Break;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.CutPaper;
-var
-  i: Integer;
-  Count: Integer;
-  Text: WideString;
-  RecLinesToPaperCut: Integer;
-const
-  PrintHeader = True;
-begin
-  PrintLine('');
-  if Printer.CapRecPapercut then
-  begin
-    RecLinesToPaperCut := Printer.RecLinesToPaperCut;
-    if PrintHeader then
-    begin
-      if FParams.NumHeaderLines <= RecLinesToPaperCut then
-      begin
-        for i := 0 to Params.Header.Count-1 do
-        begin
-          Text := TrimRight(Params.Header[i]);
-          PrintLine(Text);
-        end;
-        Count := RecLinesToPaperCut - FParams.NumHeaderLines;
-        for i := 0 to Count-1 do
-        begin
-          PrintLine('');
-        end;
-        Printer.CutPaper(90);
-      end else
-      begin
-        for i := 1 to RecLinesToPaperCut do
-        begin
-          PrintLine(CRLF);
-        end;
-        Printer.CutPaper(90);
-        for i := 0 to Params.Header.Count-1 do
-        begin
-          Text := TrimRight(Params.Header[i]);
-          PrintLine(Text);
-        end;
-      end;
-      Params.HeaderPrinted := True;
-      SaveUsrParameters(FParams, FOposDevice.DeviceName, FLogger);
-    end else
-    begin
-      for i := 1 to RecLinesToPaperCut do
-      begin
-        PrintLine('');
-      end;
-      Printer.CutPaper(90);
-    end;
-  end;
 end;
 
 function TDatecsFiscalPrinter.GetPrinterStation(Station: Integer): Integer;
 begin
   if (Station and FPTR_S_RECEIPT) <> 0 then
   begin
-    if not Printer.CapRecPresent then
+    if not FCapRecPresent then
       RaiseOposException(OPOS_E_ILLEGAL, _('ÕÂÚ ˜ÂÍÓ‚Ó„Ó ÔËÌÚÂ‡'));
   end;
 
   if (Station and FPTR_S_JOURNAL) <> 0 then
   begin
-    if not Printer.CapJrnPresent then
+    if not FCapJrnPresent then
       RaiseOposException(OPOS_E_ILLEGAL, _('ÕÂÚ ÔËÌÚÂ‡ ÍÓÌÚÓÎ¸ÌÓÈ ÎÂÌÚ˚'));
   end;
 
   if (Station and FPTR_S_SLIP) <> 0 then
   begin
-    if not Printer.CapSlpPresent then
+    if not FCapSlpPresent then
       RaiseOposException(OPOS_E_ILLEGAL, _('Slip station is not present'));
   end;
   if Station = 0 then
@@ -4045,96 +2793,6 @@ begin
   end;
 end;
 
-procedure TDatecsFiscalPrinter.PrintQRCodeAsGraphics(const BarcodeData: AnsiString);
-var
-  Data: AnsiString;
-begin
-  if not Printer.CapRecBitmap then Exit;
-  Printer.BinaryConversion := OPOS_BC_NIBBLE;
-  try
-    Data := RenderQRCode(BarcodeData);
-    Data := OposStrToNibble(Data);
-    CheckPtr(Printer.PrintMemoryBitmap(PTR_S_RECEIPT, Data,
-      PTR_BMT_BMP, 200, PTR_BM_CENTER));
-  finally
-    Printer.BinaryConversion := OPOS_BC_NONE;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintBarcodeAsGraphics(Barcode: TBarcodeRec);
-var
-  Data: AnsiString;
-  BMPAlignment: Integer;
-begin
-  if not Printer.CapRecBitmap then
-    RaiseIllegalError('Bitmaps are not supported');
-
-  Printer.BinaryConversion := OPOS_BC_NIBBLE;
-  try
-    Data := RenderBarcodeRec(Barcode);
-    Data := OposStrToNibble(Data);
-    BMPAlignment := BarcodeAlignmentToBMPAlignment(Barcode.Alignment);
-    CheckPtr(Printer.PrintMemoryBitmap(PTR_S_RECEIPT, Data,
-      PTR_BMT_BMP, Barcode.Width, BMPAlignment));
-  finally
-    Printer.BinaryConversion := OPOS_BC_NONE;
-  end;
-end;
-
-function TDatecsFiscalPrinter.RenderBarcodeRec(var Barcode: TBarcodeRec): AnsiString;
-var
-  SCale: Integer;
-  Bitmap: TBitmap;
-  Render: TZintBarcode;
-  Stream: TMemoryStream;
-begin
-  Result := '';
-
-  if Barcode.ModuleWidth in [0..1] then
-    Barcode.ModuleWidth := 4;
-
-  Bitmap := TBitmap.Create;
-  Render := TZintBarcode.Create;
-  Stream := TMemoryStream.Create;
-  try
-    Render.BorderWidth := 0;
-    Render.FGColor := clBlack;
-    Render.BGColor := clWhite;
-    Render.Scale := 1;
-    Render.Height := Barcode.Height;
-    Render.BarcodeType := BTypeToZBType(Barcode.BarcodeType);
-    Render.Data := Barcode.Data;
-    Render.ShowHumanReadableText := False;
-    Render.EncodeNow;
-    RenderBarcode(Bitmap, Render.Symbol, False);
-
-    Scale := Barcode.ModuleWidth;
-    if (Scale mod 2) = 0 then
-    begin
-      Scale := Scale div 2;
-      Barcode.Width := Bitmap.Width * Scale * 2;
-      Barcode.Height := Bitmap.Height * Scale * 2;
-    end else
-    begin
-      Barcode.Width := Bitmap.Width * Scale;
-      Barcode.Height := Bitmap.Height * Scale;
-    end;
-    ScaleGraphic(Bitmap, Scale);
-    Bitmap.SaveToStream(Stream);
-
-    if Stream.Size > 0 then
-    begin
-      Stream.Position := 0;
-      SetLength(Result, Stream.Size);
-      Stream.ReadBuffer(Result[1], Stream.Size);
-    end;
-  finally
-    Render.Free;
-    Bitmap.Free;
-    Stream.Free;
-  end;
-end;
-
 procedure TDatecsFiscalPrinter.PrintBarcode(const Barcode: string);
 begin
   if FPrinterState.State = FPTR_PS_NONFISCAL then
@@ -4143,272 +2801,6 @@ begin
   end else
   begin
     Receipt.PrintBarcode(Barcode);
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintBarcode2(Barcode: TBarcodeRec);
-
-  function BarcodeTypeToSymbology(BarcodeType: Integer): Integer;
-  begin
-    case BarcodeType of
-      DIO_BARCODE_CODE128A,
-      DIO_BARCODE_CODE128B,
-      DIO_BARCODE_CODE128C: Result := PTR_BCS_Code128;
-      DIO_BARCODE_CODE39: Result := PTR_BCS_Code39;
-      DIO_BARCODE_CODE25INTERLEAVED: Result := PTR_BCS_ITF;
-      DIO_BARCODE_CODE25INDUSTRIAL: Result := PTR_BCS_TF;
-      DIO_BARCODE_CODE93: Result := PTR_BCS_Code93;
-      DIO_BARCODE_CODABAR: Result := PTR_BCS_Codabar;
-      DIO_BARCODE_EAN8: Result := PTR_BCS_EAN8;
-      DIO_BARCODE_EAN13: Result := PTR_BCS_EAN13;
-      DIO_BARCODE_UPC_A: Result := PTR_BCS_UPCA;
-      DIO_BARCODE_UPC_E0: Result := PTR_BCS_UPCE;
-      DIO_BARCODE_UPC_E1: Result := PTR_BCS_UPCE;
-      DIO_BARCODE_EAN128A: Result := PTR_BCS_EAN128;
-      DIO_BARCODE_EAN128B: Result := PTR_BCS_EAN128;
-      DIO_BARCODE_EAN128C: Result := PTR_BCS_EAN128;
-      DIO_BARCODE_RSS14: Result := PTR_BCS_RSS14;
-      DIO_BARCODE_RSS_EXP: Result := PTR_BCS_RSS_EXPANDED;
-      DIO_BARCODE_PDF417: Result := PTR_BCS_PDF417;
-      DIO_BARCODE_PDF417TRUNC: Result := PTR_BCS_PDF417;
-      DIO_BARCODE_MAXICODE: Result := PTR_BCS_MAXICODE;
-      DIO_BARCODE_QRCODE: Result := PTR_BCS_QRCODE;
-      DIO_BARCODE_DATAMATRIX: Result := PTR_BCS_DATAMATRIX;
-      DIO_BARCODE_MICROPDF417: Result := PTR_BCS_UPDF417;
-      DIO_BARCODE_AZTEC: Result := PTR_BCS_AZTEC;
-      DIO_BARCODE_MICROQR: Result := PTR_BCS_UQRCODE;
-    else
-      raise Exception.CreateFmt('Invalid barcode type, %d', [BarcodeType]);
-    end;
-  end;
-
-  function Is2DBarcode(BarcodeType: Integer): Boolean;
-  begin
-    Result := False;
-    case BarcodeType of
-      DIO_BARCODE_MAXICODE,
-      DIO_BARCODE_QRCODE,
-      DIO_BARCODE_DATAMATRIX,
-      DIO_BARCODE_MICROPDF417,
-      DIO_BARCODE_AZTEC,
-      DIO_BARCODE_MICROQR: Result := True;
-    end;
-  end;
-
-var
-  Symbology: Integer;
-  Alignment: Integer;
-begin
-  case Params.PrintBarcode of
-    PrintBarcodeEscCommands:
-    if Printer.CapRecBarcode then
-    begin
-      Symbology := BarcodeTypeToSymbology(Barcode.BarcodeType);
-      Alignment := BarcodeAlignmentToBCAlignment(Barcode.Alignment);
-      CheckPtr(Printer.PrintBarCode(FPTR_S_RECEIPT, Barcode.Data, Symbology,
-        Barcode.Height, Barcode.Width, Alignment, PTR_BC_TEXT_NONE));
-    end else
-    begin
-      PrintBarcodeAsGraphics(Barcode);
-    end;
-
-    PrintBarcodeGraphics:
-    begin
-      PrintBarcodeAsGraphics(Barcode);
-    end;
-
-    PrintBarcodeText:
-    begin
-      PtrPrintNormal(PTR_S_RECEIPT, Barcode.Data);
-    end;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintReceiptDuplicate(const pString: WideString);
-const
-  ValueDelimiters = [';'];
-var
-  i: Integer;
-  Text: WideString;
-  Item: TPositionItem;
-  ShiftNumber: Integer;
-  CheckNumber: WideString;
-  Command: TReceiptCommand;
-  ItemQuantity: Double;
-  UnitName: WideString;
-  UnitItem: TUnitItem;
-  Payment: TPaymentItem;
-begin
-  ShiftNumber := GetInteger(pString, 1, ValueDelimiters);
-  CheckNumber := GetString(pString, 2, ValueDelimiters);
-
-  Command := TReceiptCommand.Create;
-  try
-    Command.Request.Token := Client.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.Number := CheckNumber;
-    Command.Request.ShiftNumber := ShiftNumber;
-    FClient.ReadReceipt(Command);
-
-    Document.Addlines(Format('Õƒ— —ÂËˇ %s', [Params.VATSeries]),
-      Format('π %s', [Params.VATNumber]));
-    Document.AddSeparator;
-    Document.AddLine(Document.AlignCenter(Params.CashboxNumber));
-    Document.AddLine(Document.AlignCenter(Format('—Ã≈Õ¿ π%d', [ShiftNumber])));
-    Document.AddLine(Command.Data.OperationTypeText);
-    Document.AddSeparator;
-    for i := 0 to Command.Data.Positions.Count-1 do
-    begin
-      Item := Command.Data.Positions[i];
-      Document.AddLine(Item.PositionName);
-
-      ItemQuantity := 1;
-      if Item.Count <> 0 then
-      begin
-        ItemQuantity := Item.Count;
-      end;
-      UnitName := '';
-      UpdateUnits;
-      UnitItem := FUnits.ItemByCode(Item.UnitCode);
-      if UnitItem <> nil then
-        UnitName := UnitItem.NameKz;
-
-      Document.AddLine(Format('   %.3f %s x %s %s', [ItemQuantity,
-        UnitName, AmountToStr(Item.Price), Params.CurrencyName]));
-
-      // —ÍË‰Í‡
-      if (not Item.DiscountDeleted)and(Item.DiscountTenge <> 0) then
-      begin
-        Document.AddLines('   —ÍË‰Í‡', '-' + AmountToStr(Abs(Item.DiscountTenge)));
-      end;
-
-      // Õ‡ˆÂÌÍ‡
-      if (not Item.MarkupDeleted)and(Item.Markup <> 0) then
-      begin
-        Document.AddLines('   Õ‡ˆÂÌÍ‡', '+' + AmountToStr(Abs(Item.Markup)));
-      end;
-
-      Document.AddLines('   —ÚÓËÏÓÒÚ¸', AmountToStr(Item.Sum));
-    end;
-    Document.AddSeparator;
-    // —ÍË‰Í‡ Ì‡ ˜ÂÍ
-    if Command.Data.Discount <> 0 then
-    begin
-      Document.AddLines('—ÍË‰Í‡:', AmountToStr(Command.Data.Discount));
-    end;
-    // Õ‡ˆÂÌÍ‡ Ì‡ ˜ÂÍ
-    if Command.Data.Markup <> 0 then
-    begin
-      Document.AddLines('Õ‡ˆÂÌÍ‡:', AmountToStr(Command.Data.Markup));
-    end;
-    // »“Œ√
-    Text := Document.ConcatLines('»“Œ√', AmountToStrEq(Command.Data.Total), Document.LineChars div 2);
-    Document.AddLine(Text, STYLE_DWIDTH_HEIGHT);
-    // Payments
-    for i := 0 to Command.Data.Payments.Count-1 do
-    begin
-      Payment := Command.Data.Payments[i];
-      if Payment.Sum <> 0 then
-      begin
-        Document.AddLines(Payment.PaymentTypeName + ':', AmountToStrEq(Payment.Sum));
-      end;
-    end;
-    if Command.Data.Change <> 0 then
-    begin
-      Document.AddLines('  —ƒ¿◊¿', AmountToStrEq(Command.Data.Change));
-    end;
-    // VAT amounts
-    if Command.Data.Tax <> 0 then
-    begin
-      Document.AddLines(Format('‚ Ú.˜. %s', [Command.Data.TaxPercent]),
-          AmountToStrEq(Command.Data.Tax));
-    end;
-    Document.AddSeparator;
-    Document.AddLine('‘ËÒÍ‡Î¸Ì˚È ÔËÁÌ‡Í: ' + CheckNumber);
-    Document.AddLine('¬ÂÏˇ: ' + Command.Data.RegistratedOn);
-    Document.AddLine('ŒÔÂ‡ÚÓ ÙËÒÍ‡Î¸Ì˚ı ‰‡ÌÌ˚ı:');
-    Document.AddLine(Command.Data.Ofd.Name);
-    Document.AddLine('ƒÎˇ ÔÓ‚ÂÍË ˜ÂÍ‡ Á‡È‰ËÚÂ Ì‡ Ò‡ÈÚ:');
-    Document.AddLine(Command.Data.Ofd.Host);
-    Document.AddSeparator;
-    Document.AddLine(Document.AlignCenter('‘»— ¿À‹Õ€… ◊≈K'));
-    Document.AddItem(Command.Data.TicketUrl, STYLE_QR_CODE);
-    Document.AddLine('');
-    Document.AddLine(Document.AlignCenter('»Õ  Œ‘ƒ: ' + Command.Data.CashboxIdentityNumber));
-    Document.AddLine(Document.AlignCenter(' Ó‰   Ã  √ƒ (–ÕÃ): ' + Command.Data.CashboxRegistrationNumber));
-    Document.AddLine(Document.AlignCenter('«ÕÃ: ' + Command.Data.CashboxUniqueNumber));
-    Document.AddText(Receipt.Trailer.Text);
-    // Print
-    PrintDocumentSafe(Document);
-  finally
-    Command.Free;
-  end;
-end;
-
-procedure TDatecsFiscalPrinter.PrintReceiptDuplicate2(const pString: WideString);
-
-  function GetPaperKind: Integer;
-  var
-    LineWidthInMm: Integer;
-  begin
-    Printer.MapMode := PTR_MM_METRIC;
-    LineWidthInMm := Printer.RecLineWidth;
-    Printer.MapMode := PTR_MM_DOTS;
-
-    if LineWidthInMm <= 5800 then
-    begin
-      Result := PaperKind58mm;
-      Exit;
-    end;
-    if LineWidthInMm <= 8000 then
-    begin
-      Result := PaperKind80mm;
-      Exit;
-    end;
-    if LineWidthInMm <= 21000 then
-    begin
-      Result := PaperKindA4Book;
-      Exit;
-    end;
-    Result := PaperKindA4Album;
-  end;
-
-var
-  i: Integer;
-  Item: TReceiptTextItem;
-  ExternalCheckNumber: WideString;
-  Command: TReceiptTextCommand;
-begin
-  Document.Clear;
-  FCapRecBold := Printer.CapRecBold;
-  ExternalCheckNumber := pString;
-  Command := TReceiptTextCommand.Create;
-  try
-    Command.Request.Token := FClient.Token;
-    Command.Request.CashboxUniqueNumber := Params.CashboxNumber;
-    Command.Request.ExternalCheckNumber := ExternalCheckNumber;
-    Command.Request.isDuplicate := True;
-    Command.Request.paperKind := GetPaperKind;
-    FClient.ReadReceiptText(Command);
-    for i := 0 to Command.Data.Lines.Count-1 do
-    begin
-      Item := Command.Data.Lines.Items[i] as TReceiptTextItem;
-      case Item._Type of
-        ItemTypeText:
-        begin
-          if (Item.Style = TextStyleNormal) then
-            Document.AddLine(Item.Value, STYLE_NORMAL);
-          if (Item.Style = TextStyleBold) then
-            Document.AddLine(Item.Value, STYLE_BOLD);
-        end;
-        ItemTypePicture: Document.Add(Item.Value, STYLE_IMAGE);
-        ItemTypeQRCode: Document.Add(Item.Value, STYLE_QR_CODE);
-      end;
-    end;
-    // Print
-    PrintDocumentSafe(Document);
-  finally
-    Command.Free;
   end;
 end;
 
