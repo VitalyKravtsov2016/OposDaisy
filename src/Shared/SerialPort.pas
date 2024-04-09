@@ -75,6 +75,8 @@ type
     function CapRead: Boolean;
     property Opened: Boolean read GetOpened;
     function GetDescription: WideString;
+    procedure SetDTRState(Value: Boolean);
+    procedure SetRTSState(Value: Boolean);
   end;
 
   ESerialError = class(WideException);
@@ -589,8 +591,8 @@ begin
   Lock;
   try
     // Default timeouts
-    TimeOuts.ReadIntervalTimeout := 100;
-    TimeOuts.ReadTotalTimeoutMultiplier := 0;
+    TimeOuts.ReadIntervalTimeout := FParams.ByteTimeout;
+    TimeOuts.ReadTotalTimeoutMultiplier := 100;
     TimeOuts.ReadTotalTimeoutConstant := FParams.ByteTimeout;
     TimeOuts.WriteTotalTimeoutMultiplier := 100;
     TimeOuts.WriteTotalTimeoutConstant := FParams.ByteTimeout;
@@ -645,6 +647,22 @@ end;
 function TSerialPort.GetDescription: WideString;
 begin
   Result := 'SerialPort';
+end;
+
+procedure TSerialPort.SetDTRState(Value: Boolean);
+begin
+  if Value then
+    EscapeCommFunction(GetHandle, SETDTR)
+  else
+    EscapeCommFunction(GetHandle, CLRDTR);
+end;
+
+procedure TSerialPort.SetRTSState(Value: Boolean);
+begin
+  if Value then
+    EscapeCommFunction(GetHandle, SETRTS)
+  else
+    EscapeCommFunction(GetHandle, CLRRTS);
 end;
 
 end.

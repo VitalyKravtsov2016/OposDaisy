@@ -9,7 +9,7 @@ uses
   TntSysUtils,
   // This
   DatecsTypes, SerialPort2, StrUtil,
-  DriverError2, LogFile2, VersionInfo, StringUtils, VariantUtils, MathUtils;
+  DriverError2, LogFile2, VersionInFfo, StringUtils, VariantUtils, MathUtils;
 
 const
 ///////////////////////////////////////////////////////////////////////////////

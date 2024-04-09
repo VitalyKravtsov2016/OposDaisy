@@ -6,9 +6,44 @@ uses
   // VCL
   SysUtils, DateUtils,
   // This
-  PrinterPort, LogFile, DriverError2, StringUtils, ByteUtils;
+  PrinterPort, LogFile, DriverError, StringUtils, ByteUtils;
 
 const
+  LF = #10;
+  TAB = #$09;
+  CRLF = #13#10;
+  BoolToStr: array [Boolean] of WideString = ('0', '1');
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Data type constants
+
+  DataTypeTotal = 0;
+  DataTypeNet   = 1;
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Paid code constants
+
+  PaidCodeError             = 1;
+  PaidCodeTaxNegative       = 2;
+  PaidCodeSumLessTotal      = 3;
+  PaidCodeSumGreaterTotal   = 4;
+  PaidCodeNegativeSubtotal  = 5;
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Payment mode constants
+
+  PaymentModeCash = 1;
+  PaymentMode1    = 2;
+  PaymentMode2    = 3;
+  PaymentMode3    = 4;
+  PaymentMode4    = 5;
+
+  PaymentModeMin = 1;
+  PaymentModeMax = 5;
+
+
+  MaxTax = 5;
+
   /////////////////////////////////////////////////////////////////////////////
   // CutMode constants
 
@@ -47,6 +82,70 @@ const
   SInvalidAnswerCode: WideString = 'Неверный код ответа';
   SInvalidCrc: WideString = 'Неверный CRC';
 
+  SErrorOK: WideString = 'Операция выполнена успешно';
+  SInvalidParams: WideString = 'Неверные параметры функции';
+  SError1	= 'Невозможно открыть COM порт';
+  SError2	= 'Ошибка настройки буферов COM порта';
+  SError3	= 'Ошибка настройки маски COM порта';
+  SError4	= 'Невозможно получить состояние COM порта';
+  SError5	= 'Неверная скорость СОМ порта,  будет установлена 19200 бод';
+  SError6	= 'Невозможно установить таймауты COM порта';
+  SError7	= 'Ошибка установки связи с фискальным регистратором';
+  SError8	= 'Отсутствует лицензия на данный фискальный регистратор';
+  SError10: WideString = 'Дата и время не установлены';
+  SError11: WideString = 'Индикатор клиента (дисплей покупателя) не подключен';
+  SError12: WideString = 'Закончилась чековая или контрольная лента';
+  SError13: WideString = 'Ошибка фискализации. Таблица налоговых номеров исчерпана';
+  SError14: WideString = 'Ошибка фискализации. Не задан фискальный номер';
+  SError15: WideString = 'Ошибка фискализации. Неверен заводской номер или другие данные';
+  SError16: WideString = 'Ошибка фискализации. Открыт чек';
+  SError17: WideString = 'Ошибка фискализации. Не обнулены суммы за день. Сделайте Z-отчет';
+  SError18: WideString = 'Ошибка фискализации. Не заданы налоговые ставки';
+  SError19: WideString = 'Ошибка фискализации. Налоговый номер состоит из нулей';
+  SError20: WideString = 'Ошибка фискализации. Отсутствует чековая или контрольная лента';
+  SError21: WideString = 'Ошибка фискализации. Дата и время не установлены';
+  SError22: WideString = 'Ошибка установки заводского номера:' + LF +
+    'Неформатирована фискальная память' + LF +
+    'Заводской номер уже задан' + LF +
+    'Дата/время не установлены';
+
+  SError23	= 'Ошибка установки фискального номера:' + LF +
+    'Заводской номер не задан' + LF +
+    'Дата/время не установлены' + LF +
+    'Открыт чек' + LF +
+    'Необходимо сделать Z-отчет';
+
+  SError24: WideString = 'Ошибка установки налогового/идентификационного номера';
+  SError25: WideString = 'Ошибка открытия нефискального чека. Фискальная память неформатирована';
+  SError26: WideString = 'Ошибка открытия нефискального чека. Открыт фискальный чека';
+  SError27: WideString = 'Ошибка открытия нефискального чека. Нефискальный чек уже открыт';
+  SError28: WideString = 'Ошибка открытия нефискального чека. Дата и время не установлены';
+  SError29: WideString = 'Ошибка выполнения итога чека.';
+  SError30: WideString = 'Ошибка выполнения итога чека. ' + LF +
+    'Вычисленная сумма отрицательная.' + LF +
+    'Оплата не совершается';
+
+  SError31: WideString = 'Сумма оплаты меньше суммы чека (Информационное сообщение)';
+  SError32: WideString = 'Сумма оплаты больше суммы чека (Информационное сообщение)';
+
+  SError33: WideString = 'Ошибка выполнения итога чека. ' + LF +
+    'Сумма по некоторой налоговой группе отрицательна.';
+
+  SError34: WideString = 'Ошибка программирования/чтения/удаления артикула.';
+  SError35: WideString = 'Ошибка выполнения операции служебного ввода/вывода.';
+  SError36: WideString = 'Синтаксическая ошибка в команде';
+  SError37: WideString = 'Код полученной команды неверен.';
+  SError38: WideString = 'Механизм печатающего устройства неисправен.';
+  SError39: WideString = 'Переполнение операции суммирования.';
+  SError40: WideString = 'Команда не разрешена для текущего фискального режима принтера.';
+
+  SError100: WideString = 'Фискальный регистратор не отвечает.';
+
+  SMaxSynCount: WideString = 'Устройство занято';
+  SInvalidParamValue: WideString = 'Неверное значение параметра "%s"';
+  SInvalidPasswordLength: WideString = 'Длина пароля должна быть больше или равна 4';
+  SInvalidCodeValue: WideString = 'Неверное значение кода';
+
   /////////////////////////////////////////////////////////////////////////////
   // ReportType constants
 
@@ -58,6 +157,98 @@ const
   ReportTypeXByDepartments  = 9;
 
 type
+  { TDiagnosticInfo }
+
+  TDiagnosticInfo = record
+    ResultCode: Integer;
+    FirmwareVersion: AnsiString;
+    FirmwareDate: AnsiString;
+    FirmwareTime: AnsiString;
+    ChekSum: AnsiString;
+    Switches: Integer;
+    Country: Byte;
+    FDSerial: AnsiString;
+    FDNo: AnsiString;
+  end;
+
+  { TFDTotals }
+
+  TFDTotals = record
+    ResultCode: Integer;
+    SalesTotalTaxFree: Int64; // SpaceGr Session Non-Taxable sales Total
+    SalesTotalTax: array [1..5] of Int64; // Sales totals by tax
+  end;
+
+  { TFDFiscalRecord }
+
+  TFDFiscalRecord = record
+    ResultCode: Integer;
+    Number: Integer;          // Number of the last fiscal record.
+    SalesTotalTaxFree: Int64; // SpaceGr Session Non-Taxable sales Total
+    SalesTotalTax: array [1..5] of Int64; // Sales totals by tax
+    Date: TDateTime; // Date of the last fiscal record
+  end;
+
+  { TFDFiscalRecords }
+
+  TFDFiscalRecords = record
+    ResultCode: Integer;
+    LogicalNumber: Integer;
+    PhysicalNumber: Integer;
+  end;
+
+  { TDateTimeResponse }
+
+  TDateTimeResponse = record
+    ResultCode: Integer;
+    Date: TDateTime;
+  end;
+
+  { TFDPLU }
+
+  TFDPLU = record
+    Sign: AnsiChar;
+    PLU: AnsiString;
+    Quantity: Int64;
+    Price: Int64;
+    DiscountPercent: Double;
+    DiscountAmount: Int64;
+  end;
+
+  { TFDTotal }
+
+  TFDTotal = record
+    Text1: WideString;
+    Text2: WideString;
+    PaymentMode: Integer;
+    Amount: Int64;
+  end;
+
+  { TFDTotalResponse }
+
+  TFDTotalResponse = record
+    ResultCode: Integer;
+    PaidCode: Integer;
+    Amount: Int64;
+  end;
+
+  { TFDSubtotal }
+
+  TFDSubtotal = record
+    PrintSubtotal: Boolean;
+    DisplaySubtotal: Boolean;
+    SubtotalPercent: Double;
+  end;
+
+  { TFDSubtotalResponse }
+
+  TFDSubtotalResponse = record
+    ResultCode: Integer;
+    SubTotal: Int64;
+    SalesTaxFree: Int64;
+    TaxTotals: array [1..MaxTax] of Int64;
+  end;
+
   { TFDTaxRates }
 
   TFDTaxRates = record
@@ -216,9 +407,11 @@ type
     function GetParam(i: Integer): string;
     function Send(const TxData: WideString): Integer; overload;
     function Send(const TxData: WideString; var RxData: string): Integer; overload;
-    procedure SendCommand(const TxData: WideString; var RxData: string);
+    procedure SendCommand(const Tx: WideString; var RxData: string);
     function EncodeDisplayText(const Text: WideString): AnsiString;
     function EncodePrinterText(const Text: WideString): AnsiString;
+    function SaleCommand(Cmd: Char; const P: TFDSale): Integer;
+
   public
     TxCount: Integer;
 
@@ -241,7 +434,23 @@ type
     function PaperCut(CutMode: Integer): Integer;
     function StartFiscalReceipt(const P: TFDStartRec): TFDReceiptNumber;
     function Sale(const P: TFDSale): Integer;
+    function SaleAndDisplay(const P: TFDSale): Integer;
     function ReadTaxRates(const StartDate, EndDate: TDateTime): TFDTaxRates;
+    function Subtotal(const P: TFDSubtotal): TFDSubtotalResponse;
+    function PrintTotal(const P: TFDTotal): TFDTotalResponse;
+    function PrintFiscalText(const Text: WideString): Integer;
+    function EndFiscalReceipt: TFDReceiptNumber;
+    function SaleByPLU(const P: TFDPLU): Integer;
+    function WriteDateTime(Date: TDateTime): Integer;
+    function ReadDateTime: TDateTimeResponse;
+    function DisplayDateTime: Integer;
+    function FinalFiscalRecord(DataType: AnsiChar): TFDFiscalRecord;
+    function ReadTotals(DataType: Integer): TFDTotals;
+    function ReadFreeFiscalRecords: TFDFiscalrecords;
+    function PrintDiagnosticInfo: Integer;
+    function PrintReportByNumbers(StartNum, EndNum: Integer): Integer;
+    function ReadFDStatus: Integer;
+    function GetDiagnosticInfo(CalcCRC: Boolean): TDiagnosticInfo;
 
     property Port: IPrinterPort read FPort;
     property Logger: ILogFile read FLogger;
@@ -253,14 +462,61 @@ type
     property DisplayEncoding: Integer read FDisplayEncoding write FDisplayEncoding;
   end;
 
+
 function GetCommandName(Code: Integer): WideString;
+function GetErrorText(Code: Integer): WideString;
 
 implementation
 
-const
-  LF = #$0A;
-  TAB = #$09;
-
+function GetErrorText(Code: Integer): WideString;
+begin
+  case Code of
+    0: Result := SErrorOK;
+    -1: Result := SInvalidParams;
+    1: Result := SError1;
+    2: Result := SError2;
+    3: Result := SError3;
+    4: Result := SError4;
+    5: Result := SError5;
+    6: Result := SError6;
+    7: Result := SError7;
+    8: Result := SError8;
+    10: Result := SError10;
+    11: Result := SError11;
+    12: Result := SError12;
+    13: Result := SError13;
+    14: Result := SError14;
+    15: Result := SError15;
+    16: Result := SError16;
+    17: Result := SError17;
+    18: Result := SError18;
+    19: Result := SError19;
+    20: Result := SError20;
+    21: Result := SError21;
+    22: Result := SError22;
+    23: Result := SError23;
+    24: Result := SError24;
+    25: Result := SError25;
+    26: Result := SError26;
+    27: Result := SError27;
+    28: Result := SError28;
+    29: Result := SError29;
+    30: Result := SError30;
+    31: Result := SError31;
+    32: Result := SError32;
+    33: Result := SError33;
+    34: Result := SError34;
+    35: Result := SError35;
+    36: Result := SError36;
+    37: Result := SError37;
+    38: Result := SError38;
+    39: Result := SError39;
+    40: Result := SError40;
+    100: Result := SError100;
+  else
+    Result := '';
+  end;
+end;
 
 const
   SCommand_29H: WideString = 'Запись текущих настроек в энергонезависимую флеш-память';
@@ -306,7 +562,7 @@ const
   SCommand_69H: WideString = 'Отчет по операторам';
   SCommand_6FH: WideString = 'Отчет по товарам';
   SCommand_2EH: WideString = 'Получить продолжительность текущей смены';
-  SCommand_3EH: WideString = 'Возвращает дату и время';
+  SCommand_3EH: WideString = 'Чтение даты и времени';
   SCommand_40H: WideString = 'Информация последней фискальной записи';
   SCommand_41H: WideString = 'Информация начисленных сумм за день';
   SCommand_43H: WideString = 'Информация о накопленной суммы корректировок';
@@ -486,7 +742,7 @@ begin
   Status.FMReadOnly := TestBit(B[5], 0);
 end;
 
-function GetString(const Data: string; k: Integer): string;
+function GetString2(const Data: string; k: Integer): string;
 var
   S: string;
   i: Integer;
@@ -517,6 +773,12 @@ begin
 end;
 
 // DDMMYY
+function FDDateToStr(const Date: TDateTime): AnsiString;
+begin
+  Result := FormatDateTime('ddmmyy', Date);
+end;
+
+// DDMMYY
 function StrToFDDate(const S: string): TDateTime;
 var
   Year, Month, Day: Word;
@@ -525,6 +787,16 @@ begin
   Month := StrToInt(Copy(S, 3, 2));
   Year := StrToInt(Copy(S, 5, 2));
   Result := EncodeDate(Year, Month, Day);
+end;
+
+function DataTypeToChar(DataType: Integer): AnsiChar;
+begin
+  case DataType of
+    DataTypeTotal: Result := 'T';
+    DataTypeNet: Result := 'N';
+  else
+    raise Exception.CreateFmt('Invalid data type value, %d', [DataType]);
+  end;
 end;
 
 resourcestring
@@ -653,6 +925,9 @@ begin
   FPort := APort;
   FLogger := ALogger;
   FPassword := '';
+  TxCount := $24;
+  FPrinterEncoding := EncodingAuto;
+  FDisplayEncoding := EncodingAuto;
 end;
 
 destructor TDatecsPrinter.Destroy;
@@ -676,7 +951,7 @@ begin
   begin
     DriverError := E as EDriverError;
     FLastError := DriverError.Code;
-    FLastErrorText := DriverError.Text;
+    FLastErrorText := DriverError.Message;
   end else
   begin
     FLastError := DATECS_E_FAILURE;
@@ -802,7 +1077,7 @@ begin
   end;
 end;
 
-procedure TDatecsPrinter.SendCommand(const TxData: WideString; var RxData: string);
+procedure TDatecsPrinter.SendCommand(const Tx: WideString; var RxData: string);
 var
   B: Byte;
   S: string;
@@ -813,24 +1088,26 @@ begin
   Port.Lock;
   Logger.Debug(Logger.Separator);
   try
-    if Length(TxData) = 0 then
+    if Length(Tx) = 0 then
       raise Exception.Create(SEmptyData);
 
     FCommand.Sequence := TxCount;
-    FCommand.Code := Ord(TxData[1]);
-    FCommand.Data := Copy(TxData, 2, Length(TxData));
+    FCommand.Code := Ord(Tx[1]);
+    FCommand.Data := Copy(Tx, 2, Length(Tx));
     FTxData := TDatecsFrame.EncodeCommand(FCommand);
 
     S := Format('0x%.2x, %s', [FCommand.Code, GetCommandName(FCommand.Code)]);
     Logger.Debug(S);
-    Logger.Debug('-> ' + TxData);
+    Logger.Debug('=> ' + Tx);
 
     for i := 1 to MaxCommandCount do
     begin
+      Logger.Debug('-> ' + StrToHex(FTxData));
       Port.Write(FTxData);
       // 01
       repeat
         B := Ord(Port.Read(1)[1]);
+        Logger.Debug('<- ' + StrToHex(Chr(B)));
         case B of
           $01: Break;
           $15:
@@ -850,11 +1127,12 @@ begin
 
       B := Ord(Port.Read(1)[1]);
       FRxData := Port.Read(B - $20 + 4);
+      Logger.Debug('<- ' + StrToHex(FRxData));
       FRxData := #$01 + Chr(B) + FRxData;
       FAnswer := TDatecsFrame.DecodeAnswer(FRxData);
       FAnswer.Data := DecodePrinterText(FAnswer.Data);
       DecodeStatus(FAnswer.Status, FStatus);
-      Logger.Debug('<- ' + FAnswer.Data);
+      Logger.Debug('<= ' + FAnswer.Data);
 
       if FCommand.Sequence = FAnswer.Sequence then
       begin
@@ -874,14 +1152,13 @@ begin
       TxCount := $20;
     end;
   finally
-    Logger.Debug(Logger.Separator);
     Port.Unlock;
   end;
 end;
 
 function TDatecsPrinter.GetParam(i: Integer): string;
 begin
-  Result := GetString(FAnswer.Data, i);
+  Result := GetString2(FAnswer.Data, i);
 end;
 
 function TDatecsPrinter.XReport: TFDReportAnswer;
@@ -914,7 +1191,8 @@ end;
 
 procedure TDatecsPrinter.Check(Code: Integer);
 begin
-
+  if Code <> 0 then
+    RaiseError(Code, GetErrorText(Code));
 end;
 
 function TDatecsPrinter.WaitWhilePrintEnd: Integer;
@@ -984,7 +1262,7 @@ begin
   end;
 end;
 
-function TDatecsPrinter.Sale(const P: TFDSale): Integer;
+function TDatecsPrinter.SaleCommand(Cmd: Char; const P: TFDSale): Integer;
 const
   TaxLetters = 'ABCD';
 var
@@ -1000,7 +1278,17 @@ begin
     Command := Command + Format(',%.2f', [P.DiscountPercent]);
   if P.DiscountAmount <> 0 then
     Command := Command + Format('$%d', [P.DiscountAmount]);
-  Result := Send(#$31 + Command);
+  Result := Send(Cmd + Command);
+end;
+
+function TDatecsPrinter.Sale(const P: TFDSale): Integer;
+begin
+  Result := SaleCommand(#$31, P);
+end;
+
+function TDatecsPrinter.SaleAndDisplay(const P: TFDSale): Integer;
+begin
+  Result := SaleCommand(#$34, P);
 end;
 
 function TDatecsPrinter.ReadTaxRates(const StartDate,
@@ -1009,8 +1297,7 @@ var
   i: Integer;
   Command: AnsiString;
 begin
-  Command := FormatDateTime('ddmmyy', StartDate) + ',' +
-    FormatDateTime('ddmmyy', EndDate);
+  Command := FDDateToStr(StartDate) + ',' +  FDDateToStr(EndDate);
   Result.ResultCode := Send(#$32 + Command);
   if Succeeded(Result.ResultCode) then
   begin
@@ -1018,6 +1305,193 @@ begin
     for i := 1 to 5 do
       Result.VATRate[i] := StrToInt(GetParam(i+1));
     Result.Date := StrToFDDate(GetParam(7));
+  end;
+end;
+
+function TDatecsPrinter.Subtotal(const P: TFDSubtotal): TFDSubtotalResponse;
+var
+  i: Integer;
+  Command: AnsiString;
+begin
+  Command := BoolToStr[P.PrintSubtotal] + BoolToStr[P.DisplaySubtotal];
+  if P.SubtotalPercent <> 0 then
+    Command := Command + ',' + Format('%.2f', [P.SubtotalPercent]);
+  Result.ResultCode := Send(#$33 + Command);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.SubTotal := StrToInt64(GetParam(1));
+    Result.SalesTaxFree := StrToInt64(GetParam(2));
+    for i := 1 to MaxTax do
+      Result.TaxTotals[i] := StrToInt(GetParam(i+2));
+  end;
+end;
+
+function StrToPaidCode(C: AnsiChar): Integer;
+begin
+  case C of
+    'F': Result := PaidCodeError;
+    'I': Result := PaidCodeTaxNegative;
+    'D': Result := PaidCodeSumLessTotal;
+    'R': Result := PaidCodeSumGreaterTotal;
+    'E': Result := PaidCodeNegativeSubtotal;
+  else
+    raise Exception.CreateFmt('Unknown payment code, %s', [C]);
+  end;
+end;
+
+function TDatecsPrinter.PrintTotal(const P: TFDTotal): TFDTotalResponse;
+var
+  i: Integer;
+  Command: AnsiString;
+const
+  PaymentModeChar = 'PNCDE';
+  PaymentModeChar2 = 'PNCUB';
+begin
+  if not(P.PaymentMode in [PaymentModeMin..PaymentModeMax]) then
+    raise Exception.CreateFmt('Invalid PaymentMode value, %d', [P.PaymentMode]);
+
+  Command := P.Text1 + LF + P.Text2 + TAB + PaymentModeChar[P.PaymentMode] +
+    IntToStr(P.Amount);
+  Result.ResultCode := Send(#$35 + Command);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.PaidCode := StrToPaidCode(GetParam(1)[1]);
+    Result.Amount := StrToInt64(GetParam(2));
+  end;
+end;
+
+function TDatecsPrinter.PrintFiscalText(const Text: WideString): Integer;
+begin
+  Result := Send(#$36 + Text);
+end;
+
+function TDatecsPrinter.EndFiscalReceipt: TFDReceiptNumber;
+begin
+  Result.ResultCode := Send(#$38);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.DocNumber := StrToInt64(GetParam(1));
+    Result.FDNumber := StrToInt64(GetParam(2));
+  end;
+end;
+
+function TDatecsPrinter.SaleByPLU(const P: TFDPLU): Integer;
+var
+  Command: AnsiString;
+begin
+  Command := P.Sign + P.PLU + '*' + IntToStr(P.Quantity) + ',' +
+    Format('%.2f', [P.DiscountPercent]) + '@' + IntToStr(P.Price) + '$' +
+    IntToStr(P.DiscountAmount);
+  Result := Send(#$3A + Command);
+end;
+
+function TDatecsPrinter.WriteDateTime(Date: TDateTime): Integer;
+var
+  Command: AnsiString;
+begin
+  Command := FormatDateTime('dd-mm-yy hh:nn:ss', Date);
+  Result := Send(#$3D + Command);
+end;
+
+function TDatecsPrinter.ReadDateTime: TDateTimeResponse;
+var
+  Answer: AnsiString;
+  Year, Month, Day: Word;
+  Hour, Min, Sec: Word;
+begin
+  Result.ResultCode := Send(#$3E, Answer);
+  if Succeeded(Result.ResultCode) then
+  begin
+    if Length(Answer) < 17 then
+     raise Exception.CreateFmt('Invalid date answer, %s', [Answer]);
+
+    Day := StrToInt(Copy(Answer, 1, 2));
+    Month := StrToInt(Copy(Answer, 4, 2));
+    Year := 2000 + StrToInt(Copy(Answer, 7, 2));
+    Hour := StrToInt(Copy(Answer, 10, 2));
+    Min := StrToInt(Copy(Answer, 13, 2));
+    Sec := StrToInt(Copy(Answer, 16, 2));
+    Result.Date := EncodeDate(Year, Month, Day) + EncodeTime(Hour, Min, Sec, 0);
+  end;
+end;
+
+function TDatecsPrinter.DisplayDateTime: Integer;
+begin
+  Result := Send(#$3F);
+end;
+
+function TDatecsPrinter.FinalFiscalRecord(DataType: AnsiChar): TFDFiscalRecord;
+var
+  i: Integer;
+  Answer: AnsiString;
+begin
+  Result.ResultCode := Send(#$40 + DataType, Answer);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.Number := GetInteger(Answer, 1, [',']);
+    Result.SalesTotalTaxFree := StrToInt64(GetString(Answer, 2, [',']));
+    for i := 1 to 5 do
+      Result.SalesTotalTax[i] := StrToInt64(GetString(Answer, i+2, [',']));
+    Result.Date := StrToFDDate(GetString(Answer, 8, [',']))
+  end;
+end;
+
+function TDatecsPrinter.ReadTotals(DataType: Integer): TFDTotals;
+var
+  i: Integer;
+  Answer: AnsiString;
+begin
+  Result.ResultCode := Send(#$41 + DataTypeToChar(DataType));
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.SalesTotalTaxFree := StrToInt64(GetString(Answer, 1, [',']));
+    for i := 1 to 5 do
+      Result.SalesTotalTax[i] := StrToInt64(GetString(Answer, i+1, [',']));
+  end;
+end;
+
+function TDatecsPrinter.ReadFreeFiscalRecords: TFDFiscalrecords;
+var
+  Answer: AnsiString;
+begin
+  Result.ResultCode := Send(#$44, Answer);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.LogicalNumber := GetInteger(Answer, 1, [',']);
+    Result.PhysicalNumber := GetInteger(Answer, 2, [',']);
+  end;
+end;
+
+function TDatecsPrinter.PrintDiagnosticInfo: Integer;
+begin
+  Result := Send(#$47);
+end;
+
+function TDatecsPrinter.PrintReportByNumbers(StartNum, EndNum: Integer): Integer;
+begin
+  Result := Send(#$49  + IntToStr(StartNum) + ',' + IntToStr(EndNum));
+end;
+
+function TDatecsPrinter.ReadFDStatus: Integer;
+begin
+  Result := Send(#$4A);
+end;
+
+function TDatecsPrinter.GetDiagnosticInfo(CalcCRC: Boolean): TDiagnosticInfo;
+var
+  Answer: AnsiString;
+begin
+  Result.ResultCode := Send(#$5A + BoolToStr[CalcCRC], Answer);
+  if Succeeded(Result.ResultCode) then
+  begin
+    Result.FirmwareVersion := GetString(Answer, 1, [' ', ',']);
+    Result.FirmwareDate := GetString(Answer, 2, [' ', ',']);
+    Result.FirmwareTime := GetString(Answer, 3, [' ', ',']);
+    Result.ChekSum := GetString(Answer, 4, [' ', ',']);
+    Result.Switches := GetInteger(Answer, 5, [' ', ',']);
+    Result.Country := GetInteger(Answer, 6, [' ', ',']);
+    Result.FDSerial := GetString(Answer, 7, [' ', ',']);
+    Result.FDNo := GetString(Answer, 8, [' ', ',']);
   end;
 end;
 

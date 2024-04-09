@@ -13,7 +13,7 @@ uses
   WException in '..\..\src\Shared\WException.pas',
   duOposDevice in 'units\duOposDevice.pas',
   duOposUtils in 'units\duOposUtils.pas',
-  duLogFile in 'units\duLogFile.pas',
+  duDatecsPrinter in 'units\duDatecsPrinter.pas',
   OPOSException in '..\..\src\Opos\OposException.pas',
   OposServiceDevice19 in '..\..\src\Opos\OposServiceDevice19.pas',
   OposFptr in '..\..\src\Opos\OposFptr.pas',
@@ -23,7 +23,9 @@ uses
   NotifyThread in '..\..\src\Shared\NotifyThread.pas',
   StringUtils in '..\..\src\Shared\StringUtils.pas',
   RegExpr in '..\..\src\Shared\RegExpr.pas',
-  FileUtils in '..\..\src\Shared\FileUtils.pas';
+  FileUtils in '..\..\src\Shared\FileUtils.pas',
+  DatecsPrinter2 in '..\..\src\OposDatecs\units\DatecsPrinter2.pas',
+  PrinterPort in '..\..\src\Shared\PrinterPort.pas';
 
 {$R *.RES}
 

@@ -13,9 +13,9 @@ type
 
   EDriverError = class(WideException)
   private
-   FErrorCode: Integer;
+   FCode: Integer;
   public
-    property ErrorCode: Integer read fErrorCode;
+    property Code: Integer read FCode;
     constructor Create2(Code: Integer; const Msg: WideString);
   end;
 
@@ -34,7 +34,7 @@ end;
 constructor EDriverError.Create2(Code: Integer; const Msg: WideString);
 begin
   inherited Create(Msg);
-  FErrorCode := Code;
+  FCode := Code;
 end;
 
 procedure RaiseError(Code: Integer; const Message: WideString);
