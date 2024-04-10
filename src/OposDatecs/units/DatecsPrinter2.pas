@@ -4,7 +4,9 @@ interface
 
 uses
   // VCL
-  SysUtils, DateUtils,
+  Windows, SysUtils, DateUtils, Registry,
+  // Tnt
+  TntRegistry,
   // This
   PrinterPort, LogFile, DriverError, StringUtils, ByteUtils;
 
@@ -73,6 +75,12 @@ const
   DATECS_E_FAILURE      = -2;
   DATECS_E_NOHARDWARE   = -3;
   DATECS_E_CRC          = -4;
+
+  EInvalidDataSyntax    = -10; // Invalid data syntax
+  EWrongPassword        = -11; // Wrong password
+  ECutterError          = -12; // ECutterError
+  EMemoryCleared        = -13; // EMemoryCleared
+  EDocPrintAllowed      = -14; // EDocPrintAllowed
 
   /////////////////////////////////////////////////////////////////////////////
   // Error messages
@@ -145,6 +153,8 @@ const
   SInvalidParamValue: WideString = 'Неверное значение параметра "%s"';
   SInvalidPasswordLength: WideString = 'Длина пароля должна быть больше или равна 4';
   SInvalidCodeValue: WideString = 'Неверное значение кода';
+
+  SInvalidAnswer = 'Invalid answer';
 
   /////////////////////////////////////////////////////////////////////////////
   // ReportType constants
@@ -221,7 +231,7 @@ type
     Text1: WideString;
     Text2: WideString;
     PaymentMode: Integer;
-    Amount: Int64;
+    Amount: Currency;
   end;
 
   { TFDTotalResponse }
@@ -229,7 +239,7 @@ type
   TFDTotalResponse = record
     ResultCode: Integer;
     PaidCode: Integer;
-    Amount: Int64;
+    Amount: Currency;
   end;
 
   { TFDSubtotal }
@@ -264,10 +274,10 @@ type
     Text1: WideString;
     Text2: WideString;
     Tax: Byte;
-    Price: Int64;
-    Quantity: Int64;
-    DiscountPercent: Integer;
-    DiscountAmount: Integer;
+    Price: Currency;
+    Quantity: Double;
+    DiscountPercent: Double;
+    DiscountAmount: Currency;
   end;
 
   { TFDStartRec }
@@ -297,7 +307,7 @@ type
   TFDReportAnswer = record
     ResultCode: Integer;
     ReportNumber: Integer;
-    SalesTotalNoTax: Int64;
+    SalesTotalTaxFree: Int64;
     SalesTotalTax: array [1..5] of Int64;
   end;
 
@@ -349,6 +359,7 @@ type
     InvalidCommandInMode: Boolean;
     SumsOverflow: Boolean;
     // Byte 2
+    DocPrintAllowed: Boolean;
     NonfiscalRecOpened: Boolean;
     JournalPaperNearEnd: Boolean;
     FiscalRecOpened: Boolean;
@@ -356,21 +367,16 @@ type
     ReceiptPaperNearEnd: Boolean;
     RecJrnPaperNearEnd: Boolean;
     RecJrnStationEmpty: Boolean;
-
-
-    JrnSmallFont: Boolean; // 3.6, уменьшенный шрифт на контрольной ленте
-    DisplayCP866: Boolean; // 3.5, кодовая таблица дисплея (Windows 1251)
-    PrinterCP866: Boolean; // 3.4, кодовая страница притера DOS/Windows 1251
-    TransparentDisplay: Boolean; // 3.3, режим "прозрачный дисплей"
-    AutoCut: Boolean; // 3.2, автоматическая обрезка чека
-    BaudRate: Integer; // 3.0-3.1, скорость последовательного порта
-
+    // Byte 3
+    FDError: Byte;  // Error number of Fiscal device
+    // Byte 4
     FMError: Boolean; // 4.5
-    FMOverflow: Boolean; // 4.4, Фискальная память переполнена
-    FM50Zreports: Boolean; // 4.3, В фискальной памяти есть место по крайней мере для 50 Z-отчетов
-    FMMissing: Boolean; // 4.2, Нет модуля фискальной памяти
-    FMWriteError: Boolean; // 4.0, Возникла ошибка при записи в фискальную память
+    FMOverflow: Boolean; // 4.4, Fiscal memory full
+    FMLess50Zreports: Boolean; // 4.3, Room for less than 50 records in fiscal memory
+    FMInvalidRecord: Boolean; // 4.2, Invalid record in fiscal memory
+    FMWriteError: Boolean; // 4.0, Fiscal memory write error
 
+    // Byte 5
     SerialNumber: Boolean; // 5.5, Фискальный и заводской номер запрограммированы
     TaxRatesSet: Boolean; // 5.4, Налоговые ставки определены
     Fiscalized: Boolean; // 5.3, Устройство фискализировано
@@ -396,22 +402,22 @@ type
     FPrinterCodePage: Integer;
     FDisplayCodePage: Integer;
     FPassword: WideString;
+    FRegKeyName: WideString;
 
     function CheckStatus: Integer;
     function ClearResult: Integer;
     function HandleException(E: Exception): Integer;
     function DecodePrinterText(const Text: AnsiString): WideString;
-    function GetDisplayCodePage: Integer;
-    function GetPrinterCodePage: Integer;
 
     function GetParam(i: Integer): string;
-    function Send(const TxData: WideString): Integer; overload;
-    function Send(const TxData: WideString; var RxData: string): Integer; overload;
-    procedure SendCommand(const Tx: WideString; var RxData: string);
+    function Send(const TxData: AnsiString): Integer; overload;
+    function Send(const TxData: AnsiString; var RxData: AnsiString): Integer; overload;
+    procedure SendCommand(const Tx: AnsiString; var RxData: AnsiString);
     function EncodeDisplayText(const Text: WideString): AnsiString;
     function EncodePrinterText(const Text: WideString): AnsiString;
     function SaleCommand(Cmd: Char; const P: TFDSale): Integer;
-
+    procedure LoadParams;
+    procedure SaveParams;
   public
     TxCount: Integer;
 
@@ -419,6 +425,7 @@ type
     destructor Destroy; override;
 
     procedure Check(Code: Integer);
+    function Reset: Integer;
     function XReport: TFDReportAnswer;
     function ZReport: TFDReportAnswer;
     function ClearExternalDisplay: Integer;
@@ -449,13 +456,15 @@ type
     function ReadFreeFiscalRecords: TFDFiscalrecords;
     function PrintDiagnosticInfo: Integer;
     function PrintReportByNumbers(StartNum, EndNum: Integer): Integer;
-    function ReadFDStatus: Integer;
+    function ReadStatus: Integer;
     function GetDiagnosticInfo(CalcCRC: Boolean): TDiagnosticInfo;
+    function CancelReceipt: Integer;
 
     property Port: IPrinterPort read FPort;
     property Logger: ILogFile read FLogger;
     property Status: TDatecsStatus read FStatus;
     property Password: WideString read FPassword write FPassword;
+    property RegKeyName: WideString read FRegKeyName write FRegKeyName;
     property PrinterCodePage: Integer read FPrinterCodePage write FPrinterCodePage;
     property DisplayCodePage: Integer read FDisplayCodePage write FDisplayCodePage;
     property PrinterEncoding: Integer read FPrinterEncoding write FPrinterEncoding;
@@ -467,6 +476,41 @@ function GetCommandName(Code: Integer): WideString;
 function GetErrorText(Code: Integer): WideString;
 
 implementation
+
+function StrToDouble(const S: AnsiString): Double;
+var
+  Text: AnsiString;
+  SaveDecimalSeparator: Char;
+begin
+  SaveDecimalSeparator := DecimalSeparator;
+  try
+    DecimalSeparator := '.';
+    Text := StringReplace(S, ',', '.', []);
+    Result := StrToFloat(Text);
+  finally
+    DecimalSeparator := SaveDecimalSeparator;
+  end;
+end;
+
+function AmountToStr(Value: Double): string;
+var
+  DS: Char;
+begin
+  DS := DecimalSeparator;
+  DecimalSeparator := '.';
+  Result := Format('%.2f', [Round(Value*100)/100]);
+  DecimalSeparator := DS;
+end;
+
+function QuantityToStr(Value: Double): string;
+var
+  DS: Char;
+begin
+  DS := DecimalSeparator;
+  DecimalSeparator := '.';
+  Result := Format('%.3f', [Round(Value*1000)/1000]);
+  DecimalSeparator := DS;
+end;
 
 function GetErrorText(Code: Integer): WideString;
 begin
@@ -514,8 +558,9 @@ begin
     40: Result := SError40;
     100: Result := SError100;
   else
-    Result := '';
+    Result := 'Неизвестная ошибка';
   end;
+  Result := Format('%d, %s', [Code, Result]);
 end;
 
 const
@@ -567,7 +612,7 @@ const
   SCommand_41H: WideString = 'Информация начисленных сумм за день';
   SCommand_43H: WideString = 'Информация о накопленной суммы корректировок';
   SCommand_44H: WideString = 'Количество свободных записей в фискальной памяти';
-  SCommand_4AH: WideString = 'Получить байт состояния';
+  SCommand_4AH: WideString = 'Запрос состояния';
   SCommand_4CH: WideString = 'Состояние фискалной операции';
   SCommand_56H: WideString = 'Получить дату последней фискальной записи';
   SCommand_5AH: WideString = 'Получение диагностической информации';
@@ -593,6 +638,7 @@ const
   SCommand_7AH: WideString = 'Запрос состояния модема';
   SCommand_80H: WideString = 'Сервисное обнуление RAM';
   SCommand_81H: WideString = 'Сервисное стирание фискалной памяти';
+  SCommand_82H: WideString = 'Отмена чека';
   SCommand_83H: WideString = 'Сервисное форматирование фискалной памяти';
   SCommand_84H: WideString = 'Читать блок прошивки (память программ)';
   SCommand_85H: WideString = 'Временный запрет печати';
@@ -677,6 +723,7 @@ begin
     $7A: Result := SCommand_7AH;
     $80: Result := SCommand_80H;
     $81: Result := SCommand_81H;
+    $82: Result := SCommand_82H;
     $83: Result := SCommand_83H;
     $84: Result := SCommand_84H;
     $85: Result := SCommand_85H;
@@ -698,8 +745,8 @@ begin
   for i := 1 to 6 do
     B[i-1] := Ord(Data[i]);
 
-
   Status.Data := Data;
+  // Byte 0
   Status.GeneralError := TestBit(B[0], 5);
   Status.PrinterError := TestBit(B[0], 4);
   Status.DisplayDisconnected := TestBit(B[0], 3);
@@ -715,6 +762,7 @@ begin
   Status.SumsOverflow := TestBit(B[1], 0);
 
   // Byte 2
+  Status.DocPrintAllowed := TestBit(B[2], 6);
   Status.NonfiscalRecOpened := TestBit(B[2], 5);
   Status.JournalPaperNearEnd := TestBit(B[2], 4);
   Status.FiscalRecOpened := TestBit(B[2], 3);
@@ -722,19 +770,17 @@ begin
   Status.RecJrnPaperNearEnd := TestBit(B[2], 1);
   Status.RecJrnStationEmpty := TestBit(B[2], 0);
 
-  Status.JrnSmallFont := TestBit(B[3], 6);
-  Status.DisplayCP866 := TestBit(B[3], 5);
-  Status.PrinterCP866 := TestBit(B[3], 4);
-  Status.TransparentDisplay := TestBit(B[3], 3);
-  Status.AutoCut := TestBit(B[3], 2);
-  Status.BaudRate := B[3] and 3;
+  // Byte 3
+  Status.FDError := Ord(B[3]) and $7F;
 
+  // Byte 4
   Status.FMError := TestBit(B[4], 5);
   Status.FMOverflow := TestBit(B[4], 4);
-  Status.FM50ZReports := TestBit(B[4], 3);
-  Status.FMMissing := TestBit(B[4], 2);
+  Status.FMLess50ZReports := TestBit(B[4], 3);
+  Status.FMInvalidRecord := TestBit(B[4], 2);
   Status.FMWriteError := TestBit(B[4], 0);
 
+  // Byte 5
   Status.SerialNumber := TestBit(B[5], 5);
   Status.TaxRatesSet := TestBit(B[5], 4);
   Status.Fiscalized := TestBit(B[5], 3);
@@ -925,15 +971,62 @@ begin
   FPort := APort;
   FLogger := ALogger;
   FPassword := '';
-  TxCount := $24;
   FPrinterEncoding := EncodingAuto;
   FDisplayEncoding := EncodingAuto;
+  FRegKeyName := 'SHTRIH-M\OposDatecs';
+  LoadParams;
 end;
 
 destructor TDatecsPrinter.Destroy;
 begin
-
+  FPort := nil;
+  FLogger := nil;
   inherited Destroy;
+end;
+
+procedure TDatecsPrinter.SaveParams;
+var
+  Reg: TTntRegistry;
+begin
+  Reg := TTntRegistry.Create;
+  try
+    Reg.Access := KEY_ALL_ACCESS;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey(RegKeyName, True) then
+    begin
+      Reg.WriteInteger('FrameNumber', TxCount);
+    end else
+    begin
+      FLogger.Error('Registry key open error');
+    end;
+  except
+    on E: Exception do
+    begin
+      FLogger.Error('Save params failed, ' + E.Message);
+    end;
+  end;
+  Reg.Free;
+end;
+
+procedure TDatecsPrinter.LoadParams;
+var
+  Reg: TTntRegistry;
+begin
+  Reg := TTntRegistry.Create;
+  try
+    Reg.Access := KEY_READ;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey(RegKeyName, True) then
+    begin
+      TxCount := Reg.ReadInteger('FrameNumber');
+    end;
+  except
+    on E: Exception do
+    begin
+      FLogger.Error('Read params failed, ' + E.Message);
+    end;
+  end;
+  Reg.Free;
 end;
 
 function TDatecsPrinter.ClearResult: Integer;
@@ -968,15 +1061,10 @@ end;
 
 function TDatecsPrinter.CheckStatus: Integer;
 begin
-  if Status.InvalidCommandCode then
+  // Byte 0
+  if Status.PrinterError then
   begin
-    Result := EInvalidCommandCode;
-    Exit;
-  end;
-
-  if Status.ClockNotSet then
-  begin
-    Result := EDateTimeNotSet;
+    Result := EPrinterError;
     Exit;
   end;
 
@@ -986,15 +1074,41 @@ begin
     Exit;
   end;
 
-  if Status.PrinterError then
+  if Status.ClockNotSet then
   begin
-    Result := EPrinterError;
+    Result := EDateTimeNotSet;
     Exit;
   end;
 
-  if Status.SumsOverflow then
+  if Status.InvalidCommandCode then
   begin
-    Result := ESumsOverflow;
+    Result := EInvalidCommandCode;
+    Exit;
+  end;
+
+  if Status.InvalidDataSyntax then
+  begin
+    Result := EInvalidDataSyntax;
+    Exit;
+  end;
+
+  // Byte 1
+  if Status.WrongPassword then
+  begin
+    Result := EWrongPassword;
+    Exit;
+  end;
+
+  { !!! }
+  if Status.CutterError then
+  begin
+    Result := ECutterError;
+    Exit;
+  end;
+
+  if Status.MemoryCleared then
+  begin
+    Result := EMemoryCleared;
     Exit;
   end;
 
@@ -1004,6 +1118,20 @@ begin
     Exit;
   end;
 
+  if Status.SumsOverflow then
+  begin
+    Result := ESumsOverflow;
+    Exit;
+  end;
+  // Byte 2
+  (*
+  if not Status.DocPrintAllowed then
+  begin
+    Result := EDocPrintAllowed;
+    Exit;
+  end;
+  *)
+
   if Status.RecJrnStationEmpty then
   begin
     Result := ERecJrnStationEmpty;
@@ -1012,14 +1140,14 @@ begin
   Result := ENoError;
 end;
 
-function TDatecsPrinter.Send(const TxData: WideString): Integer;
+function TDatecsPrinter.Send(const TxData: AnsiString): Integer;
 var
-  RxData: string;
+  RxData: AnsiString;
 begin
   Result := Send(TxData, RxData);
 end;
 
-function TDatecsPrinter.Send(const TxData: WideString; var RxData: string): Integer;
+function TDatecsPrinter.Send(const TxData: AnsiString; var RxData: AnsiString): Integer;
 begin
   try
     SendCommand(TxData, RxData);
@@ -1028,27 +1156,16 @@ begin
     on E: Exception do
       Result := HandleException(E);
   end;
-end;
-
-function TDatecsPrinter.GetPrinterCodePage: Integer;
-begin
-  Result := 1251;
-  if FStatus.PrinterCP866 then
-    Result := 866;
-end;
-
-function TDatecsPrinter.GetDisplayCodePage: Integer;
-begin
-  Result := 1251;
-  if FStatus.DisplayCP866 then
-    Result := 866;
+  if Failed(Result) then
+  begin
+    Logger.Error(GetErrorText(Result));
+  end;
 end;
 
 function TDatecsPrinter.EncodePrinterText(const Text: WideString): AnsiString;
 begin
   case PrinterEncoding of
     EncodingNone: Result := Text;
-    EncodingAuto: Result := WideStringToAnsiString(GetPrinterCodePage, Text);
     EncodingSelected: Result := WideStringToAnsiString(PrinterCodePage, Text);
   else
     Result := Text;
@@ -1059,7 +1176,6 @@ function TDatecsPrinter.EncodeDisplayText(const Text: WideString): AnsiString;
 begin
   case DisplayEncoding of
     EncodingNone: Result := Text;
-    EncodingAuto: Result := WideStringToAnsiString(GetDisplayCodePage, Text);
     EncodingSelected: Result := WideStringToAnsiString(DisplayCodePage, Text);
   else
     Result := Text;
@@ -1070,14 +1186,13 @@ function TDatecsPrinter.DecodePrinterText(const Text: AnsiString): WideString;
 begin
   case PrinterEncoding of
     EncodingNone: Result := Text;
-    EncodingAuto: Result := AnsiStringToWideString(GetPrinterCodePage, Text);
     EncodingSelected: Result := AnsiStringToWideString(PrinterCodePage, Text);
   else
     Result := Text;
   end;
 end;
 
-procedure TDatecsPrinter.SendCommand(const Tx: WideString; var RxData: string);
+procedure TDatecsPrinter.SendCommand(const Tx: AnsiString; var RxData: AnsiString);
 var
   B: Byte;
   S: string;
@@ -1151,6 +1266,7 @@ begin
     begin
       TxCount := $20;
     end;
+    SaveParams;
   finally
     Port.Unlock;
   end;
@@ -1165,11 +1281,11 @@ function TDatecsPrinter.XReport: TFDReportAnswer;
 var
   i: Integer;
 begin
-  Result.ResultCode := Send(#$45'0');
+  Result.ResultCode := Send(#$45'2');
   if Succeeded(Result.ResultCode) then
   begin
     Result.ReportNumber := StrToInt(GetParam(1));
-    Result.SalesTotalNoTax := StrToInt64(GetParam(2));
+    Result.SalesTotalTaxFree := StrToInt64(GetParam(2));
     for i := 1 to 5 do
       Result.SalesTotalTax[i] := StrToInt64(GetParam(i + 2));
   end;
@@ -1179,11 +1295,11 @@ function TDatecsPrinter.ZReport: TFDReportAnswer;
 var
   i: Integer;
 begin
-  Result.ResultCode := Send(#$45'2');
+  Result.ResultCode := Send(#$45'0');
   if Succeeded(Result.ResultCode) then
   begin
     Result.ReportNumber := StrToInt(GetParam(1));
-    Result.SalesTotalNoTax := StrToInt(GetParam(2));
+    Result.SalesTotalTaxFree := StrToInt(GetParam(2));
     for i := 1 to 5 do
       Result.SalesTotalTax[i] := StrToInt64(GetParam(i + 2));
   end;
@@ -1197,7 +1313,7 @@ end;
 
 function TDatecsPrinter.WaitWhilePrintEnd: Integer;
 begin
-
+  { !!! }
 end;
 
 function TDatecsPrinter.ClearExternalDisplay: Integer;
@@ -1216,7 +1332,7 @@ begin
   if Succeeded(Result.ResultCode) then
     Result.ReceiptNumber := StrToInt64(GetParam(1));
 end;
-
+    
 function TDatecsPrinter.EndNonfiscalReceipt: TReceiptNumberRec;
 begin
   Result.ResultCode := Send(#$27);
@@ -1268,16 +1384,15 @@ const
 var
   Command: AnsiString;
 begin
-  Command := P.Text1;
-  if P.Text2 <> '' then
-    Command := Command + LF + P.Text2;
-  if P.Tax in [1..4] then
-    Command := Command + TAB + TaxLetters[P.Tax];
-  Command := Command + IntToStr(P.Price) + '*' + IntToStr(P.Quantity);
+  if not(P.Tax in [1..4]) then
+    raise Exception.CreateFmt('Invalid tax value, %d', [P.Tax]);
+
+  Command := P.Text1 + LF + P.Text2 + TAB + TaxLetters[P.Tax] +
+    AmountToStr(P.Price) + '*' + QuantityToStr(P.Quantity);
   if P.DiscountPercent <> 0 then
     Command := Command + Format(',%.2f', [P.DiscountPercent]);
   if P.DiscountAmount <> 0 then
-    Command := Command + Format('$%d', [P.DiscountAmount]);
+    Command := Command + AmountToStr(P.DiscountAmount);
   Result := Send(Cmd + Command);
 end;
 
@@ -1340,23 +1455,27 @@ begin
 end;
 
 function TDatecsPrinter.PrintTotal(const P: TFDTotal): TFDTotalResponse;
-var
-  i: Integer;
-  Command: AnsiString;
 const
   PaymentModeChar = 'PNCDE';
   PaymentModeChar2 = 'PNCUB';
+var
+  i: Integer;
+  Answer: AnsiString;
+  Command: AnsiString;
 begin
   if not(P.PaymentMode in [PaymentModeMin..PaymentModeMax]) then
     raise Exception.CreateFmt('Invalid PaymentMode value, %d', [P.PaymentMode]);
 
   Command := P.Text1 + LF + P.Text2 + TAB + PaymentModeChar[P.PaymentMode] +
-    IntToStr(P.Amount);
-  Result.ResultCode := Send(#$35 + Command);
+    AmountToStr(P.Amount);
+  Result.ResultCode := Send(#$35 + Command, Answer);
   if Succeeded(Result.ResultCode) then
   begin
-    Result.PaidCode := StrToPaidCode(GetParam(1)[1]);
-    Result.Amount := StrToInt64(GetParam(2));
+    if Answer = '' then
+      raise Exception.Create(SInvalidAnswer);
+
+    Result.PaidCode := StrToPaidCode(Answer[1]);
+    Result.Amount := StrToDouble(Copy(Answer, 2, Length(Answer)));
   end;
 end;
 
@@ -1472,7 +1591,7 @@ begin
   Result := Send(#$49  + IntToStr(StartNum) + ',' + IntToStr(EndNum));
 end;
 
-function TDatecsPrinter.ReadFDStatus: Integer;
+function TDatecsPrinter.ReadStatus: Integer;
 begin
   Result := Send(#$4A);
 end;
@@ -1495,5 +1614,25 @@ begin
   end;
 end;
 
+function TDatecsPrinter.Reset: Integer;
+begin
+  Result := ReadStatus;
+  if Succeeded(Result) then
+  begin
+    if Status.NonfiscalRecOpened then
+    begin
+      Result := EndNonfiscalReceipt.ResultCode;
+    end;
+    if Status.FiscalRecOpened then
+    begin
+      Result := CancelReceipt;
+    end;
+  end;
+end;
+
+function TDatecsPrinter.CancelReceipt: Integer;
+begin
+  Result := Send(#$82);
+end;
 
 end.

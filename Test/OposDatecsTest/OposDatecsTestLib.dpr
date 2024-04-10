@@ -25,7 +25,14 @@ uses
   RegExpr in '..\..\src\Shared\RegExpr.pas',
   FileUtils in '..\..\src\Shared\FileUtils.pas',
   DatecsPrinter2 in '..\..\src\OposDatecs\units\DatecsPrinter2.pas',
-  PrinterPort in '..\..\src\Shared\PrinterPort.pas';
+  PrinterPort in '..\..\src\Shared\PrinterPort.pas',
+  ByteUtils in '..\..\src\Shared\ByteUtils.pas',
+  SerialPort in '..\..\src\Shared\SerialPort.pas',
+  DeviceNotification in '..\..\src\Shared\DeviceNotification.pas',
+  PortUtil in '..\..\src\Shared\PortUtil.pas',
+  TextReport in '..\..\src\Shared\TextReport.pas',
+  SocketPort in '..\..\src\Shared\SocketPort.pas',
+  DriverError in '..\..\src\Shared\DriverError.pas';
 
 {$R *.RES}
 
