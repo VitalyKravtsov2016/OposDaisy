@@ -105,7 +105,7 @@ begin
     Logger.Debug('LOG START');
     Parameters.WriteLogParameters;
     //
-    AddPage(fm, TfmConnection);
+    AddPage(fm, TfmFptrConnection);
     AddPage(fm, TfmFptrLog);
 
     fm.Init;

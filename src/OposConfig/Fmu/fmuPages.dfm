@@ -1,13 +1,13 @@
 object fmPages: TfmPages
-  Left = 284
-  Top = 229
+  Left = 416
+  Top = 373
   AutoScroll = False
   BorderIcons = [biSystemMenu]
-  ClientHeight = 504
-  ClientWidth = 656
+  ClientHeight = 461
+  ClientWidth = 684
   Color = clBtnFace
   Constraints.MinHeight = 499
-  Constraints.MinWidth = 648
+  Constraints.MinWidth = 700
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,13 +17,13 @@ object fmPages: TfmPages
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
-    656
-    504)
+    684
+    461)
   PixelsPerInch = 96
   TextHeight = 13
   object btnDefaults: TTntButton
     Left = 8
-    Top = 472
+    Top = 429
     Width = 81
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -32,8 +32,8 @@ object fmPages: TfmPages
     OnClick = btnDefaultsClick
   end
   object btnOK: TTntButton
-    Left = 416
-    Top = 472
+    Left = 444
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -43,8 +43,8 @@ object fmPages: TfmPages
     OnClick = btnOKClick
   end
   object btnCancel: TTntButton
-    Left = 496
-    Top = 472
+    Left = 524
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -54,8 +54,8 @@ object fmPages: TfmPages
     TabOrder = 2
   end
   object btnApply: TTntButton
-    Left = 576
-    Top = 472
+    Left = 604
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -69,7 +69,7 @@ object fmPages: TfmPages
     Left = 8
     Top = 8
     Width = 145
-    Height = 449
+    Height = 406
     Style = lbOwnerDrawFixed
     Anchors = [akLeft, akTop, akBottom]
     ItemHeight = 18
@@ -77,10 +77,10 @@ object fmPages: TfmPages
     OnClick = lbPagesClick
   end
   object pnlPage: TTntPanel
-    Left = 156
+    Left = 160
     Top = 8
-    Width = 493
-    Height = 449
+    Width = 518
+    Height = 406
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'pnlPage'
     TabOrder = 5

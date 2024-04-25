@@ -5,47 +5,43 @@ interface
 uses
   // VCL
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, Spin,
+  Dialogs, StdCtrls, ComCtrls, Spin, ExtCtrls,
   // Tnt
   TntStdCtrls,
   // This
-  untUtil, PrinterParameters, FiscalPrinterDevice, FptrTypes, FileUtils;
+  PrinterParameters, FiscalPrinterDevice, FptrTypes, FileUtils, untUtil;
 
 type
   { TfmFptrConnection }
 
   TfmFptrConnection = class(TFptrPage)
-    gbConenctionParams: TTntGroupBox;
-    lblComPort: TTntLabel;
-    lblBaudRate: TTntLabel;
-    lblByteTimeout: TTntLabel;
-    lblMaxRetryCount: TTntLabel;
-    lblConnectionType: TTntLabel;
-    lblRemoteHost: TTntLabel;
-    lblRemotePort: TTntLabel;
-    cbComPort: TTntComboBox;
-    cbBaudRate: TTntComboBox;
     chbSearchByPort: TTntCheckBox;
     chbSearchByBaudRate: TTntCheckBox;
-    cbConnectionType: TTntComboBox;
-    edtRemoteHost: TTntEdit;
-    gbPassword: TTntGroupBox;
-    lblUsrPassword: TTntLabel;
-    lblSysPassword: TTntLabel;
-    seRemotePort: TSpinEdit;
+    cbMaxRetryCount: TTntComboBox;
+    lblMaxRetryCount: TTntLabel;
+    lblByteTimeout: TTntLabel;
     seByteTimeout: TSpinEdit;
+    cbBaudRate: TTntComboBox;
+    lblBaudRate: TTntLabel;
+    lblComPort: TTntLabel;
+    cbComPort: TTntComboBox;
+    seRemotePort: TSpinEdit;
+    lblRemotePort: TTntLabel;
+    lblRemoteHost: TTntLabel;
+    edtRemoteHost: TTntEdit;
+    cbConnectionType: TTntComboBox;
+    lblConnectionType: TTntLabel;
+    Bevel1: TBevel;
+    lblPollInterval: TTntLabel;
+    sePollInterval: TSpinEdit;
+    cbCCOType: TTntComboBox;
+    lblEventsType: TTntLabel;
+    Bevel2: TBevel;
+    lblUsrPassword: TTntLabel;
     seOperatorNumber: TSpinEdit;
     seOperatorPassword: TSpinEdit;
-    cbMaxRetryCount: TTntComboBox;
-    GroupBox1: TTntGroupBox;
-    sePollInterval: TSpinEdit;
-    lblPollInterval: TTntLabel;
-    lblStatusInterval: TTntLabel;
-    seStatusInterval: TSpinEdit;
-    seStatusTimeout: TSpinEdit;
-    lblStatusTimeout: TTntLabel;
-    lblEventsType: TTntLabel;
-    cbCCOType: TTntComboBox;
+    lblSysPassword: TTntLabel;
+    Bevel3: TBevel;
     procedure FormCreate(Sender: TObject);
   public
     procedure UpdatePage; override;
@@ -62,53 +58,37 @@ implementation
 { TfmFptrConnection }
 
 procedure TfmFptrConnection.UpdatePage;
-var
-  Index: Integer;
 begin
   cbConnectionType.ItemIndex := Parameters.ConnectionType;
   edtRemoteHost.Text := Parameters.RemoteHost;
   seRemotePort.Value := Parameters.RemotePort;
-  cbComPort.ItemIndex := Parameters.PortNumber-1;
+  cbComPort.Text := Parameters.PortName;
   cbBaudRate.ItemIndex := BaudRateToInt(Parameters.BaudRate);
   seByteTimeout.Value := Parameters.ByteTimeout;
   cbMaxRetryCount.ItemIndex := Parameters.MaxRetryCount;
   chbSearchByBaudRate.Checked := Parameters.SearchByBaudRateEnabled;
   chbSearchByPort.Checked := Parameters.SearchByPortEnabled;
-  cbPropertyUpdateMode.ItemIndex := Parameters.PropertyUpdateMode;
-  sePollInterval.Value := Parameters.PollIntervalInSeconds;
-  seStatusInterval.Value := Parameters.StatusInterval;
+  sePollInterval.Value := Parameters.DevicePollTime;
   cbCCOType.ItemIndex := Parameters.CCOType;
-  seUsrPassword.Value := Parameters.UsrPassword;
-  seSysPassword.Value := Parameters.SysPassword;
-  cbStorage.ItemIndex := Parameters.Storage;
-  seStatusTimeout.Value := Parameters.StatusTimeout;
-  Index := FModels.IndexById(Parameters.ModelId);
-  if Index = -1 then Index := 0;
-  cbModel.ItemIndex := Index;
+  seOperatorNumber.Value := Parameters.OperatorNumber;
+  seOperatorPassword.Value := Parameters.OperatorPassword;
 end;
 
 procedure TfmFptrConnection.UpdateObject;
 begin
   Parameters.ConnectionType := cbConnectionType.ItemIndex;
-  Parameters.PrinterProtocol := cbPrinterProtocol.ItemIndex;
   Parameters.RemoteHost := edtRemoteHost.Text;
   Parameters.RemotePort := seRemotePort.Value;
-  Parameters.PortNumber := cbComPort.ItemIndex + 1;
+  Parameters.PortName := cbComPort.Text;
   Parameters.BaudRate := IntToBaudRate(cbBaudRate.ItemIndex);
   Parameters.ByteTimeout := seByteTimeout.Value;
   Parameters.MaxRetryCount := cbMaxRetryCount.ItemIndex;
   Parameters.SearchByBaudRateEnabled := chbSearchByBaudRate.Checked;
   Parameters.SearchByPortEnabled := chbSearchByPort.Checked;
-  Parameters.PropertyUpdateMode := cbPropertyUpdateMode.ItemIndex;
-  Parameters.PollIntervalInSeconds := sePollInterval.Value;
-  Parameters.StatusInterval := seStatusInterval.Value;
+  Parameters.DevicePollTime := sePollInterval.Value;
   Parameters.CCOType := cbCCOType.ItemIndex;
-  Parameters.UsrPassword := seUsrPassword.Value;
-  Parameters.SysPassword := seSysPassword.Value;
-  Parameters.Storage := cbStorage.ItemIndex;
-  Parameters.StatusTimeout := seStatusTimeout.Value;
-
-  Parameters.ModelId := FModels[cbModel.ItemIndex].Data.ID;
+  Parameters.OperatorNumber := seOperatorNumber.Value;
+  Parameters.OperatorPassword := seOperatorPassword.Value;
 end;
 
 procedure TfmFptrConnection.FormCreate(Sender: TObject);

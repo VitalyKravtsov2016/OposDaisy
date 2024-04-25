@@ -23,15 +23,16 @@ type
 
   TDaisyFiscalPrinterTest = class(TTestCase)
   private
-    function GetParams: TPrinterParameters;
-  private
     FPrintHeader: Boolean;
+    Driver: ToleFiscalPrinter;
+
     procedure ClaimDevice;
     procedure EnableDevice;
     procedure OpenService;
     procedure FptrCheck(Code: Integer); overload;
     procedure FptrCheck(Code: Integer; const AText: WideString); overload;
     procedure CheckTotal(Amount: Currency);
+    function GetParams: TPrinterParameters;
     function DirectIO2(Command: Integer; const pData: Integer;
       const pString: WideString): Integer;
 
@@ -68,9 +69,6 @@ type
 implementation
 
 { TDaisyFiscalPrinterTest }
-
-var
-  Driver: ToleFiscalPrinter;
 
 function TDaisyFiscalPrinterTest.GetParams: TPrinterParameters;
 begin
@@ -110,37 +108,30 @@ end;
 procedure TDaisyFiscalPrinterTest.SetUp;
 begin
   inherited SetUp;
-  if Driver = nil then
-  begin
-    Driver := ToleFiscalPrinter.Create;
-    Driver.Driver.LoadParamsEnabled := False;
+  Driver := ToleFiscalPrinter.Create;
+  Driver.Driver.LoadParamsEnabled := False;
 
-    Params.LogFileEnabled := True;
-    Params.LogMaxCount := 10;
-    Params.LogFilePath := GetModulePath + 'Logs';
-    // Serial
-    Params.PrinterType := PrinterTypeSerial;
-    Params.ByteTimeout := 500;
-    Params.PortName := 'COM3';
-    Params.BaudRate := 19200;
-    Params.DataBits := DATABITS_8;
-    Params.StopBits := ONESTOPBIT;
-    Params.Parity := NOPARITY;
-    Params.FlowControl := FLOW_CONTROL_NONE;
-    Params.ReconnectPort := False;
-  (*
-    // Network
-    Params.PrinterType := PrinterTypeEscPrinterNetwork;
-    Params.RemoteHost := '10.11.7.176';
-    Params.RemotePort := 9100;
-    Params.ByteTimeout := 1000;
-    Params.FontName := 'FontA11';
+  Params.LogFileEnabled := True;
+  Params.LogMaxCount := 10;
+  Params.LogFilePath := GetModulePath + 'Logs';
+  // Serial
+  Params.ConnectionType := ConnectionTypeSerial;
+  Params.ByteTimeout := 500;
+  Params.PortName := 'COM3';
+  Params.BaudRate := 19200;
+  Params.ReconnectPort := False;
+(*
+  // Network
+  Params.PrinterType := ConnectionTypeSocket;
+  Params.RemoteHost := '10.11.7.176';
+  Params.RemotePort := 9100;
+  Params.ByteTimeout := 1000;
 *)
-  end;
 end;
 
 procedure TDaisyFiscalPrinterTest.TearDown;
 begin
+  Driver.Free;
   inherited TearDown;
 end;
 
@@ -561,9 +552,5 @@ end;
 
 initialization
   RegisterTest('', TDaisyFiscalPrinterTest.Suite);
-
-finalization
-  Driver.Free;
-  Driver := nil;
 
 end.

@@ -173,33 +173,20 @@ begin
       if Reg.ValueExists('ByteTimeout') then
         Parameters.ByteTimeout := Reg.ReadInteger('ByteTimeout');
 
-      if Reg.ValueExists('PortNumber') then
-        Parameters.PortNumber := Reg.ReadInteger('PortNumber');
+      if Reg.ValueExists('PortName') then
+        Parameters.PortName := Reg.ReadString('PortName');
 
       if Reg.ValueExists('BaudRate') then
         Parameters.BaudRate := Reg.ReadInteger('BaudRate');
 
-      if Reg.ValueExists('DataBits') then
-        Parameters.DataBits := Reg.ReadInteger('DataBits');
-
-      if Reg.ValueExists('StopBits') then
-        Parameters.StopBits := Reg.ReadInteger('StopBits');
-
-      if Reg.ValueExists('Parity') then
-        Parameters.Parity := Reg.ReadInteger('Parity');
-
-      if Reg.ValueExists('FlowControl') then
-        Parameters.FlowControl := Reg.ReadInteger('FlowControl');
-
       if Reg.ValueExists('ReconnectPort') then
         Parameters.ReconnectPort := Reg.ReadBool('ReconnectPort');
-
-      if Reg.ValueExists('SerialTimeout') then
-        Parameters.SerialTimeout := Reg.ReadInteger('SerialTimeout');
 
       if Reg.ValueExists('DevicePollTime') then
         Parameters.DevicePollTime := Reg.ReadInteger('DevicePollTime');
 
+
+        
       Reg.CloseKey;
     end;
   finally
@@ -227,14 +214,9 @@ begin
     Reg.WriteString('RemoteHost', FParameters.RemoteHost);
     Reg.WriteInteger('RemotePort', FParameters.RemotePort);
     Reg.WriteInteger('ByteTimeout', FParameters.ByteTimeout);
-    Reg.WriteInteger('PortNumber', FParameters.PortNumber);
+    Reg.WriteString('PortName', FParameters.PortName);
     Reg.WriteInteger('BaudRate', FParameters.BaudRate);
-    Reg.WriteInteger('DataBits', FParameters.DataBits);
-    Reg.WriteInteger('StopBits', FParameters.StopBits);
-    Reg.WriteInteger('Parity', FParameters.Parity);
-    Reg.WriteInteger('FlowControl', FParameters.FlowControl);
     Reg.WriteBool('ReconnectPort', FParameters.ReconnectPort);
-    Reg.WriteInteger('SerialTimeout', FParameters.SerialTimeout);
     Reg.WriteInteger('DevicePollTime', FParameters.DevicePollTime);
     Reg.CloseKey;
   finally

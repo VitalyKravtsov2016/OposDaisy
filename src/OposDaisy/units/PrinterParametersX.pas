@@ -8,7 +8,6 @@ uses
   // this
   LogFile,
   PrinterParameters,
-  PrinterParametersIni,
   PrinterParametersReg;
 
 procedure LoadParameters(Item: TPrinterParameters; const DeviceName: WideString;

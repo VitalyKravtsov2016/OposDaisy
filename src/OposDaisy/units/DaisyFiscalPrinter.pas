@@ -1935,21 +1935,21 @@ var
   SerialParams: TSerialParams;
   SocketParams: TSocketParams;
 begin
-  case Params.PrinterType of
-    PrinterTypeSerial:
+  case Params.ConnectionType of
+    ConnectionTypeSerial:
     begin
       SerialParams.PortName := Params.PortName;
       SerialParams.BaudRate := Params.BaudRate;
-      SerialParams.DataBits := Params.DataBits;
-      SerialParams.StopBits := Params.StopBits;
-      SerialParams.Parity := Params.Parity;
-      SerialParams.FlowControl := Params.FlowControl;
+      SerialParams.DataBits := DATABITS_8;
+      SerialParams.StopBits := ONESTOPBIT;
+      SerialParams.Parity := NOPARITY;
+      SerialParams.FlowControl := FLOW_CONTROL_NONE;
       SerialParams.ReconnectPort := Params.ReconnectPort;
-      SerialParams.ByteTimeout := Params.SerialTimeout;
+      SerialParams.ByteTimeout := Params.ByteTimeout;
       PrinterPort := TSerialPort.Create(SerialParams, Logger);
       Result := TDaisyPrinter.Create(PrinterPort, Logger);
     end;
-    PrinterTypeNetwork:
+    ConnectionTypeSocket:
     begin
       SocketParams.RemoteHost := Params.RemoteHost;
       SocketParams.RemotePort := Params.RemotePort;
@@ -1958,13 +1958,6 @@ begin
       PrinterPort := TSocketPort.Create(SocketParams, Logger);
       Result := TDaisyPrinter.Create(PrinterPort, Logger);
     end;
-    (*
-    !!!
-    PrinterTypeJson:
-    begin
-      Result := TDaisyPrinter.Create;
-    end;
-    *)
   else
     raise Exception.Create('Invalid PrinterType value');
   end;

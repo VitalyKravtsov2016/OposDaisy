@@ -180,6 +180,8 @@ const
   SEmptyData: WideString = 'Empty command to send';
   SNoHardware: WideString = 'No conenction to device';
   SInvalidAnswerCode: WideString = 'Invalid answer code';
+  SInvalidLengthValue: WideString = 'Invalid length value';
+  SMaxSynReached: WideString = 'Max SYN count reached';
   SInvalidAnswer = 'Invalid answer';
 
 type
@@ -1425,7 +1427,11 @@ var
   S: string;
   i, j: Integer;
 const
-  Max16Count = 50;
+  STX = $01;
+  SYN = $16;
+  NAK = $15;
+
+  MaxSYNCount = 50;
   MaxCommandCount = 3;
 begin
   Port.Lock;
@@ -1448,18 +1454,21 @@ begin
 
       Port.Write(FTxData);
       // 01
-      for j := 1 to Max16Count do
+      for j := 1 to MaxSYNCount do
       begin
         B := Ord(Port.Read(1)[1]);
         Logger.Debug('<- ' + StrToHex(Chr(B)));
         case B of
-          $01: Break;
-          $15:
+          STX: Break;
+          NAK:
           begin
             Break;
           end;
-          $16:
+          SYN:
           begin
+            if j = MaxSYNCount then
+              RaiseError(DFP_E_NOHARDWARE, SMaxSynReached);
+
             Sleep(100);
             Continue;
           end;
@@ -1467,9 +1476,12 @@ begin
           RaiseError(DFP_E_NOHARDWARE, SNoHardware);
         end;
       end;
-      if B = $15 then Continue;
+      if B = NAK then Continue;
 
       B := Ord(Port.Read(1)[1]);
+      if not(B in [$20..$FF]) then
+        RaiseError(DFP_E_NOHARDWARE, SInvalidLengthValue);
+
       FRxData := Port.Read(B - $20 + 4);
       Logger.WriteRxData(FRxData);
       FRxData := #$01 + Chr(B) + FRxData;

@@ -7,7 +7,7 @@ uses
   // VCL
   SysUtils,
   // This
-  Opos, OposUtils, OposFptr, OposFptrUtils, PrinterParameters;
+  Opos, OposUtils, OposFptrUtils; // , OposFptr, PrinterParameters;
 
 function BaudRateToInt(Value: Integer): Integer;
 function IntToBaudRate(Value: Integer): Integer;

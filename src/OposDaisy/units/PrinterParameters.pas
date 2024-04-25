@@ -10,7 +10,7 @@ uses
   // Opos
   Opos, Oposhi, OposException,
   // This
-  WException, LogFile, FileUtils, SerialPort, SerialPorts, ReceiptItem;
+  WException, LogFile, FileUtils, SerialPort, SerialPorts;
 
 const
   /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ const
     921600
   );
 
-  FiscalPrinterProgID = 'OposDatecs.FiscalPrinter';
+  FiscalPrinterProgID = 'OposDaisy.FiscalPrinter';
 
   /////////////////////////////////////////////////////////////////////////////
   // ConnectionType constants
@@ -41,22 +41,22 @@ const
   /////////////////////////////////////////////////////////////////////////////
   // Default values
 
-  DefLogMaxCount = 10;
+  DefBaudRate = CBR_19200;
+  DefByteTimeout = 500;
+  DefCCOType = 0;
+  DefConnectionType = ConnectionTypeSerial;
+  DefDevicePollTime = 3000;
   DefLogFileEnabled = True;
-  DefPrinterType = 0;
+  DefLogMaxCount = 10;
+  DefMaxRetryCount = 3;
+  DefOperatorNumber = 1;
+  DefOperatorPassword = 1;
+  DefPortName = 'COM1';
+  DefReconnectPort = false;
   DefRemoteHost = '192.168.1.87';
   DefRemotePort = 9100;
-  DefByteTimeout = 500;
-  DefPortNumber = 1;
-  DefBaudRate = CBR_9600;
-  DefDataBits = DATABITS_8;
-  DefStopBits = ONESTOPBIT;
-  DefParity = NOPARITY;
-  DefFlowControl = FLOW_CONTROL_NONE;
-  DefReconnectPort = false;
-  DefSerialTimeout = 500;
-  DefDevicePollTime = 3000;
-  DefConnectionType = ConnectionTypeSerial;
+  DefSearchByBaudRateEnabled = False;
+  DefSearchByPortEnabled = False;
 
 type
   { TPrinterParameters }
@@ -64,28 +64,25 @@ type
   TPrinterParameters = class(TPersistent)
   private
     FLogger: ILogFile;
-    FLogMaxCount: Integer;
-    FLogFileEnabled: Boolean;
-    FLogFilePath: WideString;
-    FRemoteHost: string;
-    FRemotePort: Integer;
-    FByteTimeout: Integer;
     FBaudRate: Integer;
-    FDevicePollTime: Integer;
-    FConnectionType: Integer;
-
     procedure SetBaudRate(const Value: Integer);
   public
-    PortNumber: Integer;
-    DataBits: Integer;
-    StopBits: Integer;
-    Parity: Integer;
-    FlowControl: Integer;
-    SerialTimeout: Integer;
-    ReconnectPort: Boolean;
-    Password: WideString;
+    ByteTimeout: Integer;
+    CCOType: Integer;
+    ConnectionType: Integer;
+    DevicePollTime: Integer;
+    LogFileEnabled: Boolean;
+    LogFilePath: WideString;
+    LogMaxCount: Integer;
+    MaxRetryCount: Integer;
     OperatorNumber: Integer;
     OperatorPassword: Integer;
+    PortName: WideString;
+    ReconnectPort: Boolean;
+    RemoteHost: string;
+    RemotePort: Integer;
+    SearchByBaudRateEnabled: Boolean;
+    SearchByPortEnabled: Boolean;
 
     constructor Create(ALogger: ILogFile);
     destructor Destroy; override;
@@ -101,15 +98,7 @@ type
     procedure LogText(const Caption, Text: WideString);
 
     property Logger: ILogFile read FLogger;
-    property LogMaxCount: Integer read FLogMaxCount write FLogMaxCount;
-    property LogFilePath: WideString read FLogFilePath write FLogFilePath;
-    property LogFileEnabled: Boolean read FLogFileEnabled write FLogFileEnabled;
-    property ConnectionType: Integer read FConnectionType write FConnectionType;
-    property RemoteHost: string read FRemoteHost write FRemoteHost;
-    property RemotePort: Integer read FRemotePort write FRemotePort;
-    property ByteTimeout: Integer read FByteTimeout write FByteTimeout;
     property BaudRate: Integer read FBaudRate write SetBaudRate;
-    property DevicePollTime: Integer read FDevicePollTime write FDevicePollTime;
   end;
 
 implementation
@@ -132,22 +121,24 @@ procedure TPrinterParameters.SetDefaults;
 begin
   Logger.Debug('TPrinterParameters.SetDefaults');
 
-  FLogMaxCount := DefLogMaxCount;
-  FLogFilePath := GetModulePath + 'Logs';
-  FLogFileEnabled := DefLogFileEnabled;
-  ConnectionType := DefConnectionType;
-  FRemoteHost := DefRemoteHost;
-  FRemotePort := DefRemotePort;
-  FByteTimeout := DefByteTimeout;
-  PortNumber := DefPortNumber;
   BaudRate := DefBaudRate;
-  DataBits := DefDataBits;
-  StopBits := DefStopBits;
-  Parity := DefParity;
-  FlowControl := DefFlowControl;
-  ReconnectPort := DefReconnectPort;
-  SerialTimeout := DefSerialTimeout;
+  ByteTimeout := DefByteTimeout;
+  CCOType := DefCCOType;
+  ConnectionType := DefConnectionType;
   DevicePollTime := DefDevicePollTime;
+  LogFileEnabled := DefLogFileEnabled;
+  LogFilePath := GetModulePath + 'Logs';
+  LogMaxCount := DefLogMaxCount;
+  MaxRetryCount := DefMaxRetryCount;
+  OperatorNumber := DefOperatorNumber;
+  OperatorPassword := DefOperatorPassword;
+  PortName := DefPortName;
+  ReconnectPort := DefReconnectPort;
+  ReconnectPort := DefReconnectPort;
+  RemoteHost := DefRemoteHost;
+  RemotePort := DefRemotePort;
+  SearchByBaudRateEnabled := DefSearchByBaudRateEnabled;
+  SearchByPortEnabled := DefSearchByPortEnabled;
 end;
 
 procedure TPrinterParameters.LogText(const Caption, Text: WideString);
@@ -177,14 +168,23 @@ procedure TPrinterParameters.WriteLogParameters;
 begin
   Logger.Debug('TPrinterParameters.WriteLogParameters');
   Logger.Debug(Logger.Separator);
-  Logger.Debug('LogMaxCount: ' + IntToStr(LogMaxCount));
-  Logger.Debug('LogFilePath: ' + LogFilePath);
-  Logger.Debug('LogFileEnabled: ' + BoolToStr(LogFileEnabled));
+  Logger.Debug('BaudRate: ' + IntToStr(BaudRate));
+  Logger.Debug('ByteTimeout: ' + IntToStr(ByteTimeout));
+  Logger.Debug('CCOType: ' + IntToStr(CCOType));
   Logger.Debug('ConnectionType: ' + IntToStr(ConnectionType));
+  Logger.Debug('DevicePollTime: ' + IntToStr(DevicePollTime));
+  Logger.Debug('LogFileEnabled: ' + BoolToStr(LogFileEnabled));
+  Logger.Debug('LogFilePath: ' + LogFilePath);
+  Logger.Debug('LogMaxCount: ' + IntToStr(LogMaxCount));
+  Logger.Debug('MaxRetryCount: ' + IntToStr(MaxRetryCount));
+  Logger.Debug('OperatorNumber: ' + IntToStr(OperatorNumber));
+  Logger.Debug('OperatorPassword: ' + IntToStr(OperatorPassword));
+  Logger.Debug('PortName: ' + PortName);
+  Logger.Debug('ReconnectPort: ' + BoolToStr(ReconnectPort));
   Logger.Debug('RemoteHost: ' + RemoteHost);
   Logger.Debug('RemotePort: ' + IntToStr(RemotePort));
-  Logger.Debug('ByteTimeout: ' + IntToStr(ByteTimeout));
-  Logger.Debug('DevicePollTime: ' + IntToStr(DevicePollTime));
+  Logger.Debug('SearchByBaudRateEnabled: ' + BoolToStr(SearchByBaudRateEnabled));
+  Logger.Debug('SearchByPortEnabled: ' + BoolToStr(SearchByPortEnabled));
   Logger.Debug(Logger.Separator);
 end;
 
@@ -223,22 +223,24 @@ begin
   if Source is TPrinterParameters then
   begin
     Src := Source as TPrinterParameters;
-    LogMaxCount := Src.LogMaxCount;
+
+    BaudRate := Src.BaudRate;
+    ByteTimeout := Src.ByteTimeout;
+    CCOType := Src.CCOType;
+    ConnectionType := Src.ConnectionType;
+    DevicePollTime := Src.DevicePollTime;
     LogFileEnabled := Src.LogFileEnabled;
     LogFilePath := Src.LogFilePath;
-    ConnectionType := Src.ConnectionType;
+    LogMaxCount := Src.LogMaxCount;
+    MaxRetryCount := Src.MaxRetryCount;
+    OperatorNumber := Src.OperatorNumber;
+    OperatorPassword := Src.OperatorPassword;
+    PortName := Src.PortName;
+    ReconnectPort := Src.ReconnectPort;
     RemoteHost := Src.RemoteHost;
     RemotePort := Src.RemotePort;
-    ByteTimeout := Src.ByteTimeout;
-    BaudRate := Src.BaudRate;
-    PortNumber := Src.PortNumber;
-    DataBits := Src.DataBits;
-    StopBits := Src.StopBits;
-    Parity := Src.Parity;
-    FlowControl := Src.FlowControl;
-    SerialTimeout := Src.SerialTimeout;
-    ReconnectPort := Src.ReconnectPort;
-    DevicePollTime := Src.DevicePollTime;
+    SearchByBaudRateEnabled := Src.SearchByBaudRateEnabled;
+    SearchByPortEnabled := Src.SearchByPortEnabled;
   end else
     inherited Assign(Source);
 end;
