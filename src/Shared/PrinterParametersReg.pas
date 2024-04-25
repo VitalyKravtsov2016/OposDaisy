@@ -8,8 +8,7 @@ uses
   // 3'd
   TntClasses, TntStdCtrls, TntRegistry, TntSysUtils,
   // This
-  PrinterParameters, LogFile, Oposhi, WException, gnugettext,
-  DriverError, VatRate;
+  PrinterParameters, LogFile, Oposhi, WException, gnugettext, DriverError;
 
 type
   { TPrinterParametersReg }
@@ -141,13 +140,8 @@ end;
 
 procedure TPrinterParametersReg.LoadSysParameters(const DeviceName: WideString);
 var
-  i: Integer;
   Reg: TTntRegistry;
-  Names: TTntStrings;
   KeyName: WideString;
-  VatCode: Integer;
-  VatRate: Double;
-  VatName: WideString;
 begin
   Logger.Debug('TPrinterParametersReg.Load', [DeviceName]);
 
@@ -167,41 +161,8 @@ begin
       if Reg.ValueExists('LogFilePath') then
         Parameters.LogFilePath := Reg.ReadString('LogFilePath');
 
-      if Reg.ValueExists('NumHeaderLines') then
-        Parameters.NumHeaderLines := Reg.ReadInteger('NumHeaderLines');
-
-      if Reg.ValueExists('NumTrailerLines') then
-        Parameters.NumTrailerLines := Reg.ReadInteger('NumTrailerLines');
-
-      if Reg.ValueExists('ServerAddress') then
-        Parameters.ServerAddress := Reg.ReadString('ServerAddress');
-
-      if Reg.ValueExists('ServerConnectTimeout') then
-        Parameters.ServerConnectTimeout := Reg.ReadInteger('ServerConnectTimeout');
-
-      if Reg.ValueExists('ServerLogin') then
-        Parameters.ServerLogin := Reg.ReadString('ServerLogin');
-
-      if Reg.ValueExists('ServerPassword') then
-        Parameters.ServerPassword := Reg.ReadString('ServerPassword');
-
-      if Reg.ValueExists('PrinterType') then
-        Parameters.PrinterType := Reg.ReadInteger('PrinterType');
-
-      if Reg.ValueExists('VatRateEnabled') then
-        Parameters.VatRateEnabled := Reg.ReadBool('VatRateEnabled');
-
-      if Reg.ValueExists('PaymentType2') then
-        Parameters.PaymentType2 := Reg.ReadInteger('PaymentType2');
-
-      if Reg.ValueExists('PaymentType3') then
-        Parameters.PaymentType3 := Reg.ReadInteger('PaymentType3');
-
-      if Reg.ValueExists('PaymentType4') then
-        Parameters.PaymentType4 := Reg.ReadInteger('PaymentType4');
-
-      if Reg.ValueExists('AmountDecimalPlaces') then
-        Parameters.AmountDecimalPlaces := Reg.ReadInteger('AmountDecimalPlaces');
+      if Reg.ValueExists('ConnectionType') then
+        Parameters.ConnectionType := Reg.ReadInteger('ConnectionType');
 
       if Reg.ValueExists('RemoteHost') then
         Parameters.RemoteHost := Reg.ReadString('RemoteHost');
@@ -212,8 +173,8 @@ begin
       if Reg.ValueExists('ByteTimeout') then
         Parameters.ByteTimeout := Reg.ReadInteger('ByteTimeout');
 
-      if Reg.ValueExists('PortName') then
-        Parameters.PortName := Reg.ReadString('PortName');
+      if Reg.ValueExists('PortNumber') then
+        Parameters.PortNumber := Reg.ReadInteger('PortNumber');
 
       if Reg.ValueExists('BaudRate') then
         Parameters.BaudRate := Reg.ReadInteger('BaudRate');
@@ -239,56 +200,7 @@ begin
       if Reg.ValueExists('DevicePollTime') then
         Parameters.DevicePollTime := Reg.ReadInteger('DevicePollTime');
 
-      if Reg.ValueExists('TemplateEnabled') then
-        Parameters.TemplateEnabled := Reg.ReadBool('TemplateEnabled');
-
-      if Reg.ValueExists('CurrencyName') then
-        Parameters.CurrencyName := Reg.ReadString('CurrencyName');
-
-      if Reg.ValueExists('LineSpacing') then
-        Parameters.LineSpacing := Reg.ReadInteger('LineSpacing');
-
-      if Reg.ValueExists('PrintEnabled') then
-        Parameters.PrintEnabled := Reg.ReadBool('PrintEnabled');
-
-      if Reg.ValueExists('RecLineChars') then
-        Parameters.RecLineChars := Reg.ReadInteger('RecLineChars');
-
-      if Reg.ValueExists('RecLineHeight') then
-        Parameters.RecLineHeight := Reg.ReadInteger('RecLineHeight');
-
-      if Reg.ValueExists('HeaderPrinted') then
-        Parameters.HeaderPrinted := Reg.ReadBool('HeaderPrinted');
-
-
       Reg.CloseKey;
-    end;
-    // VatRates
-    if Reg.OpenKey(KeyName + '\' + REG_KEY_VatRateS, False) then
-    begin
-      Parameters.VatRates.Clear;
-      Names := TTntStringList.Create;
-      try
-        Reg.GetKeyNames(Names);
-        Reg.CloseKey;
-
-        for i := 0 to Names.Count-1 do
-        begin
-          if Reg.OpenKey(KeyName + '\' + REG_KEY_VatRateS, False) then
-          begin
-            if Reg.OpenKey(Names[i], False) then
-            begin
-              VatCode := Reg.ReadInteger('Code');
-              VatRate := Reg.ReadFloat('Rate');
-              VatName := Reg.ReadString('Name');
-              Parameters.VatRates.Add(VatCode, VatRate, VatName);
-              Reg.CloseKey;
-            end;
-          end;
-        end;
-      finally
-        Names.Free;
-      end;
     end;
   finally
     Reg.Free;
@@ -297,8 +209,6 @@ end;
 
 procedure TPrinterParametersReg.SaveSysParameters(const DeviceName: WideString);
 var
-  i: Integer;
-  Item: TVatRate;
   Reg: TTntRegistry;
   KeyName: WideString;
 begin
@@ -314,23 +224,10 @@ begin
     Reg.WriteBool('LogFileEnabled', Parameters.LogFileEnabled);
     Reg.WriteString('LogFilePath', FParameters.LogFilePath);
     Reg.WriteInteger('LogMaxCount', FParameters.LogMaxCount);
-    Reg.WriteInteger('NumHeaderLines', FParameters.NumHeaderLines);
-    Reg.WriteInteger('NumTrailerLines', FParameters.NumTrailerLines);
-    Reg.WriteString('ServerAddress', FParameters.ServerAddress);
-    Reg.WriteInteger('ServerConnectTimeout', FParameters.ServerConnectTimeout);
-    Reg.WriteString('ServerLogin', FParameters.ServerLogin);
-    Reg.WriteString('ServerPassword', FParameters.ServerPassword);
-    Reg.WriteInteger('PrinterType', FParameters.PrinterType);
-    Reg.WriteInteger('PaymentType2', FParameters.PaymentType2);
-    Reg.WriteInteger('PaymentType3', FParameters.PaymentType3);
-    Reg.WriteInteger('PaymentType4', FParameters.PaymentType4);
-    Reg.WriteBool('VatRateEnabled', FParameters.VatRateEnabled);
-    Reg.WriteInteger('AmountDecimalPlaces', FParameters.AmountDecimalPlaces);
     Reg.WriteString('RemoteHost', FParameters.RemoteHost);
     Reg.WriteInteger('RemotePort', FParameters.RemotePort);
     Reg.WriteInteger('ByteTimeout', FParameters.ByteTimeout);
-
-    Reg.WriteString('PortName', FParameters.PortName);
+    Reg.WriteInteger('PortNumber', FParameters.PortNumber);
     Reg.WriteInteger('BaudRate', FParameters.BaudRate);
     Reg.WriteInteger('DataBits', FParameters.DataBits);
     Reg.WriteInteger('StopBits', FParameters.StopBits);
@@ -339,33 +236,7 @@ begin
     Reg.WriteBool('ReconnectPort', FParameters.ReconnectPort);
     Reg.WriteInteger('SerialTimeout', FParameters.SerialTimeout);
     Reg.WriteInteger('DevicePollTime', FParameters.DevicePollTime);
-    Reg.WriteInteger('PrintBarcode', FParameters.PrintBarcode);
-    Reg.WriteBool('TemplateEnabled', FParameters.TemplateEnabled);
-    Reg.WriteString('CurrencyName', FParameters.CurrencyName);
-    Reg.WriteInteger('LineSpacing', FParameters.LineSpacing);
-    Reg.WriteBool('PrintEnabled', FParameters.PrintEnabled);
-    Reg.WriteInteger('RecLineChars', FParameters.RecLineChars);
-    Reg.WriteInteger('RecLineHeight', FParameters.RecLineHeight);
-    Reg.WriteBool('HeaderPrinted', FParameters.HeaderPrinted);
-
     Reg.CloseKey;
-    // VatRates
-    Reg.DeleteKey(KeyName + '\' + REG_KEY_VatRateS);
-    for i := 0 to Parameters.VatRates.Count-1 do
-    begin
-      if Reg.OpenKey(KeyName + '\' + REG_KEY_VatRateS, True) then
-      begin
-        Item := Parameters.VatRates[i];
-        if Reg.OpenKey(IntToStr(i), True) then
-        begin
-          Reg.WriteInteger('Code', Item.Code);
-          Reg.WriteFloat('Rate', Item.Rate);
-          Reg.WriteString('Name', Item.Name);
-          Reg.CloseKey;
-        end;
-        Reg.CloseKey;
-      end;
-    end;
   finally
     Reg.Free;
   end;
@@ -377,47 +248,11 @@ begin
 end;
 
 procedure TPrinterParametersReg.LoadUsrParameters(const DeviceName: WideString);
-var
-  Reg: TTntRegistry;
 begin
-  Logger.Debug('TPrinterParametersReg.LoadUsrParameters', [DeviceName]);
-  Reg := TTntRegistry.Create;
-  try
-    Reg.Access := KEY_READ;
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.OpenKey(REGSTR_KEY_IBT, False) then
-    begin
-      if Reg.ValueExists('IBTHeader') then
-        Parameters.HeaderText := Reg.ReadString('IBTHeader');
-
-      if Reg.ValueExists('IBTTrailer') then
-        Parameters.TrailerText := Reg.ReadString('IBTTrailer');
-    end;
-  finally
-    Reg.Free;
-  end;
 end;
 
 procedure TPrinterParametersReg.SaveUsrParameters(const DeviceName: WideString);
-var
-  Reg: TTntRegistry;
 begin
-  Logger.Debug('TPrinterParametersReg.SaveUsrParameters', [DeviceName]);
-  Reg := TTntRegistry.Create;
-  try
-    Reg.Access := KEY_ALL_ACCESS;
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.OpenKey(REGSTR_KEY_IBT, True) then
-    begin
-      Reg.WriteString('IBTHeader', Parameters.HeaderText);
-      Reg.WriteString('IBTTrailer', Parameters.TrailerText);
-    end else
-    begin
-      raiseException(_('Registry key open error'));
-    end;
-  finally
-    Reg.Free;
-  end;
 end;
 
 end.

@@ -14,7 +14,7 @@ uses
   // This
   PrinterParameters, FiscalPrinterDevice, Grids, TntGrids, Buttons,
   ToolWin, ComCtrls, SynEditHighlighter, SynHighlighterXML, ExtCtrls,
-  SalesReceipt, ReceiptTemplate, TextDocument, LogFile, PrinterTypes;
+  SalesReceipt, TextDocument, LogFile, PrinterTypes;
 
 type
   { TfmFptrReceipt }

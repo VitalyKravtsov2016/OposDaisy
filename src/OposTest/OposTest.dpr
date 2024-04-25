@@ -30,8 +30,7 @@ uses
   OposFiscalPrinter in '..\Opos\OposFiscalPrinter.pas',
   WException in '..\Shared\WException.pas',
   TntIniFiles in '..\Shared\TntIniFiles.pas',
-  RegExpr in '..\Shared\RegExpr.pas',
-  OposDatecsLib_TLB in '..\OposDatecs\OposDatecsLib_TLB.pas',
+  OposDaisyLib_TLB in '..\OposDaisy\OposDaisyLib_TLB.pas',
   PrinterParameters in '..\Shared\PrinterParameters.pas',
   PrinterParametersIni in '..\Shared\PrinterParametersIni.pas',
   fmuMain in 'Fmu\fmuMain.pas' {fmMain},
@@ -90,11 +89,9 @@ uses
   PortUtil in '..\Shared\PortUtil.pas',
   TextReport in '..\Shared\TextReport.pas',
   SerialPorts in '..\Shared\SerialPorts.pas',
-  ReceiptItem in '..\OposDatecs\units\ReceiptItem.pas',
-  MathUtils in '..\OposDatecs\units\MathUtils.pas',
+  ReceiptItem in '..\OposDaisy\units\ReceiptItem.pas',
+  MathUtils in '..\OposDaisy\units\MathUtils.pas',
   Translation in '..\Shared\Translation.pas',
-  ReceiptTemplate in '..\Shared\ReceiptTemplate.pas',
-  xmlParser in '..\Shared\XMLParser.pas',
   PrinterTypes in '..\Shared\PrinterTypes.pas';
 
 {$R *.RES}

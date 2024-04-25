@@ -7,9 +7,11 @@ uses
   SysUtils,
   // This
   Opos, OposUtils, Oposhi, OposFptr, OposFptrhi, OposException, TntSysUtils,
-  gnugettext;
+  gnugettext, DateUtils;
 
 function PrinterStateToStr(Value: Integer): WideString;
+function OposEncodeDate(const ADate: TDateTime): WideString;
+function OposDecodeDate(const Date: WideString): TDateTime;
 function EncodeOposDate(const Date: TOposDate): WideString;
 function DecodeOposDate(const Date: WideString): TOposDate;
 function GetFptrPropertyName(const ID: Integer): WideString;
@@ -210,6 +212,44 @@ function EncodeOposDate(const Date: TOposDate): WideString;
 begin
   Result := Tnt_WideFormat('%.2d%.2d%.4d%.2d%.2d',[
     Date.Day, Date.Month, Date.Year, Date.Hour, Date.Min]);
+end;
+
+function OposEncodeDate(const ADate: TDateTime): WideString;
+var
+   Year, Month, Day: Word;
+   Hour, Min, Sec, MSec: Word;
+begin
+  DecodeDateTime(ADate, Year, Month, Day, Hour, Min, Sec, MSec);
+  Result := Format('%.2d%.2d%.4d%.2d%.2d',[Day, Month, Year, Hour, Min]);
+end;
+
+function OposDecodeDate(const Date: WideString): TDateTime;
+var
+   Year, Month, Day: Word;
+   Hour, Min: Word;
+begin
+  Day := StrToInt(Copy(Date, 1, 2));
+  Month := StrToInt(Copy(Date, 3, 2));
+  Year := StrToInt(Copy(Date, 5, 4));
+  Hour := StrToInt(Copy(Date, 9, 2));
+  Min := StrToInt(Copy(Date, 11, 2));
+
+  if not(Day in [1..31]) then
+    raiseExtendedError(OPOS_EFPTR_BAD_DATE, _('Invalid day'));
+
+  if not(Month in [1..12]) then
+    raiseExtendedError(OPOS_EFPTR_BAD_DATE, _('Invalid month'));
+
+  if Year < 2000 then
+    raiseExtendedError(OPOS_EFPTR_BAD_DATE, _('Invalid year'));
+
+  if not(Hour in [0..23]) then
+    raiseExtendedError(OPOS_EFPTR_BAD_DATE, _('Invalid hour'));
+
+  if not(Min in [0..59]) then
+    raiseExtendedError(OPOS_EFPTR_BAD_DATE, _('Invalid minutes'));
+
+  Result := EncodeDateTime(Year, Month, Day, Hour, Min, 0, 0);
 end;
 
 function GetResultCodeExtendedText(Value: Integer): WideString;

@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  Windows, SysUtils, StrUtils, TntSysUtils, RegExpr, ComObj;
+  Windows, SysUtils, StrUtils, TntSysUtils, ComObj;
 
 type
   TSetOfChar = set of char;
@@ -36,7 +36,6 @@ function AddTrailingSpaces(const S: AnsiString; Len: Integer): AnsiString;
 function StrToDouble(const S: AnsiString): Double;
 function AlignLines(const Line1, Line2: WideString;
   LineWidth: Integer): WideString;
-function IsMatch(const Barcode, RegEx: string): Boolean;
 function CurrencyToStr(Value: Currency): WideString;
 function CreateGUIDStr: string;
 
@@ -360,21 +359,6 @@ function AddTrailingSpaces(const S: AnsiString; Len: Integer): AnsiString;
 begin
   Result := Copy(S, 1, Len);
   Result := Result + StringOfChar(' ', Len - Length(Result));
-end;
-
-function IsMatch(const Barcode, RegEx: string): Boolean;
-var
-  R: TRegExpr;
-begin
-  R := TRegExpr.Create;
-  try
-    R.Expression := RegEx;
-    Result := R.Exec(Barcode);
-    if Result then
-      Result := R.MatchPos[0] = 1;
-  finally
-    R.Free;
-  end;
 end;
 
 function CreateGUIDStr: string;

@@ -74,7 +74,6 @@ begin
       S := '';
     end;
   end;
-  // последний символ
   if Length(S) <> 0 then
   begin
     Val('$' + S, V, Code);

@@ -5,10 +5,10 @@ interface
 uses
   // VCL
   Windows, SysUtils, Classes,
-  // 3'd
+  // Tnt
   TntClasses, TntStdCtrls, TntRegistry, TntIniFiles, TntSysUtils,
   // This
-  PrinterParameters, FileUtils, LogFile, SmIniFile, OposDatecsLib_TLB;
+  PrinterParameters, FileUtils, LogFile, SmIniFile, OposDaisyLib_TLB;
 
 type
   { TPrinterParametersIni }
@@ -160,18 +160,11 @@ begin
       FParameters.LogFileEnabled := IniFile.ReadBool(Section, 'LogFileEnabled', DefLogFileEnabled);
       FParameters.LogMaxCount := IniFile.ReadInteger(Section, 'LogMaxCount', DefLogMaxCount);
       FParameters.LogFilePath := IniFile.ReadString(Section, 'LogFilePath', '');
-      FParameters.NumHeaderLines := IniFile.ReadInteger(Section, 'NumHeaderLines', DefNumHeaderLines);
-      FParameters.NumTrailerLines := IniFile.ReadInteger(Section, 'NumTrailerLines', DefNumTrailerLines);
-      FParameters.ServerLogin := IniFile.ReadString(Section, 'ServerLogin', 'ServerLogin');
-      FParameters.ServerPassword := IniFile.ReadString(Section, 'ServerPassword', 'ServerPassword');
-      FParameters.ServerConnectTimeout := IniFile.ReadInteger(Section, 'ServerConnectTimeout', 10);
-      FParameters.ServerAddress := IniFile.ReadString(Section, 'ServerAddress', '');
-      FParameters.PrinterType := IniFile.ReadInteger(Section, 'PrinterType', 0);
-      FParameters.AmountDecimalPlaces := IniFile.ReadInteger(Section, 'AmountDecimalPlaces', DefAmountDecimalPlaces);
+      FParameters.ConnectionType := IniFile.ReadInteger(Section, 'ConnectionType', 0);
       FParameters.RemoteHost := IniFile.ReadString(Section, 'RemoteHost', DefRemoteHost);
       FParameters.RemotePort := IniFile.ReadInteger(Section, 'RemotePort', DefRemotePort);
       FParameters.ByteTimeout := IniFile.ReadInteger(Section, 'ByteTimeout', DefByteTimeout);
-      FParameters.PortName := IniFile.ReadString(Section, 'PortName', DefPortName);
+      FParameters.PortNumber := IniFile.ReadInteger(Section, 'PortNumber', DefPortNumber);
       FParameters.BaudRate := IniFile.ReadInteger(Section, 'BaudRate', DefBaudRate);
       FParameters.DataBits := IniFile.ReadInteger(Section, 'DataBits', DefDataBits);
       FParameters.StopBits := IniFile.ReadInteger(Section, 'StopBits', DefStopBits);
@@ -180,13 +173,6 @@ begin
       FParameters.ReconnectPort := IniFile.ReadBool(Section, 'ReconnectPort', DefReconnectPort);
       FParameters.SerialTimeout := IniFile.ReadInteger(Section, 'SerialTimeout', DefSerialTimeout);
       FParameters.DevicePollTime := IniFile.ReadInteger(Section, 'DevicePollTime', DefDevicePollTime);
-      FParameters.TemplateEnabled := IniFile.ReadBool(Section, 'TemplateEnabled', DefTemplateEnabled);
-      FParameters.CurrencyName := IniFile.ReadString(Section, 'CurrencyName', DefCurrencyName);
-      FParameters.LineSpacing := IniFile.ReadInteger(Section, 'LineSpacing', DefLineSpacing);
-      FParameters.PrintEnabled := IniFile.ReadBool(Section, 'PrintEnabled', DefPrintEnabled);
-      FParameters.RecLineChars := IniFile.ReadInteger(Section, 'RecLineChars', DefRecLineChars);
-      FParameters.RecLineHeight := IniFile.ReadInteger(Section, 'RecLineHeight', DefRecLineHeight);
-      FParameters.HeaderPrinted := IniFile.ReadBool(Section, 'HeaderPrinted', DefHeaderPrinted);
     end;
   finally
     IniFile.Free;
@@ -204,18 +190,11 @@ begin
     IniFile.WriteString(Section, 'LogFilePath', FParameters.LogFilePath);
     IniFile.WriteBool(Section, 'LogFileEnabled', Parameters.LogFileEnabled);
     IniFile.WriteInteger(Section, 'LogMaxCount', Parameters.LogMaxCount);
-    IniFile.WriteInteger(Section, 'NumHeaderLines', Parameters.NumHeaderLines);
-    IniFile.WriteInteger(Section, 'NumTrailerLines', Parameters.NumTrailerLines);
-    IniFile.WriteString(Section, 'ServerLogin', FParameters.ServerLogin);
-    IniFile.WriteString(Section, 'ServerPassword', FParameters.ServerPassword);
-    IniFile.WriteInteger(Section, 'ServerConnectTimeout', FParameters.ServerConnectTimeout);
-    IniFile.WriteString(Section, 'ServerAddress', FParameters.ServerAddress);
-    IniFile.WriteInteger(Section, 'PrinterType', FParameters.PrinterType);
-    IniFile.WriteInteger(Section, 'AmountDecimalPlaces', FParameters.AmountDecimalPlaces);
+    IniFile.WriteInteger(Section, 'ConnectionType', FParameters.ConnectionType);
     IniFile.WriteString(Section, 'RemoteHost', FParameters.RemoteHost);
     IniFile.WriteInteger(Section, 'RemotePort', FParameters.RemotePort);
     IniFile.WriteInteger(Section, 'ByteTimeout', FParameters.ByteTimeout);
-    IniFile.WriteString(Section, 'PortName', FParameters.PortName);
+    IniFile.WriteInteger(Section, 'PortNumber', FParameters.PortNumber);
     IniFile.WriteInteger(Section, 'BaudRate', FParameters.BaudRate);
     IniFile.WriteInteger(Section, 'DataBits', FParameters.DataBits);
     IniFile.WriteInteger(Section, 'StopBits', FParameters.StopBits);
@@ -224,32 +203,13 @@ begin
     IniFile.WriteBool(Section, 'ReconnectPort', FParameters.ReconnectPort);
     IniFile.WriteInteger(Section, 'SerialTimeout', FParameters.SerialTimeout);
     IniFile.WriteInteger(Section, 'DevicePollTime', FParameters.DevicePollTime);
-    IniFile.WriteBool(Section, 'TemplateEnabled', FParameters.TemplateEnabled);
-    IniFile.WriteString(Section, 'CurrencyName', FParameters.CurrencyName);
-    IniFile.WriteInteger(Section, 'LineSpacing', FParameters.LineSpacing);
-    IniFile.WriteBool(Section, 'PrintEnabled', FParameters.PrintEnabled);
-    IniFile.WriteInteger(Section, 'RecLineChars', FParameters.RecLineChars);
-    IniFile.WriteInteger(Section, 'RecLineHeight', FParameters.RecLineHeight);
-    IniFile.WriteBool(Section, 'HeaderPrinted', FParameters.HeaderPrinted);
   finally
     IniFile.Free;
   end;
 end;
 
 procedure TPrinterParametersIni.SaveUsrParameters(const DeviceName: WideString);
-var
-  Section: WideString;
-  IniFile: TSmIniFile;
 begin
-  IniFile := TSmIniFile.Create(GetIniFileName);
-  try
-    Section := GetSectionName(DeviceName);
-
-    IniFile.WriteText(Section, 'Header', Parameters.HeaderText);
-    IniFile.WriteText(Section, 'Trailer', Parameters.TrailerText);
-  finally
-    IniFile.Free;
-  end;
 end;
 
 end.

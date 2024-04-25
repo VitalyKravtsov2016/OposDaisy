@@ -162,7 +162,7 @@ procedure TfmMain.btnAddDeviceClick(Sender: TObject);
 var
   DeviceName: WideString;
 begin
-  DeviceName := _('SHTRIH-M-OPOS-1');
+  DeviceName := _('NewDevice');
   if EditDeviceName(DeviceName) then
   begin
     Devices[FDeviceType].Add(DeviceName);

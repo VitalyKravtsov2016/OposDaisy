@@ -23,7 +23,7 @@
 This is the Want script for building Want.
 See http://www.suigeneris.org/want/ for details.
 -->
-<project name="OposDatecs"
+<project name="OposDaisy"
          basedir="."
          default="release" >
 
@@ -52,8 +52,8 @@ See http://www.suigeneris.org/want/ for details.
 
   <property name="OposTest"          value="${src}/OposTest" />
   <property name="OposConfig"        value="${src}/OposConfig" />
-  <property name="OposDatecs"      	 value="${src}/OposDatecs" />
-  <property name="OposDatecsTest"  	 value="${test}/OposDatecsTest" />
+  <property name="OposDaisy"      	 value="${src}/OposDaisy" />
+  <property name="OposDaisyTest"  	 value="${test}/OposDaisyTest" />
 
   <target name="prepare" >
     <mkdir dir="${dcu}" />
@@ -159,19 +159,19 @@ See http://www.suigeneris.org/want/ for details.
     </dcc>
   </target>
 
-<!-- ***** Compile OposDatecs ***** -->
+<!-- ***** Compile OposDaisy ***** -->
 
-  <target name="Compile-OposDatecs" depends="prepare">
+  <target name="Compile-OposDaisy" depends="prepare">
     
     <delete dir="${dcu}" >
       <include name="*.dcu" />
     </delete>
 	
-    <echo input="${OposDatecs}/OposDatecs.rt" file="${OposDatecs}/OposDatecs.rc" />
-    <brcc file="${OposDatecs}/OposDatecs.rc" output="${OposDatecs}/OposDatecs.res" />
+    <echo input="${OposDaisy}/OposDaisy.rt" file="${OposDaisy}/OposDaisy.rc" />
+    <brcc file="${OposDaisy}/OposDaisy.rc" output="${OposDaisy}/OposDaisy.res" />
     
 
-    <dcc basedir="${OposDatecs}" source="OposDatecs.dpr">
+    <dcc basedir="${OposDaisy}" source="OposDaisy.dpr">
 
 
       <exeoutput path="${bin}" />
@@ -202,9 +202,9 @@ See http://www.suigeneris.org/want/ for details.
 
   <!-- ***** Tests ***** -->
  
-  <target name="Test-OposDatecs" depends="prepare">
-    <dcc basedir="${OposDatecsTest}" source="OposDatecsTestLib.dpr" >
-      <exeoutput path="${test}/OposDatecsTest/Bin" />
+  <target name="Test-OposDaisy" depends="prepare">
+    <dcc basedir="${OposDaisyTest}" source="OposDaisyTestLib.dpr" >
+      <exeoutput path="${test}/OposDaisyTest/Bin" />
       <dcuoutput path="${dcu}"  />
       <build     value="true" />
       <debug     value="true" />
@@ -222,7 +222,7 @@ See http://www.suigeneris.org/want/ for details.
       <define name="DEBUG" />
       <define name="SUPPORTS_WIDESTRING" />
     </dcc>
-    <dunit basedir="${OposDatecsTest}/bin" testlib="${OposDatecsTest}/bin/OposDatecsTestLib.dll" />
+    <dunit basedir="${OposDaisyTest}/bin" testlib="${OposDaisyTest}/bin/OposDaisyTestLib.dll" />
   </target>
 
   <target name="sign">
@@ -233,7 +233,7 @@ See http://www.suigeneris.org/want/ for details.
       <arg value="${bin}/OposTest.exe" />
     </exec>
     <exec executable="SignShtrih.bat">
-      <arg value="${bin}/OposDatecs.dll" />
+      <arg value="${bin}/OposDaisy.dll" />
     </exec>
   </target>
   
@@ -246,7 +246,7 @@ See http://www.suigeneris.org/want/ for details.
     <exec executable="SignShtrih.bat">
       <arg value="${basepath}/setup.exe" />
     </exec>
-    <move tofile="${basepath}/OposDatecs_${version2}_${build}.exe">
+    <move tofile="${basepath}/OposDaisy_${version2}_${build}.exe">
       <include name="${basepath}/setup.exe" />
     </move>
     <delete file="${basepath}/setup.iss" />
@@ -258,7 +258,7 @@ See http://www.suigeneris.org/want/ for details.
       <arg value="Setup.iss" />
       <arg value="/Q" />
     </exec>
-    <move tofile="${basepath}/OposDatecs_${version2}_${build}.exe">
+    <move tofile="${basepath}/OposDaisy_${version2}_${build}.exe">
       <include name="${basepath}/setup.exe" />
     </move>
     <delete file="${basepath}/setup.iss" />
@@ -271,8 +271,8 @@ See http://www.suigeneris.org/want/ for details.
     </ini>
   </target>
 
-  <target name="release" depends="clean,prepare,Test-OposDatecs,Compile-OposConfig,Compile-OposTest,Compile-OposDatecs,sign,makesetup,finalclean"/>
-  <target name="buildns" depends="clean,prepare,Test-OposDatecs,Compile-OposConfig,Compile-OposTest,Compile-OposDatecs,makesetupns,finalclean"/>
+  <target name="release" depends="clean,prepare,Test-OposDaisy,Compile-OposConfig,Compile-OposTest,Compile-OposDaisy,sign,makesetup,finalclean"/>
+  <target name="buildns" depends="clean,prepare,Test-OposDaisy,Compile-OposConfig,Compile-OposTest,Compile-OposDaisy,makesetupns,finalclean"/>
   
   
   

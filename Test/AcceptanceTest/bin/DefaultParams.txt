@@ -1,0 +1,24 @@
+01,2, Decimal point
+02,3, Number of header lines
+03,1, Number of trailer lines
+04,0000, Print options
+05,00, Detailed print
+06,11111111, Header type
+07,111111, Trailer type
+08,11111, Enable operations
+09,1111, Authorization of payments
+10,01, FM number
+11,000, Daily report type
+12,00, Print all
+13,100, Daily report clear
+14,1, System font
+15,000, Print advertising logo
+16,0, Amount of currency
+17,04, From N#
+18,5, To N#
+19,1, Empty lines
+20,16, Print contrast
+21,04, Lines display
+22,2, Columns display 20
+23,2, Speed display 04
+24,1, Sales display

@@ -54,9 +54,7 @@ type
 implementation
 
 uses
-  fmuFptrConnection, fmuPrinter, fmuFptrLog, fmuFptrHeader, fmuFptrTrailer,
-  fmuFptrVatRate, fmuFptrPayType, fmuFptrMiscParams,
-  fmuFptrReceipt;
+  fmuFptrConnection, fmuFptrLog;
 
 { TFiscalPrinterDevice }
 
@@ -107,15 +105,8 @@ begin
     Logger.Debug('LOG START');
     Parameters.WriteLogParameters;
     //
-    AddPage(fm, TfmFptrConnection);
-    AddPage(fm, TfmPrinter);
+    AddPage(fm, TfmConnection);
     AddPage(fm, TfmFptrLog);
-    AddPage(fm, TfmFptrHeader);
-    AddPage(fm, TfmFptrTrailer);
-    AddPage(fm, TfmFptrPayType);
-    AddPage(fm, TfmFptrVatRate);
-    AddPage(fm, TfmFptrReceipt);
-    AddPage(fm, TfmFptrMiscParams);
 
     fm.Init;
     fm.UpdatePage;

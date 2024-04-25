@@ -43,8 +43,6 @@ begin
   end;
 end;
 
-// Запрещение оконных элементов управления
-
 procedure EnableControls(WinControl: TWinControl; Value: Boolean);
 var
   i: Integer;
@@ -73,12 +71,10 @@ begin
   end;
   if WinControl is TTntButton then
   begin
-    // Запоминаем
     if WinControl.Focused and (not Value) then
       FocusedControl := WinControl;
 
     EnableWinControl(WinControl, Value);
-    // Устанавливаем
     if Value and (FocusedControl = WinControl) and WinControl.CanFocus then
       WinControl.SetFocus;
   end;

@@ -36,8 +36,8 @@ type
     procedure Debug(const Data: WideString; Params: array of const); overload;
     procedure Debug(const Data: WideString; Params: array of const; Result: Variant); overload;
     function GetFileDate(const FileName: WideString; var FileDate: TDateTime): Boolean;
-    procedure WriteRxData(Data: WideString);
-    procedure WriteTxData(Data: WideString);
+    procedure WriteRxData(Data: AnsiString);
+    procedure WriteTxData(Data: AnsiString);
     procedure LogParam(const ParamName: WideString; const ParamValue: Variant);
     procedure GetFileNames(const Mask: WideString; FileNames: TTntStrings);
 
@@ -133,10 +133,10 @@ type
     class function StrToText(const Text: WideString): WideString;
     function GetFileDate(const FileName: WideString;
       var FileDate: TDateTime): Boolean;
-    procedure DebugData(const Prefix, Data: WideString);
+    procedure DebugData(const Prefix, Data: AnsiString);
     procedure LogParam(const ParamName: WideString; const ParamValue: Variant);
-    procedure WriteRxData(Data: WideString);
-    procedure WriteTxData(Data: WideString);
+    procedure WriteRxData(Data: AnsiString);
+    procedure WriteTxData(Data: AnsiString);
 
     class function VariantToStr(V: Variant): WideString;
     class function ParamsToStr(const Params: array of const): WideString;
@@ -191,7 +191,7 @@ begin
   end;
 end;
 
-function StrToHex(const S: WideString): WideString;
+function StrToHex(const S: AnsiString): AnsiString;
 var
   i: Integer;
 begin
@@ -264,7 +264,7 @@ end;
 procedure ODS(const S: WideString);
 begin
 {$IFDEF DEBUG}
-  OutputDebugStringW(PWideChar(S));
+  //OutputDebugStringW(PWideChar(S));
 {$ENDIF}
 end;
 
@@ -599,8 +599,6 @@ begin
   Trace(Data + ParamsToStr(Params));
 end;
 
-{ Преобразование строки в текст, чтобы увидеть все символы }
-
 class function TLogFile.StrToText(const Text: WideString): WideString;
 var
   Code: Word;
@@ -694,9 +692,9 @@ begin
   end;
 end;
 
-procedure TLogFile.DebugData(const Prefix, Data: WideString);
+procedure TLogFile.DebugData(const Prefix, Data: AnsiString);
 var
-  Line: WideString;
+  Line: AnsiString;
 const
   DataLen = 20; // Max data string length
 begin
@@ -707,12 +705,12 @@ begin
   until Line = '';
 end;
 
-procedure TLogFile.WriteRxData(Data: WideString);
+procedure TLogFile.WriteRxData(Data: AnsiString);
 begin
   DebugData('<- ', Data);
 end;
 
-procedure TLogFile.WriteTxData(Data: WideString);
+procedure TLogFile.WriteTxData(Data: AnsiString);
 begin
   DebugData('-> ', Data);
 end;

@@ -13,7 +13,7 @@ object fmPrinter: TfmPrinter
   OldCreateOrder = False
   DesignSize = (
     455
-    400)
+    399)
   PixelsPerInch = 96
   TextHeight = 13
   object lblResultCode: TTntLabel
@@ -132,7 +132,7 @@ object fmPrinter: TfmPrinter
         Width = 241
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         OnChange = ModifiedClick
       end

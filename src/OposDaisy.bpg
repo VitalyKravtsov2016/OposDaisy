@@ -1,0 +1,36 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = OposTest.exe OposConfig.exe OposDaisy.dll OposDaisyTest.exe \
+  OposDaisyTestLib.dll AcceptanceTest.exe
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+OposConfig.exe: OposConfig\OposConfig.dpr
+  $(DCC)
+
+OposTest.exe: OposTest\OposTest.dpr
+  $(DCC)
+
+OposDaisyTest.exe: ..\Test\OposDaisyTest\OposDaisyTest.dpr
+  $(DCC)
+
+OposDaisyTestLib.dll: ..\Test\OposDaisyTest\OposDaisyTestLib.dpr
+  $(DCC)
+
+OposDaisy.dll: OposDaisy\OposDaisy.dpr
+  $(DCC)
+
+AcceptanceTest.exe: ..\Test\AcceptanceTest\AcceptanceTest.dpr
+  $(DCC)
+
+

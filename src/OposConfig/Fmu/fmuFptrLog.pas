@@ -14,13 +14,14 @@ type
   { TfmFptrLog }
 
   TfmFptrLog = class(TFptrPage)
+    gbLogParameters: TTntGroupBox;
     chbLogEnabled: TTntCheckBox;
-    lblLogFilePath: TTntLabel;
-    edtLogFilePath: TTntEdit;
-    seMaxLogFileCount: TSpinEdit;
     lblMaxLogFileCount: TTntLabel;
+    seMaxLogFileCount: TSpinEdit;
+    edtLogFilePath: TTntEdit;
+    lblLogFilePath: TTntLabel;
     Label1: TLabel;
-    procedure ModifiedClick(Sender: TObject);
+    procedure PageChange(Sender: TObject);
   public
     procedure UpdatePage; override;
     procedure UpdateObject; override;
@@ -44,10 +45,9 @@ begin
   Parameters.LogFileEnabled := chbLogEnabled.Checked;
   Parameters.LogMaxCount := seMaxLogFileCount.Value;
   Parameters.LogFilePath := edtLogFilePath.Text;
-  Device.UpdateObject;
 end;
 
-procedure TfmFptrLog.ModifiedClick(Sender: TObject);
+procedure TfmFptrLog.PageChange(Sender: TObject);
 begin
   Modified;
 end;

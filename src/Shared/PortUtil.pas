@@ -36,7 +36,6 @@ begin
   Result := Copy(Name, p1+1, p2-p1-1);
 end;
 
-// Имя устройства в формате "Serial port (COM1)"
 function GetDeviceName(DevInfo: HDEVINFO; const DevData: TSPDevInfoData): AnsiString;
 var
   BytesReturned: DWORD;

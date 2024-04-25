@@ -124,7 +124,7 @@ begin
   for i := 0 to Count-1 do
   begin
     FileName := IncludeTrailingPathDelimiter(GetModulePath + 'Translation') +
-      'OposWebkassa.' + Items[i].Name;
+      'OposDaisy.' + Items[i].Name;
     DeleteFile(FileName);
     (*
     if not DeleteFile(FileName) then

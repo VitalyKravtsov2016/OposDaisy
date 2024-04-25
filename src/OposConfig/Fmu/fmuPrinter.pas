@@ -90,15 +90,11 @@ begin
   UpdateParity;
   UpdateFlowControl;
 
-  seRecLineChars.Value := Parameters.RecLineChars;
-  seRecLineHeight.Value := Parameters.RecLineHeight;
-
   edtRemoteHost.Text := Parameters.RemoteHost;
   seRemotePort.Value := Parameters.RemotePort;
   seByteTimeout.Value := Parameters.ByteTimeout;
   seSerialTimeout.Value := Parameters.SerialTimeout;
   seDevicePollTime.Value := Parameters.DevicePollTime;
-  seLineSpacing.Value := Parameters.LineSpacing;
 end;
 
 procedure TfmPrinter.UpdatePortNames;
@@ -168,11 +164,11 @@ begin
   cbParity.Items.BeginUpdate;
   try
     cbParity.Clear;
-    cbParity.Items.AddObject('Нет', TObject(NOPARITY));
-    cbParity.Items.AddObject('Нечетность', TObject(ODDPARITY));
-    cbParity.Items.AddObject('Четность', TObject(EVENPARITY));
-    cbParity.Items.AddObject('Установлен', TObject(MARKPARITY));
-    cbParity.Items.AddObject('Сброшен', TObject(SPACEPARITY));
+    cbParity.Items.AddObject('None', TObject(NOPARITY));
+    cbParity.Items.AddObject('Odd', TObject(ODDPARITY));
+    cbParity.Items.AddObject('Even', TObject(EVENPARITY));
+    cbParity.Items.AddObject('Mark', TObject(MARKPARITY));
+    cbParity.Items.AddObject('Space', TObject(SPACEPARITY));
     cbParity.ItemIndex := cbParity.Items.IndexOfObject(
       TObject(Parameters.Parity));
   finally
@@ -186,8 +182,8 @@ begin
   try
     cbFlowControl.Clear;
     cbFlowControl.Items.AddObject('XON / XOFF', TObject(FLOW_CONTROL_XON));
-    cbFlowControl.Items.AddObject('Аппаратный', TObject(FLOW_CONTROL_HARDWARE));
-    cbFlowControl.Items.AddObject('Нет', TObject(FLOW_CONTROL_NONE));
+    cbFlowControl.Items.AddObject('Hardware', TObject(FLOW_CONTROL_HARDWARE));
+    cbFlowControl.Items.AddObject('None', TObject(FLOW_CONTROL_NONE));
     cbFlowControl.ItemIndex := Parameters.FlowControl;
   finally
     cbFlowControl.Items.EndUpdate;
@@ -199,7 +195,6 @@ begin
   Parameters.PrinterType := cbPrinterType.ItemIndex;
   Parameters.PortName := cbPortName.Text;
   Parameters.DevicePollTime := seDevicePollTime.Value;
-  Parameters.LineSpacing := seLineSpacing.Value;
   // Serial
   Parameters.BaudRate := Integer(cbBaudRate.Items.Objects[cbBaudRate.ItemIndex]);
   Parameters.DataBits := Integer(cbDataBits.Items.Objects[cbDataBits.ItemIndex]);
@@ -223,7 +218,7 @@ begin
   except
     on E: Exception do
     begin
-      memResult.Text := 'Ошибка: ' + E.Message;
+      memResult.Text := 'Error: ' + E.Message;
     end;
   end;
   EnableButtons(True);
@@ -239,7 +234,7 @@ begin
   except
     on E: Exception do
     begin
-      memResult.Text := 'Ошибка: ' + E.Message;
+      memResult.Text := 'Error: ' + E.Message;
     end;
   end;
   EnableButtons(True);

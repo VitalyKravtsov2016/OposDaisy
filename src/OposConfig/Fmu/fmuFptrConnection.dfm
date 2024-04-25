@@ -1,9 +1,9 @@
 object fmFptrConnection: TfmFptrConnection
-  Left = 685
-  Top = 260
-  Width = 496
-  Height = 363
-  Caption = #1055#1086#1076#1082#1083#1102#1095#1077#1085#1080#1077
+  Left = 533
+  Top = 150
+  Width = 512
+  Height = 381
+  Caption = 'Connection'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,117 +11,302 @@ object fmFptrConnection: TfmFptrConnection
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
-  DesignSize = (
-    480
-    325)
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object gbConenctionParams: TTntGroupBox
     Left = 8
     Top = 8
-    Width = 465
-    Height = 265
-    Anchors = [akLeft, akTop, akRight]
-    Caption = 'WebKassa'
+    Width = 249
+    Height = 257
+    Caption = 'Connection'
     TabOrder = 0
     DesignSize = (
-      465
-      265)
-    object lblServerConnectTimeout: TTntLabel
-      Left = 16
-      Top = 56
-      Width = 143
+      249
+      257)
+    object lblComPort: TTntLabel
+      Left = 8
+      Top = 96
+      Width = 48
       Height = 13
-      Caption = #1058#1072#1081#1084#1072#1091#1090' '#1087#1086#1076#1082#1083#1102#1095#1077#1085#1080#1103', '#1089#1077#1082'.:'
+      Caption = 'COM port:'
     end
-    object lblServerAddress: TTntLabel
-      Left = 125
-      Top = 24
-      Width = 34
-      Height = 13
-      Caption = #1040#1076#1088#1077#1089':'
-    end
-    object lblServerLogin: TTntLabel
-      Left = 125
-      Top = 88
-      Width = 34
-      Height = 13
-      Caption = #1051#1086#1075#1080#1085':'
-    end
-    object lblServerPassword: TTntLabel
-      Left = 118
+    object lblBaudRate: TTntLabel
+      Left = 8
       Top = 120
-      Width = 41
+      Width = 46
       Height = 13
-      Caption = #1055#1072#1088#1086#1083#1100':'
+      Caption = 'Baudrate:'
     end
-    object lblResultCode: TTntLabel
-      Left = 104
-      Top = 152
-      Width = 55
+    object lblByteTimeout: TTntLabel
+      Left = 8
+      Top = 144
+      Width = 80
       Height = 13
-      Caption = #1056#1077#1079#1091#1083#1100#1090#1072#1090':'
+      Caption = 'Byte timeout, ms:'
     end
-    object seServerConnectTimeout: TSpinEdit
-      Left = 168
-      Top = 56
-      Width = 288
-      Height = 22
+    object lblMaxRetryCount: TTntLabel
+      Left = 8
+      Top = 168
+      Width = 74
+      Height = 13
+      Caption = 'Connect retries:'
+    end
+    object lblConnectionType: TTntLabel
+      Left = 8
+      Top = 24
+      Width = 80
+      Height = 13
+      Caption = 'Connection type:'
+    end
+    object lblRemoteHost: TTntLabel
+      Left = 8
+      Top = 48
+      Width = 25
+      Height = 13
+      Caption = 'Host:'
+    end
+    object lblRemotePort: TTntLabel
+      Left = 8
+      Top = 72
+      Width = 22
+      Height = 13
+      Caption = 'Port:'
+    end
+    object cbComPort: TTntComboBox
+      Left = 112
+      Top = 96
+      Width = 129
+      Height = 21
+      Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
+      ItemHeight = 13
+      TabOrder = 3
+    end
+    object cbBaudRate: TTntComboBox
+      Left = 112
+      Top = 120
+      Width = 129
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      ItemHeight = 13
+      TabOrder = 4
+      Items.Strings = (
+        '2400'
+        '4800'
+        '9600'
+        '19200'
+        '38400'
+        '57600'
+        '115200')
+    end
+    object chbSearchByPort: TTntCheckBox
+      Left = 8
+      Top = 224
+      Width = 233
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Find device on all available COM ports'
+      TabOrder = 7
+    end
+    object chbSearchByBaudRate: TTntCheckBox
+      Left = 8
+      Top = 200
+      Width = 233
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Find device on all available baud rates'
+      TabOrder = 6
+    end
+    object cbConnectionType: TTntComboBox
+      Left = 112
+      Top = 24
+      Width = 129
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      ItemHeight = 13
+      TabOrder = 0
+      Items.Strings = (
+        'Local'
+        'DCOM'
+        'TCP'
+        'SOCKET')
+    end
+    object edtRemoteHost: TTntEdit
+      Left = 112
+      Top = 48
+      Width = 129
+      Height = 21
+      TabOrder = 1
+      Text = 'edtRemoteHost'
+    end
+    object seRemotePort: TSpinEdit
+      Left = 112
+      Top = 72
+      Width = 129
+      Height = 22
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 2
+      Value = 0
+    end
+    object seByteTimeout: TSpinEdit
+      Left = 112
+      Top = 144
+      Width = 129
+      Height = 22
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 5
+      Value = 0
+    end
+    object cbMaxRetryCount: TTntComboBox
+      Left = 112
+      Top = 168
+      Width = 129
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 8
+      Items.Strings = (
+        'INFINITE'
+        '1'
+        '2'
+        '3'
+        '4'
+        '5'
+        '6'
+        '7'
+        '8'
+        '9'
+        '10')
+    end
+  end
+  object gbPassword: TTntGroupBox
+    Left = 264
+    Top = 192
+    Width = 225
+    Height = 73
+    Caption = 'Passwords'
+    TabOrder = 1
+    object lblUsrPassword: TTntLabel
+      Left = 8
+      Top = 20
+      Width = 82
+      Height = 13
+      Caption = 'Operator number:'
+    end
+    object lblSysPassword: TTntLabel
+      Left = 8
+      Top = 44
+      Width = 92
+      Height = 13
+      Caption = 'Operator password:'
+    end
+    object seOperatorNumber: TSpinEdit
+      Left = 136
+      Top = 19
+      Width = 81
+      Height = 22
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 0
+      Value = 0
+    end
+    object seOperatorPassword: TSpinEdit
+      Left = 136
+      Top = 43
+      Width = 81
+      Height = 22
       MaxValue = 0
       MinValue = 0
       TabOrder = 1
       Value = 0
-      OnChange = ModifiedClick
     end
-    object edtServerAddress: TEdit
-      Left = 168
+  end
+  object GroupBox1: TTntGroupBox
+    Left = 264
+    Top = 8
+    Width = 225
+    Height = 177
+    Caption = 'Polling'
+    TabOrder = 2
+    DesignSize = (
+      225
+      177)
+    object lblPollInterval: TTntLabel
+      Left = 8
       Top = 24
-      Width = 289
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
+      Width = 80
+      Height = 13
+      Caption = 'Poll interval, sec:'
+    end
+    object lblStatusInterval: TTntLabel
+      Left = 8
+      Top = 48
+      Width = 89
+      Height = 13
+      Caption = 'Status interval, ms:'
+    end
+    object lblStatusTimeout: TTntLabel
+      Left = 8
+      Top = 72
+      Width = 90
+      Height = 13
+      Caption = 'Status timeout, sec'
+    end
+    object lblEventsType: TTntLabel
+      Left = 8
+      Top = 96
+      Width = 59
+      Height = 13
+      Caption = 'Events type:'
+    end
+    object sePollInterval: TSpinEdit
+      Left = 104
+      Top = 24
+      Width = 113
+      Height = 22
+      MaxValue = 60
+      MinValue = 1
       TabOrder = 0
-      Text = 'edtServerAddress'
-      OnChange = ModifiedClick
+      Value = 1
     end
-    object edtServerLogin: TEdit
-      Left = 168
-      Top = 88
-      Width = 289
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
+    object seStatusInterval: TSpinEdit
+      Left = 104
+      Top = 48
+      Width = 113
+      Height = 22
+      MaxValue = 0
+      MinValue = 0
+      TabOrder = 1
+      Value = 0
+    end
+    object seStatusTimeout: TSpinEdit
+      Left = 104
+      Top = 72
+      Width = 113
+      Height = 22
+      MaxValue = 0
+      MinValue = 0
       TabOrder = 2
-      Text = 'edtServerLogin'
-      OnChange = ModifiedClick
+      Value = 0
     end
-    object edtServerPassword: TEdit
-      Left = 168
-      Top = 120
-      Width = 289
+    object cbCCOType: TTntComboBox
+      Left = 104
+      Top = 96
+      Width = 113
       Height = 21
+      Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
+      ItemHeight = 13
       TabOrder = 3
-      Text = 'edtServerPassword'
-      OnChange = ModifiedClick
-    end
-    object btnTestConnection: TButton
-      Left = 312
-      Top = 224
-      Width = 145
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = #1055#1088#1086#1074#1077#1088#1080#1090#1100' '#1087#1086#1076#1082#1083#1102#1095#1077#1085#1080#1077
-      TabOrder = 5
-      OnClick = btnTestConnectionClick
-    end
-    object edtResultCode: TEdit
-      Left = 168
-      Top = 152
-      Width = 290
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Color = clBtnFace
-      TabOrder = 4
+      Items.Strings = (
+        'RCS CCO (default)'
+        'NCR CCO'
+        'NONE')
     end
   end
 end
