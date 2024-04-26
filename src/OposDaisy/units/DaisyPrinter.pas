@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  Windows, SysUtils, DateUtils, Registry, Graphics, Types,
+  Windows, SysUtils, DateUtils, Registry, Graphics, Types, SyncObjs,
   // Tnt
   TntRegistry, TntClasses,
   // This
@@ -510,9 +510,7 @@ type
     FAnswer: TDaisyAnswer;
     FCommand: TDaisyCommand;
     FStatus: TDaisyStatus;
-    FPassword: WideString;
     FRegKeyName: WideString;
-
     FVATRates: TDFPVATRates;
     FConstants: TDFPConstants;
     FDiagnostic: TDFPDiagnosticInfo;
@@ -522,6 +520,8 @@ type
     constructor Create(APort: IPrinterPort; ALogger: ILogFile);
     destructor Destroy; override;
 
+    procedure Lock;
+    procedure Unlock;
     procedure LoadParams;
     procedure SaveParams;
     function CheckStatus: Integer;
@@ -611,7 +611,6 @@ type
     property VATRates: TDFPVATRates read FVATRates;
     property Constants: TDFPConstants read FConstants;
     property Diagnostic: TDFPDiagnosticInfo read FDiagnostic;
-    property Password: WideString read FPassword write FPassword;
     property RegKeyName: WideString read FRegKeyName write FRegKeyName;
   end;
 
@@ -1216,7 +1215,6 @@ begin
   inherited Create;
   FPort := APort;
   FLogger := ALogger;
-  FPassword := '';
   FRegKeyName := 'SHTRIH-M\OposDaisy';
   LoadParams;
 end;
@@ -1226,6 +1224,16 @@ begin
   FPort := nil;
   FLogger := nil;
   inherited Destroy;
+end;
+
+procedure TDaisyPrinter.Lock;
+begin
+  Port.Lock;
+end;
+
+procedure TDaisyPrinter.Unlock;
+begin
+  Port.Unlock;
 end;
 
 procedure TDaisyPrinter.SaveParams;
@@ -1372,6 +1380,7 @@ var
 begin
   Result := Send(TxData, RxData);
 end;
+
 (*
 function TDaisyPrinter.Send(const TxData: AnsiString; var RxData: AnsiString): Integer;
 begin

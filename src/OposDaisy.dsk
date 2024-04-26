@@ -1,17 +1,17 @@
 [Closed Files]
-File_0=SourceModule,'C:\projects\OposDaisy\src\Shared\SerialPort.pas',0,1,353,63,357,0,0
-File_1=SourceModule,'C:\projects\OposDaisy\src\OposTest\Fmu\fmuFptrNonFiscal.pas',0,1,63,5,67,1,1
-File_2=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\PrinterParametersX.pas',0,1,14,1,33,0,0
-File_3=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\PrinterParametersReg.pas',0,1,64,1,80,0,0
-File_4=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\PrinterParameters.pas',0,1,220,1,233,0,0
-File_5=SourceModule,'C:\projects\OposDaisy\src\Opos\OposFptrUtils.pas',0,1,34,33,57,0,0
-File_6=SourceModule,'C:\projects\OposDaisy\src\Opos\OposFptr.pas',0,1,33,21,54,0,0
-File_7=SourceModule,'C:\projects\OposDaisy\Test\AcceptanceTest\units\duDaisyFiscalPrinter.pas',0,1,32,1,32,0,0
+File_0=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas',0,1,1899,1,1922,0,0
+File_1=SourceModule,'C:\projects\OposDaisy\src\Shared\SerialPort.pas',0,1,605,1,623,0,0
+File_2=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\PrinterParametersX.pas',0,1,14,17,28,0,0
+File_3=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\PrinterParametersReg.pas',0,1,221,1,239,0,0
+File_4=SourceModule,'C:\projects\OPOSShtrih\Source\SmFiscalPrinter\Units\FiscalPrinterImpl.pas',0,1,1467,1,1485,0,0
+File_5=SourceModule,'C:\projects\OposDaisy\src\OposTest\Fmu\fmuMain.pas',0,1,1,61,12,1,0
+File_6=SourceModule,'C:\projects\OposDaisy\src\OposTest\Fmu\fmuPosPrinter.pas',0,1,1,13,19,1,0
+File_7=SourceModule,'C:\projects\OposDaisy\src\OposTest\Fmu\fmuPtrGeneral.pas',0,1,1,1,1,1,1
+File_8=SourceModule,'C:\projects\OposDaisy\src\Opos\OposException.pas',0,1,72,89,82,0,0
 
 [Modules]
 Module0=C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas
-Module1=C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas
-Count=2
+Count=1
 EditWindowCount=1
 TypeLibWindowCount=1
 
@@ -20,20 +20,11 @@ ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas]
-ModuleType=SourceModule
-FormState=0
-FormOnTop=0
-
 [C:\projects\OposDaisy\Test\AcceptanceTest\AcceptanceTest.dpr]
 FormState=0
 FormOnTop=0
 
-[C:\projects\OposDaisy\src\OposDaisy\OposDaisy.dpr]
-FormState=0
-FormOnTop=0
-
-[C:\projects\OposDaisy\src\OposConfig\OposConfig.dpr]
+[C:\projects\OposDaisy\src\OposDaisy.bpg]
 FormState=0
 FormOnTop=0
 
@@ -41,7 +32,11 @@ FormOnTop=0
 FormState=0
 FormOnTop=0
 
-[C:\projects\OposDaisy\src\OposDaisy.bpg]
+[C:\projects\OposDaisy\src\OposConfig\OposConfig.dpr]
+FormState=0
+FormOnTop=0
+
+[C:\projects\OposDaisy\src\OposDaisy\OposDaisy.dpr]
 FormState=0
 FormOnTop=0
 
@@ -58,10 +53,9 @@ FormState=0
 FormOnTop=0
 
 [EditWindow0]
-ViewCount=2
+ViewCount=1
 CurrentView=0
 View0=0
-View1=1
 CodeExplorer=CodeExplorer@EditWindow0
 MessageView=MessageView@EditWindow0
 Create=1
@@ -85,16 +79,9 @@ BottomPanelData=0000040000000000000000000000000000000000000000000001000000000000
 
 [View0]
 Module=C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas
-CursorX=1
-CursorY=605
-TopLine=591
-LeftCol=1
-
-[View1]
-Module=C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas
-CursorX=63
-CursorY=11
-TopLine=1
+CursorX=75
+CursorY=2143
+TopLine=2135
 LeftCol=1
 
 [TypeLibEditWindow0]
@@ -133,11 +120,7 @@ LRDockWidth=320
 Dockable=1
 
 [Breakpoints]
-Count=4
-Breakpoint0='C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',1220,'',0,1,'',1,0,0,'',1,'','',''
-Breakpoint1='C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',1217,'',0,1,'',1,0,0,'',1,'','',''
-Breakpoint2='C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',547,'',0,1,'',1,0,0,'',1,'','',''
-Breakpoint3='C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',605,'',0,1,'',1,0,0,'',1,'','',''
+Count=0
 
 [AddressBreakpoints]
 Count=0

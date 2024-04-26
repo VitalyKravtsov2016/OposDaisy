@@ -18,7 +18,7 @@ uses
   DaisyPrinter, FiscalPrinterState, ServiceVersion, PrinterParameters,
   PrinterParametersX, CashReceipt, SalesReceipt, ReceiptItem, StringUtils,
   DebugUtils, FileUtils, SerialPort, PrinterPort, SocketPort, PrinterTypes,
-  DirectIOAPI, PrinterParametersReg, FiscalReceipt;
+  DirectIOAPI, PrinterParametersReg, FiscalReceipt, NotifyThread;
 
 const
   // VatValue
@@ -48,6 +48,7 @@ type
       var pString: WideString);
     procedure DioSendCommand(var pData: Integer; var pString: WideString);
     procedure PrintText(const Text: WideString);
+    procedure DeviceProc(Sender: TObject);
   private
     FLogger: ILogFile;
     FPrinter: TDaisyPrinter;
@@ -56,6 +57,7 @@ type
     FParams: TPrinterParameters;
     FOposDevice: TOposServiceDevice19;
     FPrinterState: TFiscalPrinterState;
+    FDeviceThread: TNotifyThread;
 
     procedure DioPrintBarcode(var pData: Integer; var pString: WideString);
     procedure DioPrintBarcodeHex(var pData: Integer;
@@ -320,6 +322,8 @@ begin
   FOposDevice.Free;
   FPrinterState.Free;
   FReceipt := nil;
+  FDeviceThread.Free;
+  FDeviceThread := nil;
   inherited Destroy;
 end;
 
@@ -1931,6 +1935,9 @@ begin
     begin
       FPrinter := CreatePrinter;
     end;
+    Printer.RegKeyName := TPrinterParametersReg.GetUsrKeyName(DeviceName);
+    Printer.LoadParams;
+
     Logger.Debug(Logger.Separator);
     Logger.Debug('LOG START');
     Logger.Debug(FOposDevice.ServiceObjectDescription);
@@ -2086,10 +2093,11 @@ begin
     if Value then
     begin
       Printer.Check(Printer.Connect);
+      FOposDevice.PowerState := OPOS_PS_ONLINE;
+
       Printer.Check(Printer.ReadIntParameter(DFP_SP_NUM_HEADER_LINES, FNumHeaderLines));
       Printer.Check(Printer.ReadIntParameter(DFP_SP_NUM_TRAILER_LINES, FNumTrailerLines));
       Printer.Check(Printer.ReadIntParameter(DFP_SP_DECIMAL_POINT, FAmountDecimalPlaces));
-
 
       FMessageLength := Printer.Constants.MessageLength;
       FDescriptionLength := Printer.Constants.DescriptionLength;
@@ -2099,13 +2107,49 @@ begin
         Printer.Diagnostic.FirmwareTime, Printer.Diagnostic.ChekSum]);
 
       Logger.Debug('PhysicalDeviceDescription: ' + FOposDevice.PhysicalDeviceDescription);
+
+      FDeviceThread.Free;
+      FDeviceThread := TNotifyThread.Create(True);
+      FDeviceThread.OnExecute := DeviceProc;
+      FDeviceThread.Resume;
     end else
     begin
+      FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
+      FDeviceThread.Free;
+      FDeviceThread := nil;
       Printer.Disconnect;
     end;
     FDeviceEnabled := Value;
     FOposDevice.DeviceEnabled := Value;
   end;
+end;
+
+(*
+  FOposDevice.StatusUpdateEvent(PaperStatus);
+  FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
+*)
+
+procedure TDaisyFiscalPrinter.DeviceProc(Sender: TObject);
+begin
+  Logger.Debug('DeviceProc.Start');
+  try
+    while not FDeviceThread.Terminated do
+    begin
+      try
+        Printer.ReadStatus;
+      except
+        on E: Exception do
+        begin
+          Logger.Error('DeviceProc', E);
+        end;
+      end;
+      SleepEx(Parameters.PollInterval * 1000);
+    end;
+  except
+    on E: Exception do
+      Logger.Error('DeviceProc: ', E);
+  end;
+  Logger.Debug('DeviceProc.End');
 end;
 
 procedure TDaisyFiscalPrinter.Print(Receipt: TCashReceipt);
