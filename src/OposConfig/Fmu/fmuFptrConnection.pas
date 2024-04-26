@@ -34,8 +34,6 @@ type
     Bevel1: TBevel;
     lblPollInterval: TTntLabel;
     sePollInterval: TSpinEdit;
-    cbCCOType: TTntComboBox;
-    lblEventsType: TTntLabel;
     Bevel2: TBevel;
     lblUsrPassword: TTntLabel;
     seOperatorNumber: TSpinEdit;
@@ -62,14 +60,15 @@ begin
   cbConnectionType.ItemIndex := Parameters.ConnectionType;
   edtRemoteHost.Text := Parameters.RemoteHost;
   seRemotePort.Value := Parameters.RemotePort;
-  cbComPort.Text := Parameters.PortName;
+  cbComPort.ItemIndex := cbComPort.Items.IndexOf(Parameters.PortName);
+  if cbComPort.ItemIndex = -1 then
+    cbComPort.ItemIndex := 0;
   cbBaudRate.ItemIndex := BaudRateToInt(Parameters.BaudRate);
   seByteTimeout.Value := Parameters.ByteTimeout;
   cbMaxRetryCount.ItemIndex := Parameters.MaxRetryCount;
   chbSearchByBaudRate.Checked := Parameters.SearchByBaudRateEnabled;
   chbSearchByPort.Checked := Parameters.SearchByPortEnabled;
-  sePollInterval.Value := Parameters.DevicePollTime;
-  cbCCOType.ItemIndex := Parameters.CCOType;
+  sePollInterval.Value := Parameters.PollInterval;
   seOperatorNumber.Value := Parameters.OperatorNumber;
   seOperatorPassword.Value := Parameters.OperatorPassword;
 end;
@@ -85,8 +84,7 @@ begin
   Parameters.MaxRetryCount := cbMaxRetryCount.ItemIndex;
   Parameters.SearchByBaudRateEnabled := chbSearchByBaudRate.Checked;
   Parameters.SearchByPortEnabled := chbSearchByPort.Checked;
-  Parameters.DevicePollTime := sePollInterval.Value;
-  Parameters.CCOType := cbCCOType.ItemIndex;
+  Parameters.PollInterval := sePollInterval.Value;
   Parameters.OperatorNumber := seOperatorNumber.Value;
   Parameters.OperatorPassword := seOperatorPassword.Value;
 end;

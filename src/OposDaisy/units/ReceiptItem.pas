@@ -202,7 +202,11 @@ end;
 
 function TSalesItem.GetTotal: Currency;
 begin
-  Result := Price + Adjustment;
+  Result := Price;
+  if UnitPrice <> 0 then
+    Result := UnitPrice * Quantity;
+
+  Result := Result + Adjustment;
 end;
 
 procedure TSalesItem.Assign(Item: TSalesItem);

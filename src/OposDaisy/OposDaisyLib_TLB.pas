@@ -12,10 +12,10 @@ unit OposDaisyLib_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 23.04.2024 15:22:05 from Type Library described below.
+// File generated on 26.04.2024 12:17:28 from Type Library described below.
 
 // ************************************************************************  //
-// Type Lib: D:\projects\OposDaisy\src\OposDaisy\OposDaisy.tlb (1)
+// Type Lib: C:\projects\OposDaisy\src\OposDaisy\OposDaisy.tlb (1)
 // LIBID: {DE419508-17BD-42CD-AB6D-B719B31EDE02}
 // LCID: 0
 // Helpfile: 

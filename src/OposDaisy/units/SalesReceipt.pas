@@ -42,7 +42,7 @@ type
       AdjustmentType: Integer; Amount: Currency);
 
     function GetLastItem: TSalesItem;
-    function AddItem(const AData: TSalesItemRec): TSalesItem;
+    function AddItem(AData: TSalesItemRec): TSalesItem;
   public
     constructor CreateReceipt(ADecimalPlaces: Integer);
     destructor Destroy; override;
@@ -246,8 +246,11 @@ begin
   FIsOpened := False;
 end;
 
-function TSalesReceipt.AddItem(const AData: TSalesItemRec): TSalesItem;
+function TSalesReceipt.AddItem(AData: TSalesItemRec): TSalesItem;
 begin
+  if AData.Quantity = 0 then
+    AData.Quantity := 1;
+
   Result := TSalesItem.CreateItem(FItems, AData);
   FRecItems.Add(Result);
 end;
@@ -450,9 +453,15 @@ procedure TSalesReceipt.RecSubtotalAdjustment(const Description: WideString;
 begin
   CheckNotVoided;
   if FAdjustmentPercent <> 0 then
-    RaiseOposException(OPOS_E_ILLEGAL, 'Subtotal adjustment defined');
+    RaiseOposException(OPOS_E_ILLEGAL, 'Subtotal adjustment already defined');
 
   case AdjustmentType of
+    FPTR_AT_AMOUNT_DISCOUNT,
+    FPTR_AT_AMOUNT_SURCHARGE:
+    begin
+      RaiseOposException(OPOS_E_ILLEGAL, 'Receipt amount adjustments not supported');
+    end;
+
     FPTR_AT_PERCENTAGE_DISCOUNT:
     begin
       CheckPercents(Amount);

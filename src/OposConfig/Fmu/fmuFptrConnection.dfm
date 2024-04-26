@@ -77,13 +77,6 @@ object fmFptrConnection: TfmFptrConnection
     Height = 13
     Caption = 'Poll interval, sec:'
   end
-  object lblEventsType: TTntLabel
-    Left = 280
-    Top = 56
-    Width = 59
-    Height = 13
-    Caption = 'Events type:'
-  end
   object Bevel2: TBevel
     Left = 272
     Top = 8
@@ -227,19 +220,6 @@ object fmFptrConnection: TfmFptrConnection
     TabOrder = 9
     Value = 1
   end
-  object cbCCOType: TTntComboBox
-    Left = 376
-    Top = 56
-    Width = 113
-    Height = 21
-    Style = csDropDownList
-    ItemHeight = 13
-    TabOrder = 10
-    Items.Strings = (
-      'RCS CCO (default)'
-      'NCR CCO'
-      'NONE')
-  end
   object seOperatorNumber: TSpinEdit
     Left = 384
     Top = 144
@@ -247,7 +227,7 @@ object fmFptrConnection: TfmFptrConnection
     Height = 22
     MaxValue = 0
     MinValue = 0
-    TabOrder = 11
+    TabOrder = 10
     Value = 0
   end
   object seOperatorPassword: TSpinEdit
@@ -257,7 +237,7 @@ object fmFptrConnection: TfmFptrConnection
     Height = 22
     MaxValue = 0
     MinValue = 0
-    TabOrder = 12
+    TabOrder = 11
     Value = 0
   end
 end

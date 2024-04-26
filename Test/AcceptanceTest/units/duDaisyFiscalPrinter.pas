@@ -58,6 +58,7 @@ type
     procedure TestFiscalReceipt7;
     procedure TestFiscalReceipt8;
     procedure TestFiscalReceiptWithVAT;
+
     procedure TestFiscalReceiptWithAdjustments;
     procedure TestFiscalReceiptWithAdjustments2;
     procedure TestFiscalReceiptWithAdjustments3;
@@ -119,7 +120,6 @@ begin
   Params.ByteTimeout := 500;
   Params.PortName := 'COM3';
   Params.BaudRate := 19200;
-  Params.ReconnectPort := False;
 (*
   // Network
   Params.PrinterType := ConnectionTypeSocket;
@@ -180,6 +180,7 @@ begin
   ClaimDevice;
   EnableDevice;
   FptrCheck(Driver.ResetPrinter, 'ResetPrinter');
+  Driver.SetPropertyNumber(PIDXFptr_CheckTotal, 1);
 end;
 
 procedure TDaisyFiscalPrinterTest.TestCashIn;
@@ -261,6 +262,7 @@ end;
 
 procedure TDaisyFiscalPrinterTest.TestFiscalReceipt;
 var
+  ResultCode: Integer;
   Description: WideString;
 begin
   OpenClaimEnable;
@@ -273,10 +275,13 @@ begin
 
   Description := 'Receipt item 1';
   FptrCheck(Driver.PrintRecItem(Description, 590, 1000, 4, 590, 'pcs'));
-  FptrCheck(Driver.PrintRecTotal(12345, 12345, '0'));
+  ResultCode := Driver.PrintRecTotal(12345, 12345, '0');
+  CheckEquals(OPOS_E_EXTENDED, ResultCode, 'PrintRecTotal');
+  ResultCode := Driver.GetPropertyNumber(PIDX_ResultCodeExtended);
+  CheckEquals(OPOS_EFPTR_BAD_ITEM_AMOUNT, ResultCode, 'PrintRecTotal');
 
+  FptrCheck(Driver.PrintRecTotal(590, 590, '0'));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-
   FptrCheck(Driver.EndFiscalReceipt(False));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
 end;
@@ -287,7 +292,6 @@ begin
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
-
   FptrCheck(Driver.BeginFiscalReceipt(True));
   FptrCheck(Driver.PrintRecItem('TRK 1: AI-98', 578, 3302, 4, 175, ''));
   FptrCheck(Driver.PrintRecItem('Receipt item 1', 620, 1000, 4, 620, 'pcs'));
@@ -421,7 +425,6 @@ end;
 procedure TDaisyFiscalPrinterTest.TestFiscalReceiptWithAdjustments;
 begin
   OpenClaimEnable;
-  Driver.SetPropertyNumber(PIDXFptr_CheckTotal, 1);
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
@@ -437,14 +440,14 @@ begin
   // Total adjustments
   FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));
   FptrCheck(Driver.PrintRecTotal(874.80, 1000, '0'));
-
   FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 
 procedure TDaisyFiscalPrinterTest.TestFiscalReceiptWithAdjustments2;
+var
+  ResultCode: Integer;
 begin
   OpenClaimEnable;
-  Driver.SetPropertyNumber(PIDXFptr_CheckTotal, 1);
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
@@ -465,23 +468,24 @@ begin
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_PERCENTAGE_SURCHARGE, 'Surcharge 5%', 5, 4));
   CheckTotal(972);
   // Total adjustments
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 10', 10));
-  CheckTotal(962);
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_SURCHARGE, 'Surcharge 5', 5));
-  CheckTotal(967);
+  ResultCode := Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 10', 10);
+  CheckEquals(OPOS_E_ILLEGAL, ResultCode, 'PrintRecSubtotalAdjustment.0');
+  CheckTotal(972);
+  ResultCode := Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_SURCHARGE, 'Surcharge 5', 5);
+  CheckEquals(OPOS_E_ILLEGAL, ResultCode, 'PrintRecSubtotalAdjustment.1');
+  CheckTotal(972);
   FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));
-  CheckTotal(871);
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_SURCHARGE, 'Surcharge 5%', 5));
-  CheckTotal(914);
-
-  FptrCheck(Driver.PrintRecTotal(914, 1000, '0'));
+  CheckTotal(874.8);
+  ResultCode := Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_SURCHARGE, 'Surcharge 5%', 5);
+  CheckEquals(OPOS_E_ILLEGAL, ResultCode, 'PrintRecSubtotalAdjustment.2');
+  CheckTotal(874.8);
+  FptrCheck(Driver.PrintRecTotal(874.8, 1000, '0'));
   FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 
 procedure TDaisyFiscalPrinterTest.TestFiscalReceiptWithAdjustments3;
 begin
   OpenClaimEnable;
-  Driver.SetPropertyNumber(PIDXFptr_CheckTotal, 1);
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
@@ -489,21 +493,17 @@ begin
   FptrCheck(Driver.BeginFiscalReceipt(True));
   CheckTotal(0);
   FptrCheck(Driver.PrintRecItem('Qiwi fruites in case', 555.52, 896, 4, 620, 'pcs'));
-  CheckTotal(556);
+  CheckTotal(555.52);
   FptrCheck(Driver.PrintRecItem('Americano 180 ml', 400, 1000, 4, 400, 'pcs'));
-  CheckTotal(956);
+  CheckTotal(955.52);
   // Item adjustments
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 40', 40, 4));
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_SURCHARGE, 'Surcharge 12', 12, 4));
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10, 4));
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_PERCENTAGE_SURCHARGE, 'Surcharge 5%', 5, 4));
   // Total adjustments
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 10', 10));
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_AMOUNT_SURCHARGE, 'Surcharge 5', 5));
   FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));
-  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_SURCHARGE, 'Surcharge 5%', 5));
-  CheckTotal(854);
-  FptrCheck(Driver.PrintRecTotal(854, 1000, '0'));
+  FptrCheck(Driver.PrintRecTotal(816.77, 1000, '0'));
   FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 

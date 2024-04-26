@@ -10,7 +10,7 @@ uses
   // Opos
   Opos, Oposhi, OposException,
   // This
-  WException, LogFile, FileUtils, SerialPort, SerialPorts;
+  WException, LogFile, FileUtils;
 
 const
   /////////////////////////////////////////////////////////////////////////////
@@ -43,16 +43,14 @@ const
 
   DefBaudRate = CBR_19200;
   DefByteTimeout = 500;
-  DefCCOType = 0;
   DefConnectionType = ConnectionTypeSerial;
-  DefDevicePollTime = 3000;
+  DefPollInterval = 5;
   DefLogFileEnabled = True;
   DefLogMaxCount = 10;
   DefMaxRetryCount = 3;
   DefOperatorNumber = 1;
   DefOperatorPassword = 1;
   DefPortName = 'COM1';
-  DefReconnectPort = false;
   DefRemoteHost = '192.168.1.87';
   DefRemotePort = 9100;
   DefSearchByBaudRateEnabled = False;
@@ -68,9 +66,8 @@ type
     procedure SetBaudRate(const Value: Integer);
   public
     ByteTimeout: Integer;
-    CCOType: Integer;
     ConnectionType: Integer;
-    DevicePollTime: Integer;
+    PollInterval: Integer;
     LogFileEnabled: Boolean;
     LogFilePath: WideString;
     LogMaxCount: Integer;
@@ -78,7 +75,6 @@ type
     OperatorNumber: Integer;
     OperatorPassword: Integer;
     PortName: WideString;
-    ReconnectPort: Boolean;
     RemoteHost: string;
     RemotePort: Integer;
     SearchByBaudRateEnabled: Boolean;
@@ -89,7 +85,6 @@ type
 
     procedure SetDefaults;
     procedure WriteLogParameters;
-    function SerialPortNames: string;
     procedure Load(const DeviceName: WideString);
     procedure Save(const DeviceName: WideString);
     procedure Assign(Source: TPersistent); override;
@@ -123,9 +118,8 @@ begin
 
   BaudRate := DefBaudRate;
   ByteTimeout := DefByteTimeout;
-  CCOType := DefCCOType;
   ConnectionType := DefConnectionType;
-  DevicePollTime := DefDevicePollTime;
+  PollInterval := DefPollInterval;
   LogFileEnabled := DefLogFileEnabled;
   LogFilePath := GetModulePath + 'Logs';
   LogMaxCount := DefLogMaxCount;
@@ -133,8 +127,6 @@ begin
   OperatorNumber := DefOperatorNumber;
   OperatorPassword := DefOperatorPassword;
   PortName := DefPortName;
-  ReconnectPort := DefReconnectPort;
-  ReconnectPort := DefReconnectPort;
   RemoteHost := DefRemoteHost;
   RemotePort := DefRemotePort;
   SearchByBaudRateEnabled := DefSearchByBaudRateEnabled;
@@ -170,9 +162,8 @@ begin
   Logger.Debug(Logger.Separator);
   Logger.Debug('BaudRate: ' + IntToStr(BaudRate));
   Logger.Debug('ByteTimeout: ' + IntToStr(ByteTimeout));
-  Logger.Debug('CCOType: ' + IntToStr(CCOType));
   Logger.Debug('ConnectionType: ' + IntToStr(ConnectionType));
-  Logger.Debug('DevicePollTime: ' + IntToStr(DevicePollTime));
+  Logger.Debug('PollInterval: ' + IntToStr(PollInterval));
   Logger.Debug('LogFileEnabled: ' + BoolToStr(LogFileEnabled));
   Logger.Debug('LogFilePath: ' + LogFilePath);
   Logger.Debug('LogMaxCount: ' + IntToStr(LogMaxCount));
@@ -180,7 +171,6 @@ begin
   Logger.Debug('OperatorNumber: ' + IntToStr(OperatorNumber));
   Logger.Debug('OperatorPassword: ' + IntToStr(OperatorPassword));
   Logger.Debug('PortName: ' + PortName);
-  Logger.Debug('ReconnectPort: ' + BoolToStr(ReconnectPort));
   Logger.Debug('RemoteHost: ' + RemoteHost);
   Logger.Debug('RemotePort: ' + IntToStr(RemotePort));
   Logger.Debug('SearchByBaudRateEnabled: ' + BoolToStr(SearchByBaudRateEnabled));
@@ -211,11 +201,6 @@ begin
   FBaudRate := Value;
 end;
 
-function TPrinterParameters.SerialPortNames: string;
-begin
-  Result := TSerialPorts.GetPortNames;
-end;
-
 procedure TPrinterParameters.Assign(Source: TPersistent);
 var
   Src: TPrinterParameters;
@@ -226,9 +211,8 @@ begin
 
     BaudRate := Src.BaudRate;
     ByteTimeout := Src.ByteTimeout;
-    CCOType := Src.CCOType;
     ConnectionType := Src.ConnectionType;
-    DevicePollTime := Src.DevicePollTime;
+    PollInterval := Src.PollInterval;
     LogFileEnabled := Src.LogFileEnabled;
     LogFilePath := Src.LogFilePath;
     LogMaxCount := Src.LogMaxCount;
@@ -236,7 +220,6 @@ begin
     OperatorNumber := Src.OperatorNumber;
     OperatorPassword := Src.OperatorPassword;
     PortName := Src.PortName;
-    ReconnectPort := Src.ReconnectPort;
     RemoteHost := Src.RemoteHost;
     RemotePort := Src.RemotePort;
     SearchByBaudRateEnabled := Src.SearchByBaudRateEnabled;

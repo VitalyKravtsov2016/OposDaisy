@@ -1502,7 +1502,7 @@ begin
       (PrinterState <> FPTR_PS_FISCAL_RECEIPT_TOTAL) then
       raiseExtendedError(OPOS_EFPTR_WRONG_STATE, 'OPOS_EFPTR_WRONG_STATE');
 
-    if FCheckTotal and (FReceipt.GetTotal <> Total) then
+    if FCheckTotal and (AmountToInt(FReceipt.GetTotal) <> AmountToInt(Total)) then
     begin
       raiseExtendedError(OPOS_EFPTR_BAD_ITEM_AMOUNT,
         Format('App total %s, but receipt total %s', [
@@ -1944,7 +1944,7 @@ begin
       SerialParams.StopBits := ONESTOPBIT;
       SerialParams.Parity := NOPARITY;
       SerialParams.FlowControl := FLOW_CONTROL_NONE;
-      SerialParams.ReconnectPort := Params.ReconnectPort;
+      SerialParams.ReconnectPort := False;
       SerialParams.ByteTimeout := Params.ByteTimeout;
       PrinterPort := TSerialPort.Create(SerialParams, Logger);
       Result := TDaisyPrinter.Create(PrinterPort, Logger);
@@ -2094,6 +2094,7 @@ var
   i: Integer;
   Sale: TDFPSale;
   Text: WideString;
+  Amount: Currency;
   Barcode: WideString;
   Item: TReceiptItem;
   SalesItem: TSalesItem;
@@ -2101,6 +2102,8 @@ var
   Operator: TDFPOperatorPassword;
   Subtotal: TDFPSubtotal;
   SubtotalResponse: TDFPSubtotalResponse;
+  Total: TDFPTotal;
+  TotalResponse: TDFPTotalResponse;
 begin
   Operator.Number := Params.OperatorNumber;
   Operator.Password := Params.OperatorPassword;
@@ -2115,8 +2118,16 @@ begin
       Sale.Text1 := SalesItem.Description;
       Sale.Text2 := '';
       Sale.Tax := SalesItem.VatInfo;
-      Sale.Price := SalesItem.Price;
-      Sale.Quantity := SalesItem.Quantity;
+      if AmountToInt(SalesItem.UnitPrice) = 0 then
+      begin
+        Sale.Quantity := 1;
+        Sale.Price := SalesItem.Price;
+      end else
+      begin
+        Sale.Quantity := SalesItem.Quantity;
+        Sale.Price := SalesItem.UnitPrice;
+      end;
+
       Sale.DiscountPercent := 0;
       Sale.DiscountAmount := SalesItem.Adjustment;
       Printer.Check(Printer.Sale(Sale));
@@ -2132,13 +2143,26 @@ begin
       Printer.Check(Printer.PrintFiscalText(Text));
     end;
   end;
-  // Subtotal
+  // Percent subtotal adjustment
   if Receipt.AdjustmentPercent <> 0 then
   begin
     Subtotal.PrintSubtotal := True;
     Subtotal.DisplaySubtotal := False;
     Subtotal.AdjustmentPercent := Receipt.AdjustmentPercent;
     Printer.Check(Printer.Subtotal(Subtotal, SubtotalResponse));
+  end;
+  // Payments
+  for i := Low(Receipt.Payments) to High(Receipt.Payments) do
+  begin
+    Amount := Receipt.Payments[i];
+    if Amount <> 0 then
+    begin
+      Total.Text1 := '';
+      Total.Text2 := '';
+      Total.PaymentMode := i + 1;
+      Total.Amount := Amount;
+      Printer.Check(Printer.PrintTotal(Total, TotalResponse));
+    end;
   end;
   // EndFiscalReceipt
   Printer.Check(Printer.EndFiscalReceipt(RecNumber));

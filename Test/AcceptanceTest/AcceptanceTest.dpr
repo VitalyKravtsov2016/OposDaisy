@@ -38,17 +38,13 @@ uses
   FiscalPrinterState in '..\..\src\OposDaisy\units\FiscalPrinterState.pas',
   ServiceVersion in '..\..\src\Shared\ServiceVersion.pas',
   DeviceService in '..\..\src\Shared\DeviceService.pas',
-  PrinterParameters in '..\..\src\Shared\PrinterParameters.pas',
   SerialPorts in '..\..\src\Shared\SerialPorts.pas',
   ReceiptItem in '..\..\src\OposDaisy\units\ReceiptItem.pas',
   MathUtils in '..\..\src\OposDaisy\units\MathUtils.pas',
   PrinterTypes in '..\..\src\Shared\PrinterTypes.pas',
   xmlParser in '..\..\src\Shared\XMLParser.pas',
-  PrinterParametersX in '..\..\src\Shared\PrinterParametersX.pas',
-  PrinterParametersIni in '..\..\src\Shared\PrinterParametersIni.pas',
   TntIniFiles in '..\..\src\Shared\TntIniFiles.pas',
   SmIniFile in '..\..\src\Shared\SmIniFile.pas',
-  PrinterParametersReg in '..\..\src\Shared\PrinterParametersReg.pas',
   DirectIOAPI in '..\..\src\OposDaisy\units\DirectIOAPI.pas',
   CashReceipt in '..\..\src\OposDaisy\units\CashReceipt.pas',
   FiscalReceipt in '..\..\src\OposDaisy\units\FiscalReceipt.pas',
@@ -57,7 +53,10 @@ uses
   oleFiscalPrinter in '..\..\src\OposDaisy\units\oleFiscalPrinter.pas',
   duDPDataTest in 'units\duDPDataTest.pas',
   fmuLogo in '..\..\src\OposDaisy\Fmu\fmuLogo.pas' {fmLogo},
-  BaseForm in '..\..\src\Shared\BaseForm.pas';
+  BaseForm in '..\..\src\Shared\BaseForm.pas',
+  PrinterParameters in '..\..\src\OposDaisy\units\PrinterParameters.pas',
+  PrinterParametersX in '..\..\src\OposDaisy\units\PrinterParametersX.pas',
+  PrinterParametersReg in '..\..\src\OposDaisy\units\PrinterParametersReg.pas';
 
 {$R *.RES}
 {$R ..\..\src\OposDaisy\OposDaisy.tlb}

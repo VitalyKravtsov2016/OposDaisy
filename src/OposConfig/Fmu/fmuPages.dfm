@@ -28,7 +28,7 @@ object fmPages: TfmPages
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Defaults'
-    TabOrder = 0
+    TabOrder = 2
     OnClick = btnDefaultsClick
   end
   object btnOK: TTntButton
@@ -39,7 +39,7 @@ object fmPages: TfmPages
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
-    TabOrder = 1
+    TabOrder = 3
     OnClick = btnOKClick
   end
   object btnCancel: TTntButton
@@ -51,7 +51,7 @@ object fmPages: TfmPages
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 2
+    TabOrder = 4
   end
   object btnApply: TTntButton
     Left = 604
@@ -62,7 +62,7 @@ object fmPages: TfmPages
     Cancel = True
     Caption = 'Apply'
     Enabled = False
-    TabOrder = 3
+    TabOrder = 5
     OnClick = btnApplyClick
   end
   object lbPages: TTntListBox
@@ -73,7 +73,7 @@ object fmPages: TfmPages
     Style = lbOwnerDrawFixed
     Anchors = [akLeft, akTop, akBottom]
     ItemHeight = 18
-    TabOrder = 4
+    TabOrder = 0
     OnClick = lbPagesClick
   end
   object pnlPage: TTntPanel
@@ -83,6 +83,6 @@ object fmPages: TfmPages
     Height = 406
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'pnlPage'
-    TabOrder = 5
+    TabOrder = 1
   end
 end

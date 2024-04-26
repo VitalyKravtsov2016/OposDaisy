@@ -19,11 +19,9 @@ uses
   VersionInfo in '..\Shared\VersionInfo.pas',
   DebugUtils in '..\Shared\DebugUtils.pas',
   OposDevice in '..\Opos\OposDevice.pas',
-  PrinterEncoding in '..\Opos\PrinterEncoding.pas',
   BaseForm in '..\Shared\BaseForm.pas',
   FileUtils in '..\Shared\FileUtils.pas',
   SmIniFile in '..\Shared\SmIniFile.pas',
-  PrinterParametersX in '..\Shared\PrinterParametersX.pas',
   StringUtils in '..\Shared\StringUtils.pas',
   DriverError in '..\Shared\DriverError.pas',
   OposFiscalPrinter_1_13_Lib_TLB in '..\Opos\OposFiscalPrinter_1_13_Lib_TLB.pas',
@@ -31,8 +29,6 @@ uses
   WException in '..\Shared\WException.pas',
   TntIniFiles in '..\Shared\TntIniFiles.pas',
   OposDaisyLib_TLB in '..\OposDaisy\OposDaisyLib_TLB.pas',
-  PrinterParameters in '..\Shared\PrinterParameters.pas',
-  PrinterParametersIni in '..\Shared\PrinterParametersIni.pas',
   fmuMain in 'Fmu\fmuMain.pas' {fmMain},
   fmuFiscalPrinter in 'Fmu\fmuFiscalPrinter.pas' {fmFiscalPrinter},
   fmuFptrGeneral in 'Fmu\fmuFptrGeneral.pas' {fmFptrGeneral},
@@ -81,7 +77,6 @@ uses
   OposPtrUtils in '..\Opos\OposPtrUtils.pas',
   OposPtr in '..\Opos\OposPtr.pas',
   OposPtrhi in '..\Opos\OposPtrhi.pas',
-  PrinterParametersReg in '..\Shared\PrinterParametersReg.pas',
   VatRate in '..\Shared\VatRate.pas',
   SerialPort in '..\Shared\SerialPort.pas',
   PrinterPort in '..\Shared\PrinterPort.pas',
@@ -92,7 +87,10 @@ uses
   ReceiptItem in '..\OposDaisy\units\ReceiptItem.pas',
   MathUtils in '..\OposDaisy\units\MathUtils.pas',
   Translation in '..\Shared\Translation.pas',
-  PrinterTypes in '..\Shared\PrinterTypes.pas';
+  PrinterTypes in '..\Shared\PrinterTypes.pas',
+  PrinterParameters in '..\OposDaisy\units\PrinterParameters.pas',
+  PrinterParametersReg in '..\OposDaisy\units\PrinterParametersReg.pas',
+  PrinterParametersX in '..\OposDaisy\units\PrinterParametersX.pas';
 
 {$R *.RES}
 {$R WindowsXP.RES}

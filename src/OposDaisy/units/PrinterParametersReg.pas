@@ -47,11 +47,6 @@ procedure SaveUsrParametersReg(Item: TPrinterParameters;
 
 implementation
 
-const
-  REG_KEY_VatRateS  = 'VatRates';
-  REG_KEY_PAYTYPES  = 'PaymentTypes';
-  REGSTR_KEY_IBT = 'SOFTWARE\POSITIVE\POSITIVE32\Terminal';
-
 procedure DeleteParametersReg(const DeviceName: WideString; Logger: ILogFile);
 var
   Reg: TTntRegistry;
@@ -152,8 +147,14 @@ begin
     KeyName := GetSysKeyName(DeviceName);
     if Reg.OpenKey(KeyName, False) then
     begin
-      if Reg.ValueExists('LogMaxCount') then
-        Parameters.LogMaxCount := Reg.ReadInteger('LogMaxCount');
+      if Reg.ValueExists('BaudRate') then
+        Parameters.BaudRate := Reg.ReadInteger('BaudRate');
+
+      if Reg.ValueExists('ByteTimeout') then
+        Parameters.ByteTimeout := Reg.ReadInteger('ByteTimeout');
+
+      if Reg.ValueExists('ConnectionType') then
+        Parameters.ConnectionType := Reg.ReadInteger('ConnectionType');
 
       if Reg.ValueExists('LogFileEnabled') then
         Parameters.LogFileEnabled := Reg.ReadBool('LogFileEnabled');
@@ -161,8 +162,23 @@ begin
       if Reg.ValueExists('LogFilePath') then
         Parameters.LogFilePath := Reg.ReadString('LogFilePath');
 
-      if Reg.ValueExists('ConnectionType') then
-        Parameters.ConnectionType := Reg.ReadInteger('ConnectionType');
+      if Reg.ValueExists('LogMaxCount') then
+        Parameters.LogMaxCount := Reg.ReadInteger('LogMaxCount');
+
+      if Reg.ValueExists('MaxRetryCount') then
+        Parameters.MaxRetryCount := Reg.ReadInteger('MaxRetryCount');
+
+      if Reg.ValueExists('OperatorNumber') then
+        Parameters.OperatorNumber := Reg.ReadInteger('OperatorNumber');
+
+      if Reg.ValueExists('OperatorPassword') then
+        Parameters.OperatorPassword := Reg.ReadInteger('OperatorPassword');
+
+      if Reg.ValueExists('PollInterval') then
+        Parameters.PollInterval := Reg.ReadInteger('PollInterval');
+
+      if Reg.ValueExists('PortName') then
+        Parameters.PortName := Reg.ReadString('PortName');
 
       if Reg.ValueExists('RemoteHost') then
         Parameters.RemoteHost := Reg.ReadString('RemoteHost');
@@ -170,23 +186,12 @@ begin
       if Reg.ValueExists('RemotePort') then
         Parameters.RemotePort := Reg.ReadInteger('RemotePort');
 
-      if Reg.ValueExists('ByteTimeout') then
-        Parameters.ByteTimeout := Reg.ReadInteger('ByteTimeout');
+      if Reg.ValueExists('SearchByBaudRateEnabled') then
+        Parameters.SearchByBaudRateEnabled := Reg.ReadBool('SearchByBaudRateEnabled');
 
-      if Reg.ValueExists('PortName') then
-        Parameters.PortName := Reg.ReadString('PortName');
+      if Reg.ValueExists('SearchByPortEnabled') then
+        Parameters.SearchByPortEnabled := Reg.ReadBool('SearchByPortEnabled');
 
-      if Reg.ValueExists('BaudRate') then
-        Parameters.BaudRate := Reg.ReadInteger('BaudRate');
-
-      if Reg.ValueExists('ReconnectPort') then
-        Parameters.ReconnectPort := Reg.ReadBool('ReconnectPort');
-
-      if Reg.ValueExists('DevicePollTime') then
-        Parameters.DevicePollTime := Reg.ReadInteger('DevicePollTime');
-
-
-        
       Reg.CloseKey;
     end;
   finally
@@ -208,16 +213,22 @@ begin
       raiseOpenKeyError(KeyName);
 
     Reg.WriteString('', FiscalPrinterProgID);
+    Reg.WriteInteger('BaudRate', FParameters.BaudRate);
+    Reg.WriteInteger('ByteTimeout', FParameters.ByteTimeout);
+    Reg.WriteInteger('ConnectionType', FParameters.ConnectionType);
+    Reg.WriteInteger('PollInterval', FParameters.PollInterval);
     Reg.WriteBool('LogFileEnabled', Parameters.LogFileEnabled);
     Reg.WriteString('LogFilePath', FParameters.LogFilePath);
     Reg.WriteInteger('LogMaxCount', FParameters.LogMaxCount);
+    Reg.WriteInteger('MaxRetryCount', FParameters.MaxRetryCount);
+    Reg.WriteInteger('OperatorNumber', FParameters.OperatorNumber);
+    Reg.WriteInteger('OperatorPassword', FParameters.OperatorPassword);
+    Reg.WriteString('PortName', FParameters.PortName);
     Reg.WriteString('RemoteHost', FParameters.RemoteHost);
     Reg.WriteInteger('RemotePort', FParameters.RemotePort);
-    Reg.WriteInteger('ByteTimeout', FParameters.ByteTimeout);
-    Reg.WriteString('PortName', FParameters.PortName);
-    Reg.WriteInteger('BaudRate', FParameters.BaudRate);
-    Reg.WriteBool('ReconnectPort', FParameters.ReconnectPort);
-    Reg.WriteInteger('DevicePollTime', FParameters.DevicePollTime);
+    Reg.WriteBool('SearchByBaudRateEnabled', Parameters.SearchByBaudRateEnabled);
+    Reg.WriteBool('SearchByPortEnabled', Parameters.SearchByPortEnabled);
+
     Reg.CloseKey;
   finally
     Reg.Free;
