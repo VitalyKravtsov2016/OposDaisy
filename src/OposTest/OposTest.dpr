@@ -66,11 +66,9 @@ uses
   fmuFptrTest2 in 'Fmu\fmuFptrTest2.pas' {fmFptrTest2},
   fmuFptrTraining in 'Fmu\fmuFptrTraining.pas' {fmFptrTraining},
   fmuFptrWritableProperties in 'Fmu\fmuFptrWritableProperties.pas' {fmFptrWritableProperties},
-  fmuPosPrinter in 'Fmu\fmuPosPrinter.pas' {fmPosPrinter},
   fmuPrintRecItemRefund in 'Fmu\fmuPrintRecItemRefund.pas' {fmPrintRecItemRefund},
   fmuPrintRecItemRefundVoid in 'Fmu\fmuPrintRecItemRefundVoid.pas' {fmPrintRecItemRefundVoid},
   fmuPrintRecVoidItem in 'Fmu\fmuPrintRecVoidItem.pas' {fmPrintRecVoidItem},
-  fmuPtrGeneral in 'Fmu\fmuPtrGeneral.pas' {fmPtrGeneral},
   DriverTest in 'Units\DriverTest.pas',
   NotifyThread in '..\Shared\NotifyThread.pas',
   OposPosPrinter in '..\Opos\OposPosPrinter.pas',
@@ -101,6 +99,5 @@ begin
   Application.CreateForm(TfmMain, fmMain);
   Application.CreateForm(TfmFptrTest, fmFptrTest);
   Application.CreateForm(TfmFptrTest2, fmFptrTest2);
-  Application.CreateForm(TfmPosPrinter, fmPosPrinter);
   Application.Run;
 end.

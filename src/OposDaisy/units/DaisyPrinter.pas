@@ -6,7 +6,7 @@ uses
   // VCL
   Windows, SysUtils, DateUtils, Registry, Graphics, Types,
   // Tnt
-  TntRegistry,
+  TntRegistry, TntClasses,
   // This
   PrinterPort, LogFile, DriverError, StringUtils, ByteUtils;
 
@@ -157,7 +157,7 @@ const
   DFP_E_CRC          = -3;
 
   ENoError              = 0;    // No errors
-  EDateTimeNotSet       = 200;  // Date and time nto set
+  EDateTimeNotSet       = 200;  // Date and time not set
   EDisplayDisconnected  = 201;  // Customer display not connected
   EInvalidCommandCode   = 202;  // Invalid command code
   EPrinterError         = 203;  // Printer error
@@ -282,8 +282,8 @@ type
     TaxFreeLetter: AnsiString; // Letter for non-taxable items (= 20h)
     VATRate1Letter: AnsiString; // Symbol concerning first tax group
     Dimension: Integer; // Dimension of inner arithmetics
-    MessageLength: Integer; // Number of symbols per line..
-    CommentLineLength: Integer; // Number of symbols per comment line
+    DescriptionLength: Integer; // Number of symbols per line..
+    MessageLength: Integer; // Number of symbols per comment line
     NameLength: Integer; // Length of names (operators,PLUs,departments).
     MRCLength: Integer; // Length (number of symbols)of the MRC of FD
     FMNumberLength: Integer; // Length (number of symbols)of the Fiscal Memory Number
@@ -547,6 +547,7 @@ type
     function StartNonfiscalReceipt(var RecNumber: Integer): Integer;
     function EndNonfiscalReceipt(var RecNumber: Integer): Integer;
     function PrintNonfiscalText(const Text: WideString): Integer;
+    function PrintNonfiscalLine(const Text: WideString): Integer;
     function PaperFeed(LineCount: Integer): Integer;
     function PaperCut(CutMode: Integer): Integer;
     function StartFiscalReceipt(const P: TDFPOperatorPassword; var R: TDFPRecNumber): Integer;
@@ -769,7 +770,7 @@ begin
     70: Result := 'Fiscal memory does not exist';
     71: Result := 'Incorrect data in FM';
     72: Result := 'Error in FM record';
-    73: Result := 'Error FM siz';
+    73: Result := 'Error FM size';
     74: Result := 'FM size changed';
     75: Result := '';
     76: Result := 'Need server info';
@@ -1577,6 +1578,25 @@ begin
 end;
 
 function TDaisyPrinter.PrintNonfiscalText(const Text: WideString): Integer;
+var
+  i: Integer;
+  Lines: TTntStrings;
+begin
+  Result := 0;
+  Lines := TTntStringList.Create;
+  try
+    Lines.Text := Text;
+    for i := 0 to Lines.Count-1 do
+    begin
+      Result := PrintNonfiscalLine(Lines[i]);
+      if Failed(Result) then Break;
+    end;
+  finally
+    Lines.Free;
+  end;
+end;
+
+function TDaisyPrinter.PrintNonfiscalLine(const Text: WideString): Integer;
 begin
   Result := Send(#$2A + EncodePrinterText(Text));
 end;
@@ -2113,8 +2133,8 @@ begin
     R.TaxFreeLetter := GetStrParam(Answer, 5);
     R.VATRate1Letter := GetStrParam(Answer, 7);
     R.Dimension := GetIntParam(Answer, 8);
-    R.MessageLength := GetIntParam(Answer, 9);
-    R.CommentLineLength := GetIntParam(Answer, 10);
+    R.DescriptionLength := GetIntParam(Answer, 9);
+    R.MessageLength := GetIntParam(Answer, 10);
     R.NameLength := GetIntParam(Answer, 11);
     R.MRCLength := GetIntParam(Answer, 12);
     R.FMNumberLength := GetIntParam(Answer, 13);

@@ -9,7 +9,7 @@ uses
   // Tnt
   TntStdCtrls, TntSysUtils,
   // This
-  BaseForm, fmuAbout, VersionInfo, fmuFiscalPrinter, fmuPosPrinter;
+  BaseForm, fmuAbout, VersionInfo, fmuFiscalPrinter;
 
 type
   { TfmMain }
@@ -39,7 +39,6 @@ begin
   Tnt_WideFormat('%s %s (OPOS v.%s)',
     [Caption, GetFileVersionInfoStr, GetOPOSVersion]);
   AddTabForm(tsFiscalPrinter, TfmFiscalPrinter);
-  AddTabForm(tsPosPrinter, TfmPosPrinter);
   Caption := Caption + '  ' + GetFileVersionInfoStr;
 end;
 

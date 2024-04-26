@@ -90,7 +90,7 @@ MaxStackSize=1048576
 ImageBase=4194304
 ExeDescription=
 [Directories]
-OutputDir=..\Bin
+OutputDir=
 UnitOutputDir=DCU
 PackageDLLOutputDir=
 PackageDCPOutputDir=
@@ -101,7 +101,7 @@ DebugSourceDirs=
 UsePackages=0
 [Parameters]
 RunParams=
-HostApplication=C:\projects\WebKassa\bin\OposTest.exe
+HostApplication=c:\projects\OposDaisy\src\bin\OposTest.exe
 Launcher=
 UseLauncher=0
 DebugCWD=
@@ -122,7 +122,7 @@ AutoIncBuild=1
 MajorVer=1
 MinorVer=13
 Release=0
-Build=110
+Build=113
 Debug=0
 PreRelease=0
 Special=0
@@ -133,7 +133,7 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=SHTRIH-M
 FileDescription=WebKassa OPOS fiscal printer service
-FileVersion=1.13.0.110
+FileVersion=1.13.0.113
 InternalName=WebKassa OPOS fiscal printer driver
 LegalCopyright=SHTRIH-M © 2022
 LegalTrademarks=

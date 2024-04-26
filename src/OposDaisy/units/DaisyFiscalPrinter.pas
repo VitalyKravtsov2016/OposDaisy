@@ -47,6 +47,7 @@ type
     procedure DioWritePaymentName(var pData: Integer;
       var pString: WideString);
     procedure DioSendCommand(var pData: Integer; var pString: WideString);
+    procedure PrintText(const Text: WideString);
   private
     FLogger: ILogFile;
     FPrinter: TDaisyPrinter;
@@ -120,7 +121,6 @@ type
     FQuantityDecimalPlaces: Integer;
     FQuantityLength: Integer;
     FSlipSelection: Integer;
-    FActualCurrency: Integer;
     FContractorId: Integer;
     FDateType: Integer;
     FFiscalReceiptStation: Integer;
@@ -141,7 +141,6 @@ type
     function ClearResult: Integer;
     function HandleException(E: Exception): Integer;
     procedure SetDeviceEnabled(Value: Boolean);
-    function HandleDriverError(E: EDriverError): TOPOSError;
   public
     function Get_OpenResult: Integer; safecall;
     function COFreezeEvents(Freeze: WordBool): Integer; safecall;
@@ -446,7 +445,6 @@ begin
   FQuantityDecimalPlaces := 3;
   FQuantityLength := 10;
   FSlipSelection := FPTR_SS_FULL_LENGTH;
-  FActualCurrency := FPTR_AC_RUR;
   FContractorId := FPTR_CID_SINGLE;
   FDateType := FPTR_DT_RTC;
   FFiscalReceiptStation := FPTR_RS_RECEIPT;
@@ -459,7 +457,7 @@ begin
   FOposDevice.PhysicalDeviceName := 'DAISY FX 1300, Georgia';
   FOposDevice.PhysicalDeviceDescription := 'DAISY FX 1300, Georgia';
   FOposDevice.ServiceObjectDescription := 'DAISY FX 1300 OPOS fiscal printer service. SHTRIH-M, 2024';
-  FPredefinedPaymentLines := '0,1,2,3';
+  FPredefinedPaymentLines := '1,2,3,4,5';
   FReservedWord := '';
   FChangeDue := '';
 end;
@@ -517,6 +515,7 @@ begin
     SetPrinterState(FPTR_PS_FISCAL_RECEIPT);
     FReceipt := CreateReceipt(FFiscalReceiptType);
     FReceipt.BeginFiscalReceipt(PrintHeader);
+    FDayOpened := True;
     Result := ClearResult;
   except
     on E: Exception do
@@ -894,34 +893,38 @@ end;
 
 function TDaisyFiscalPrinter.GetData(DataItem: Integer; out OptArgs: Integer;
   out Data: WideString): Integer;
+
+  function ReadDayTotal: Currency;
+  var
+    Day: TDFPDayStatus;
+  begin
+    Printer.Check(Printer.ReadDayStatus(Day));
+    Result := Day.CashTotal + Day.Pay1Total +
+      Day.Pay2Total + Day.Pay3Total + Day.Pay3Total;
+  end;
+
+  function ReadZReportNumber: Integer;
+  var
+    Day: TDFPDayStatus;
+  begin
+    Printer.Check(Printer.ReadDayStatus(Day));
+    Result := Day.ZRepNo;
+  end;
+
+  function ReadReceiptNumber: Integer;
+  begin
+    Printer.Check(Printer.ReadLastDocNo(Result));
+  end;
+
 begin
   try
     case DataItem of
       FPTR_GD_FIRMWARE: Data := FOposDevice.PhysicalDeviceDescription;
-      FPTR_GD_PRINTER_ID: Data := '';
+      FPTR_GD_PRINTER_ID: Data := Printer.Diagnostic.FDNo;
       FPTR_GD_CURRENT_TOTAL: Data := AmountToOutStr(Receipt.GetTotal());
-      FPTR_GD_DAILY_TOTAL: Data := AmountToOutStr(0);
-      FPTR_GD_GRAND_TOTAL: Data := AmountToOutStr(0);
-      FPTR_GD_MID_VOID: Data := AmountToOutStr(0);
-      FPTR_GD_NOT_PAID: Data := AmountToOutStr(0);
-      FPTR_GD_RECEIPT_NUMBER: Data := ''; // FCheckNumber;
-      FPTR_GD_REFUND: Data := AmountToOutStr(0);
-      FPTR_GD_REFUND_VOID: Data := AmountToOutStr(0);
-      FPTR_GD_Z_REPORT:; { !!! }
-      FPTR_GD_FISCAL_REC: Data := AmountToOutStr(0);
-
-      FPTR_GD_FISCAL_DOC,
-      FPTR_GD_FISCAL_DOC_VOID,
-      FPTR_GD_FISCAL_REC_VOID,
-      FPTR_GD_NONFISCAL_DOC,
-      FPTR_GD_NONFISCAL_DOC_VOID,
-      FPTR_GD_NONFISCAL_REC,
-      FPTR_GD_RESTART,
-      FPTR_GD_SIMP_INVOICE,
-      FPTR_GD_TENDER,
-      FPTR_GD_LINECOUNT:
-        Data := AmountToStr(0);
-      FPTR_GD_DESCRIPTION_LENGTH: Data := IntToStr(0); { !!! }
+      FPTR_GD_DAILY_TOTAL: Data := AmountToOutStr(ReadDayTotal);
+      FPTR_GD_Z_REPORT: Data := IntToStr(ReadZReportNumber);
+      FPTR_GD_RECEIPT_NUMBER: Data := IntToStr(ReadReceiptNumber);
     else
       InvalidParameterValue('DataItem', IntToStr(DataItem));
     end;
@@ -1011,7 +1014,7 @@ begin
       PIDXFptr_SlpNearEnd             : Result := 0;
       PIDXFptr_SlipSelection          : Result := FSlipSelection;
       PIDXFptr_TrainingModeActive     : Result := BoolToInt[False];
-      PIDXFptr_ActualCurrency         : Result := FActualCurrency;
+      PIDXFptr_ActualCurrency         : Result := FPTR_AC_OTHER;
       PIDXFptr_ContractorId           : Result := FContractorId;
       PIDXFptr_DateType               : Result := FDateType;
       PIDXFptr_FiscalReceiptStation   : Result := FFiscalReceiptStation;
@@ -1042,8 +1045,8 @@ begin
       PIDXFptr_CapRecEmptySensor          : Result := 1;
       PIDXFptr_CapRecNearEndSensor        : Result := 0;
       PIDXFptr_CapRecPresent              : Result := 1;
-      PIDXFptr_CapRemainingFiscalMemory   : Result := 1;
-      PIDXFptr_CapReservedWord            : Result := 1;
+      PIDXFptr_CapRemainingFiscalMemory   : Result := 0;
+      PIDXFptr_CapReservedWord            : Result := 0;
       PIDXFptr_CapSetHeader               : Result := 1;
       PIDXFptr_CapSetPOSID                : Result := 1;
       PIDXFptr_CapSetStoreFiscalID        : Result := 0;
@@ -1057,20 +1060,20 @@ begin
       PIDXFptr_CapSlpValidation           : Result := 0;
       PIDXFptr_CapSubAmountAdjustment     : Result := 0;
       PIDXFptr_CapSubPercentAdjustment    : Result := 1;
-      PIDXFptr_CapSubtotal                : Result := 1;
+      PIDXFptr_CapSubtotal                : Result := 0;
       PIDXFptr_CapTrainingMode            : Result := 0;
       PIDXFptr_CapValidateJournal         : Result := 0;
       PIDXFptr_CapXReport                 : Result := 1;
       PIDXFptr_CapAdditionalHeader        : Result := 1;
       PIDXFptr_CapAdditionalTrailer       : Result := 1;
-      PIDXFptr_CapChangeDue               : Result := 1;
+      PIDXFptr_CapChangeDue               : Result := 0;
       PIDXFptr_CapEmptyReceiptIsVoidable  : Result := 1;
       PIDXFptr_CapFiscalReceiptStation    : Result := 1;
       PIDXFptr_CapFiscalReceiptType       : Result := 1;
       PIDXFptr_CapMultiContractor         : Result := 0;
-      PIDXFptr_CapOnlyVoidLastItem        : Result := 1;
+      PIDXFptr_CapOnlyVoidLastItem        : Result := 0;
       PIDXFptr_CapPackageAdjustment       : Result := 1;
-      PIDXFptr_CapPostPreLine             : Result := 1;
+      PIDXFptr_CapPostPreLine             : Result := 0;
       PIDXFptr_CapSetCurrency             : Result := 0;
       PIDXFptr_CapTotalizerType           : Result := 1;
       PIDXFptr_CapPositiveSubtotalAdjustment: Result := 1;
@@ -1215,6 +1218,7 @@ begin
     CheckState(FPTR_PS_NONFISCAL);
     CheckRecStation(Station);
     Printer.Check(Printer.PrintNonfiscalText(AData));
+
     Result := ClearResult;
   except
     on E: Exception do
@@ -1364,10 +1368,23 @@ begin
 end;
 
 function TDaisyFiscalPrinter.PrintRecMessage(const Message: WideString): Integer;
+var
+  Text: WideString;
 begin
   try
     CheckEnabled;
-    FReceipt.PrintRecMessage(Message);
+
+    case FMessageType of
+      FPTR_MT_DOT_LINE:
+      begin
+        Text := StringOfChar('.', Printer.Constants.MessageLength);
+        FReceipt.PrintRecMessage(Text);
+      end;
+      FPTR_MT_EMPTY_LINE: FReceipt.PrintRecMessage(' ');
+      FPTR_MT_FREE_TEXT: FReceipt.PrintRecMessage(Message);
+    else
+      FReceipt.PrintRecMessage(Message);
+    end;
     Result := ClearResult;
   except
     on E: Exception do
@@ -1592,6 +1609,7 @@ begin
     SetPrinterState(FPTR_PS_REPORT);
     try
       Printer.Check(Printer.ZReport(R));
+      FDayOpened := False;
     finally
       SetPrinterState(FPTR_PS_MONITOR);
     end;
@@ -1617,6 +1635,7 @@ begin
   try
     CheckEnabled;
     SetPrinterState(FPTR_PS_MONITOR);
+    Printer.Check(Printer.Reset);
     FReceipt := nil;
     Result := ClearResult;
   except
@@ -1753,7 +1772,11 @@ begin
       PIDXFptr_AdditionalTrailer  : FAdditionalTrailer := Text;
       PIDXFptr_PostLine           : FPostLine := Text;
       PIDXFptr_PreLine            : FPreLine := Text;
-      PIDXFptr_ChangeDue          : FChangeDue := Text;
+      PIDXFptr_ChangeDue:
+      begin
+        RaiseIllegalError('ChangeDue not supported');
+        FChangeDue := Text;
+      end;
     end;
     ClearResult;
   except
@@ -1984,14 +2007,36 @@ begin
   Result := TOposEventsRCS.Create(FDispatch);
 end;
 
+function GetResultCodeExtended(Code: Integer): Integer;
+begin
+  case Code of
+    // Fiscal memory is full
+    30: Result := OPOS_EFPTR_FISCAL_MEMORY_FULL;
+    // More than 24 hours from first receipt without issuing daily Z report';
+    82: Result := OPOS_EFPTR_DAY_END_REQUIRED;
+    // Fiscal memory does not exist
+    70: Result := OPOS_EFPTR_MISSING_DEVICES;
+    // Customer display not connected
+    EDisplayDisconnected: Result := OPOS_EFPTR_MISSING_DEVICES;
+    ERecJrnEmpty: Result := OPOS_EFPTR_REC_EMPTY;
+    EDateTimeNotSet: Result := OPOS_EFPTR_CLOCK_ERROR;
+  else
+    Result := 300 + Code;
+  end;
+end;
+
 function TDaisyFiscalPrinter.HandleException(E: Exception): Integer;
 var
   OPOSError: TOPOSError;
+  DriverError: EDriverError;
   OPOSException: EOPOSException;
 begin
   if E is EDriverError then
   begin
-    OPOSError := HandleDriverError(E as EDriverError);
+    DriverError := E as EDriverError;
+    OPOSError.ResultCode := OPOS_E_EXTENDED;
+    OPOSError.ErrorString := GetExceptionMessage(E);
+    OPOSError.ResultCodeExtended := GetResultCodeExtended(DriverError.Code);
     FOposDevice.HandleException(OPOSError);
     Result := OPOSError.ResultCode;
     Exit;
@@ -2045,6 +2090,10 @@ begin
       Printer.Check(Printer.ReadIntParameter(DFP_SP_NUM_TRAILER_LINES, FNumTrailerLines));
       Printer.Check(Printer.ReadIntParameter(DFP_SP_DECIMAL_POINT, FAmountDecimalPlaces));
 
+
+      FMessageLength := Printer.Constants.MessageLength;
+      FDescriptionLength := Printer.Constants.DescriptionLength;
+
       FOposDevice.PhysicalDeviceDescription := Format('%s, %s %s, %s', [
         Printer.Diagnostic.FirmwareVersion, Printer.Diagnostic.FirmwareDate,
         Printer.Diagnostic.FirmwareTime, Printer.Diagnostic.ChekSum]);
@@ -2056,19 +2105,6 @@ begin
     end;
     FDeviceEnabled := Value;
     FOposDevice.DeviceEnabled := Value;
-  end;
-end;
-
-function TDaisyFiscalPrinter.HandleDriverError(E: EDriverError): TOPOSError;
-begin
-  Result.ResultCode := OPOS_E_EXTENDED;
-  Result.ErrorString := GetExceptionMessage(E);
-  if E.Code = 91 then { !!! }
-  begin
-    Result.ResultCodeExtended := OPOS_EFPTR_DAY_END_REQUIRED;
-  end else
-  begin
-    Result.ResultCodeExtended := 300 + E.Code;
   end;
 end;
 
@@ -2108,6 +2144,8 @@ begin
   Operator.Number := Params.OperatorNumber;
   Operator.Password := Params.OperatorPassword;
   Printer.Check(Printer.StartFiscalReceipt(Operator, RecNumber));
+  PrintText(FAdditionalHeader);
+
   for i := 0 to Receipt.Items.Count-1 do
   begin
     Item := Receipt.Items[i];
@@ -2140,7 +2178,7 @@ begin
     if Item is TBarcodeItem then
     begin
       Barcode := (Item as TBarcodeItem).Barcode;
-      Printer.Check(Printer.PrintFiscalText(Text));
+      PrintBarcodeText(Barcode);
     end;
   end;
   // Percent subtotal adjustment
@@ -2164,8 +2202,27 @@ begin
       Printer.Check(Printer.PrintTotal(Total, TotalResponse));
     end;
   end;
+  PrintText(FAdditionalTrailer);
   // EndFiscalReceipt
   Printer.Check(Printer.EndFiscalReceipt(RecNumber));
+end;
+
+procedure TDaisyFiscalPrinter.PrintText(const Text: WideString);
+var
+  i: Integer;
+  Lines: TTntStrings;
+begin
+  if Text = '' then Exit;
+  Lines := TTntStringList.Create;
+  try
+    Lines.Text := Text;
+    for i := 0 to Lines.Count-1 do
+    begin
+      Printer.Check(Printer.PrintFiscalText(Lines[i]));
+    end;
+  finally
+    Lines.Free;
+  end;
 end;
 
 function GetLastLine(const Line: WideString): WideString;

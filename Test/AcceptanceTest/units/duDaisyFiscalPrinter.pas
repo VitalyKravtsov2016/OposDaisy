@@ -264,11 +264,17 @@ procedure TDaisyFiscalPrinterTest.TestFiscalReceipt;
 var
   ResultCode: Integer;
   Description: WideString;
+const
+  AdditionalHeader = 'AdditionalHeader line 1' + CRLF + 'AdditionalHeader line 2';
+  AdditionalTrailer = 'AdditionalTrailer line 1' + CRLF + 'AdditionalTrailer line 2';
 begin
   OpenClaimEnable;
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
+
+  Driver.SetPropertyString(PIDXFptr_AdditionalHeader, AdditionalHeader);
+  Driver.SetPropertyString(PIDXFptr_AdditionalTrailer, AdditionalTrailer);
 
   FptrCheck(Driver.BeginFiscalReceipt(True));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT, Driver.GetPropertyNumber(PIDXFptr_PrinterState));

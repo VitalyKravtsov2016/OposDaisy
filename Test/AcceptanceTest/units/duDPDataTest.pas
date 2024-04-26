@@ -564,8 +564,8 @@ begin
   CheckEquals('', Data.TaxFreeLetter, 'TaxFreeLetter');
   CheckEquals(' ', Data.VATRate1Letter, 'VATRate1Letter');
   CheckEquals(8, Data.Dimension, 'Dimension');
-  CheckEquals(48, Data.MessageLength, 'MessageLength');
-  CheckEquals(44, Data.CommentLineLength, 'CommentLineLength');
+  CheckEquals(48, Data.DescriptionLength, 'DescriptionLength');
+  CheckEquals(44, Data.MessageLength, 'MessageLength');
   CheckEquals(32, Data.NameLength, 'NameLength');
   CheckEquals(10, Data.MRCLength, 'MRCLength');
   CheckEquals(10, Data.FMNumberLength, 'FMNumberLength');
@@ -655,7 +655,6 @@ begin
   CheckEquals(0, R.Tax2Total, 'Tax2Total');
   CheckEquals(0, R.Tax3Total, 'Tax3Total');
   CheckEquals(0, R.Tax4Total, 'Tax4Total');
-  CheckEquals(0, R.Tax5Total, 'Tax5Total');
   CheckEquals(False, R.InvoiceFlag, 'InvoiceFlag');
   CheckEquals('', R.InvoiceNo, 'InvoiceNo');
 end;
