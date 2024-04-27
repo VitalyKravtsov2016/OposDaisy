@@ -1374,16 +1374,16 @@ var
   TickCount: Integer;
   TimeText: AnsiString;
 begin
+  TickCount := GetTickCount;
   Logger.Debug(Logger.Separator);
   try
-    TickCount := GetTickCount;
     SendCommand(TxData, RxData);
     FLastError := CheckStatus;
     Result := FLastError;
     if Assigned(FOnStatusUpdate) then
       FOnStatusUpdate(Self);
 
-    TimeText := Format(' (time=%d ms)', [GetTickCount - TickCount]);
+    TimeText := Format(' (time=%d ms)', [Integer(GetTickCount) - TickCount]);
     if Succeeded(Result) then
     begin
       Logger.Debug(GetErrorText(Result) + TimeText);
@@ -1394,7 +1394,7 @@ begin
   except
     on E: Exception do
     begin
-      TimeText := Format(' (time=%d ms)', [GetTickCount - TickCount]);
+      TimeText := Format(' (time=%d ms)', [Integer(GetTickCount) - TickCount]);
       Logger.Error(E.Message + TimeText);
       raise;
     end;
