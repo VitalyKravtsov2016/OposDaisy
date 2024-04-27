@@ -216,7 +216,7 @@ object fmFptrConnection: TfmFptrConnection
     Width = 113
     Height = 22
     MaxValue = 60
-    MinValue = 1
+    MinValue = 0
     TabOrder = 9
     Value = 1
   end

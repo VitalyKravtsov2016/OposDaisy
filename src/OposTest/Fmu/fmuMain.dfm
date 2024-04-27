@@ -53,9 +53,5 @@ object fmMain: TfmMain
       BorderWidth = 3
       Caption = 'Fiscal printer'
     end
-    object tsPosPrinter: TTabSheet
-      Caption = 'POS printer'
-      ImageIndex = 1
-    end
   end
 end

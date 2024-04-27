@@ -387,7 +387,7 @@ end;
 
 procedure TOposServiceDevice19.StatusUpdateEvent(Data: Integer);
 begin
-  //Logger.Debug('StatusUpdateEvent: ' + GetStatusUpdateEventText(Data));
+  Logger.Debug('StatusUpdateEvent: ' + GetStatusUpdateEventText(Data));
   FireEvent(TStatusUpdateEvent.Create(Data, Logger));
 end;
 

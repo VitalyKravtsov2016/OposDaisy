@@ -19,7 +19,6 @@ type
     btnClose: TTntButton;
     PageControl1: TPageControl;
     tsFiscalPrinter: TTabSheet;
-    tsPosPrinter: TTabSheet;
     procedure FormCreate(Sender: TObject);
     procedure btnAboutClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);

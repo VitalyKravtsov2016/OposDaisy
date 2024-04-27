@@ -44,7 +44,7 @@ const
   DefBaudRate = CBR_19200;
   DefByteTimeout = 500;
   DefConnectionType = ConnectionTypeSerial;
-  DefPollInterval = 5;
+  DefPollInterval = 0;
   DefLogFileEnabled = True;
   DefLogMaxCount = 10;
   DefMaxRetryCount = 3;

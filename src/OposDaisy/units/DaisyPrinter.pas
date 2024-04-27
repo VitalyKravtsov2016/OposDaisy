@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  Windows, SysUtils, DateUtils, Registry, Graphics, Types, SyncObjs,
+  Windows, Classes, SysUtils, DateUtils, Registry, Graphics, Types, SyncObjs,
   // Tnt
   TntRegistry, TntClasses,
   // This
@@ -514,6 +514,8 @@ type
     FVATRates: TDFPVATRates;
     FConstants: TDFPConstants;
     FDiagnostic: TDFPDiagnosticInfo;
+    FOnStatusUpdate: TNotifyEvent;
+    FLastError: Integer;
   public
     TxCount: Integer;
 
@@ -608,10 +610,12 @@ type
     property Port: IPrinterPort read FPort;
     property Logger: ILogFile read FLogger;
     property Status: TDaisyStatus read FStatus;
+    property LastError: Integer read FLastError;
     property VATRates: TDFPVATRates read FVATRates;
     property Constants: TDFPConstants read FConstants;
     property Diagnostic: TDFPDiagnosticInfo read FDiagnostic;
     property RegKeyName: WideString read FRegKeyName write FRegKeyName;
+    property OnStatusUpdate: TNotifyEvent read FOnStatusUpdate write FOnStatusUpdate;
   end;
 
 
@@ -839,49 +843,16 @@ begin
   Result := Format('%d, %s', [Code, Result]);
 end;
 
+///////////////////////////////////////////////////////////////////////////////
 //** You cannot continue working. Contact a service technician immediately
 //*** In order to continue working, you must turn off and on again the FPr
 //**** Contact a service specialist.
+///////////////////////////////////////////////////////////////////////////////
 
 function IsServiceError(Code: Integer): Boolean;
 begin
   Result := Code in [71, 72];
 end;
-
-(*
-INFORMATION
-? Code(Hex) Code Command function
-1 3Eh 62 Date and time information
-2 4Ah 74 Status of SLAVE
-3 41h 65 Current net / total sums
-4 40h 64 Final fiscal record
-5 44h 68 Free fiscal records
-6 4Ch 76 Status of fiscal receipt
-7 5Ah 90 Diagnostic information
-8 61h 97 Current tax rates
-9 63h 99 Information for TIN
-10 6Bh 107 Information for PLU
-11 83h 131 Information for department
-12 67h 103 Information for the receipt
-13 6Eh 110 Information for the day
-14 2Bh 42 Get cliché
-15 70h 112 Information for operator
-16 71h 113 Number of last documents
-17 72h 114 Information from FM by number
-18 92h 146 Information from FM by date
-19 80h 128 Receiving constant values
-20 47h 71* Print diagnostic information
-21 B1h 177 Read EJT
-PRINTER
-? Code (Hex) Code Command function
-1 2Ch 44* Paper feed
-2 2Dh 45* Paper cut8
-OTHER
-? Code (Hex) Code Command function
-1 46h 70* Service issued sums
-2 6Ah 106* Open till
-3 3Fh 63 Display date and time
-*)
 
 function GetCommandName(Code: Integer): WideString;
 begin
@@ -1399,22 +1370,32 @@ end;
 *)
 
 function TDaisyPrinter.Send(const TxData: AnsiString; var RxData: AnsiString): Integer;
+var
+  TickCount: Integer;
+  TimeText: AnsiString;
 begin
   Logger.Debug(Logger.Separator);
   try
+    TickCount := GetTickCount;
     SendCommand(TxData, RxData);
-    Result := CheckStatus;
+    FLastError := CheckStatus;
+    Result := FLastError;
+    if Assigned(FOnStatusUpdate) then
+      FOnStatusUpdate(Self);
+
+    TimeText := Format(' (time=%d ms)', [GetTickCount - TickCount]);
     if Succeeded(Result) then
     begin
-      Logger.Debug(GetErrorText(Result));
+      Logger.Debug(GetErrorText(Result) + TimeText);
     end else
     begin
-      Logger.Error(GetErrorText(Result));
+      Logger.Error(GetErrorText(Result) + TimeText);
     end;
   except
     on E: Exception do
     begin
-      Logger.Error(E.Message);
+      TimeText := Format(' (time=%d ms)', [GetTickCount - TickCount]);
+      Logger.Error(E.Message + TimeText);
       raise;
     end;
   end;

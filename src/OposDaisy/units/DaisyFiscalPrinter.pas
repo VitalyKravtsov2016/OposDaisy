@@ -49,6 +49,10 @@ type
     procedure DioSendCommand(var pData: Integer; var pString: WideString);
     procedure PrintText(const Text: WideString);
     procedure DeviceProc(Sender: TObject);
+    procedure PrinterStatusUpdate(Sender: TObject);
+    procedure SetRecEmpty(Value: Boolean);
+    procedure StartDeviceThread;
+    procedure StopDeviceThread;
   private
     FLogger: ILogFile;
     FPrinter: TDaisyPrinter;
@@ -517,6 +521,7 @@ begin
     CheckEnabled;
     CheckState(FPTR_PS_MONITOR);
     SetPrinterState(FPTR_PS_FISCAL_RECEIPT);
+    StopDeviceThread;
     FReceipt := CreateReceipt(FFiscalReceiptType);
     FReceipt.BeginFiscalReceipt(PrintHeader);
     FDayOpened := True;
@@ -551,6 +556,7 @@ begin
     CheckEnabled;
     CheckState(FPTR_PS_MONITOR);
     SetPrinterState(FPTR_PS_NONFISCAL);
+    StopDeviceThread;
     Printer.Check(Printer.StartNonfiscalReceipt(RecNumber));
     Result := ClearResult;
   except
@@ -587,8 +593,8 @@ begin
       end;
       OPOS_CH_EXTERNAL:
       begin
-        Printer.Check(Printer.PrintDiagnosticInfo);
-        //Printer.Check(Printer.PrintParameters);
+        //Printer.Check(Printer.PrintDiagnosticInfo);
+        Printer.Check(Printer.PrintParameters);
         //Printer.Check(Printer.PrintVATRates);
       end;
       OPOS_CH_INTERACTIVE:
@@ -835,6 +841,7 @@ begin
     FReceipt.EndFiscalReceipt(PrintHeader);
     FReceipt.Print(Self);
     SetPrinterState(FPTR_PS_MONITOR);
+    StartDeviceThread;
     Result := ClearResult;
   except
     on E: Exception do
@@ -866,6 +873,7 @@ begin
     CheckState(FPTR_PS_NONFISCAL);
     Printer.Check(Printer.EndNonfiscalReceipt(RecNumber));
     SetPrinterState(FPTR_PS_MONITOR);
+    StartDeviceThread;
     Result := ClearResult;
   except
     on E: Exception do
@@ -1937,6 +1945,7 @@ begin
     end;
     Printer.RegKeyName := TPrinterParametersReg.GetUsrKeyName(DeviceName);
     Printer.LoadParams;
+    Printer.OnStatusUpdate := PrinterStatusUpdate;
 
     Logger.Debug(Logger.Separator);
     Logger.Debug('LOG START');
@@ -2108,15 +2117,11 @@ begin
 
       Logger.Debug('PhysicalDeviceDescription: ' + FOposDevice.PhysicalDeviceDescription);
 
-      FDeviceThread.Free;
-      FDeviceThread := TNotifyThread.Create(True);
-      FDeviceThread.OnExecute := DeviceProc;
-      FDeviceThread.Resume;
+      StartDeviceThread;
     end else
     begin
       FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
-      FDeviceThread.Free;
-      FDeviceThread := nil;
+      StopDeviceThread;
       Printer.Disconnect;
     end;
     FDeviceEnabled := Value;
@@ -2124,12 +2129,44 @@ begin
   end;
 end;
 
-(*
-  FOposDevice.StatusUpdateEvent(PaperStatus);
-  FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
-*)
+procedure TDaisyFiscalPrinter.StartDeviceThread;
+begin
+  if Params.PollInterval <> 0 then
+  begin
+    FDeviceThread.Free;
+    FDeviceThread := TNotifyThread.Create(True);
+    FDeviceThread.OnExecute := DeviceProc;
+    FDeviceThread.Resume;
+  end;
+end;
+
+procedure TDaisyFiscalPrinter.StopDeviceThread;
+begin
+  FDeviceThread.Free;
+  FDeviceThread := nil;
+end;
+
+procedure TDaisyFiscalPrinter.PrinterStatusUpdate(Sender: TObject);
+begin
+  FOposDevice.PowerState := OPOS_PS_ONLINE;
+  SetRecEmpty(Printer.Status.RecJrnEmpty);
+end;
+
+procedure TDaisyFiscalPrinter.SetRecEmpty(Value: Boolean);
+begin
+  if Value <> FRecEmpty then
+  begin
+    FRecEmpty := Value;
+    if Value then
+      FOposDevice.StatusUpdateEvent(FPTR_SUE_REC_EMPTY)
+    else
+      FOposDevice.StatusUpdateEvent(FPTR_SUE_REC_PAPEROK);
+  end;
+end;
 
 procedure TDaisyFiscalPrinter.DeviceProc(Sender: TObject);
+var
+  TickCount: Integer;
 begin
   Logger.Debug('DeviceProc.Start');
   try
@@ -2141,9 +2178,14 @@ begin
         on E: Exception do
         begin
           Logger.Error('DeviceProc', E);
+          FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
         end;
       end;
-      SleepEx(Parameters.PollInterval * 1000);
+      TickCount := Integer(GetTickCount);
+      repeat
+        Sleep(20);
+        if FDeviceThread.Terminated then Break;
+      until Integer(GetTickCount) > (TickCount + Params.PollInterval * 1000);
     end;
   except
     on E: Exception do
