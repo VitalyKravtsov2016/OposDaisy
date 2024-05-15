@@ -32,6 +32,7 @@ type
     // To do
     procedure TestReadFDVATRates;
   published
+    procedure TestSearchDevice;
     procedure TestReset;
     procedure TestReadOperator1;
     procedure TestReadConstants;
@@ -60,6 +61,7 @@ type
     procedure TestReadReadDayStatus;
     procedure TestWriteFiscalNumber;
     procedure TestFinalFiscalRecord;
+    procedure TestSetBaudRate;
   end;
 
 implementation
@@ -90,8 +92,8 @@ function TDaisyPrinterDataTest.CreateSerialPort: TSerialPort;
 var
   SerialParams: TSerialParams;
 begin
-  SerialParams.PortName := 'COM3';
-  SerialParams.BaudRate := 19200;
+  SerialParams.PortName := 'COM4';
+  SerialParams.BaudRate := 9600;
   SerialParams.DataBits := 8;
   SerialParams.StopBits := ONESTOPBIT;
   SerialParams.Parity := 0;
@@ -112,6 +114,11 @@ begin
   SocketParams.MaxRetryCount := 1;
   SocketParams.ByteTimeout := 1000;
   Result := TSocketPort.Create(SocketParams, FLogger);
+end;
+
+procedure TDaisyPrinterDataTest.TestSearchDevice;
+begin
+
 end;
 
 procedure TDaisyPrinterDataTest.TestReset;
@@ -691,6 +698,13 @@ var
 begin
   Printer.Check(Printer.Reset);
   CheckEquals(205, Printer.FinalFiscalRecord('N', R), 'FinalFiscalRecord');
+end;
+
+procedure TDaisyPrinterDataTest.TestSetBaudRate;
+begin
+  Printer.Check(Printer.Reset);
+  Printer.Check(Printer.WriteIntParameter(DFP_SP_RS_BAUDRATE, DFP_BR_9600));
+  Printer.Check(Printer.Reset);
 end;
 
 initialization

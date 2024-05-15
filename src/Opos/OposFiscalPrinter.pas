@@ -9,7 +9,7 @@ uses
   Opos, OposUtils, OposFiscalPrinter_1_13_Lib_TLB;
 
 const
-  FiscalPrinterProgID = 'OposShtrih.FiscalPrinter';
+  FiscalPrinterProgID = 'OposDaisy.FiscalPrinter';
 
 
 procedure FreeFiscalPrinter;

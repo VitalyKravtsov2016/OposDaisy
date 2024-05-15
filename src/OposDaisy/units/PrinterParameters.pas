@@ -16,17 +16,14 @@ const
   /////////////////////////////////////////////////////////////////////////////
   // Valid baudrates
 
-  ValidBaudRates: array [0..9] of Integer = (
+  ValidBaudRates: array [0..6] of Integer = (
     2400,
     4800,
     9600,
     19200,
     38400,
     57600,
-    115200,
-    230400,
-    460800,
-    921600
+    115200
   );
 
   FiscalPrinterProgID = 'OposDaisy.FiscalPrinter';

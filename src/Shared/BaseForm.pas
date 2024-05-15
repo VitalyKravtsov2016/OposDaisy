@@ -7,6 +7,7 @@ uses
   Windows, Forms, Classes, Controls, StdCtrls,
   // Tnt
   TntForms, TntStdCtrls, TntComCtrls, TntExtCtrls, TntClasses,
+  // This
   gnugettext;
 
 type
@@ -18,7 +19,7 @@ type
   public
     procedure EnableButtons; overload;
     procedure DisableButtons;
-    procedure EnableButtons(Value: Boolean); overload; virtual; 
+    procedure EnableButtons(Value: Boolean); overload; virtual;
     constructor Create(AOwner: TComponent); override;
   end;
 
@@ -92,7 +93,6 @@ procedure TBaseForm.EnableButtons(Value: Boolean);
 begin
   EnableControlsFocused(Self, Value, FActiveControl);
 end;
-
 
 procedure TBaseForm.EnableButtons;
 begin

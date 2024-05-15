@@ -54,7 +54,7 @@ type
 implementation
 
 uses
-  fmuFptrConnection, fmuFptrLog;
+  fmuFptrConnection, fmuFptrLog, fmuFptrExtra;
 
 { TFiscalPrinterDevice }
 
@@ -106,6 +106,7 @@ begin
     Parameters.WriteLogParameters;
     //
     AddPage(fm, TfmFptrConnection);
+    AddPage(fm, TfmFptrExtra);
     AddPage(fm, TfmFptrLog);
 
     fm.Init;

@@ -8,8 +8,11 @@ uses
   Dialogs, StdCtrls, ComCtrls, Spin, ExtCtrls,
   // Tnt
   TntStdCtrls,
+  // Opos
+  Opos,
   // This
-  PrinterParameters, FiscalPrinterDevice, FptrTypes, FileUtils, untUtil;
+  PrinterParameters, FiscalPrinterDevice, FptrTypes, FileUtils, untUtil,
+  OposFiscalPrinter;
 
 type
   { TfmFptrConnection }
@@ -32,15 +35,10 @@ type
     cbConnectionType: TTntComboBox;
     lblConnectionType: TTntLabel;
     Bevel1: TBevel;
-    lblPollInterval: TTntLabel;
-    sePollInterval: TSpinEdit;
-    Bevel2: TBevel;
-    lblUsrPassword: TTntLabel;
-    seOperatorNumber: TSpinEdit;
-    seOperatorPassword: TSpinEdit;
-    lblSysPassword: TTntLabel;
-    Bevel3: TBevel;
+    btnConnect: TButton;
+    memResult: TMemo;
     procedure FormCreate(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
   public
     procedure UpdatePage; override;
     procedure UpdateObject; override;
@@ -68,9 +66,6 @@ begin
   cbMaxRetryCount.ItemIndex := Parameters.MaxRetryCount;
   chbSearchByBaudRate.Checked := Parameters.SearchByBaudRateEnabled;
   chbSearchByPort.Checked := Parameters.SearchByPortEnabled;
-  sePollInterval.Value := Parameters.PollInterval;
-  seOperatorNumber.Value := Parameters.OperatorNumber;
-  seOperatorPassword.Value := Parameters.OperatorPassword;
 end;
 
 procedure TfmFptrConnection.UpdateObject;
@@ -84,14 +79,36 @@ begin
   Parameters.MaxRetryCount := cbMaxRetryCount.ItemIndex;
   Parameters.SearchByBaudRateEnabled := chbSearchByBaudRate.Checked;
   Parameters.SearchByPortEnabled := chbSearchByPort.Checked;
-  Parameters.PollInterval := sePollInterval.Value;
-  Parameters.OperatorNumber := seOperatorNumber.Value;
-  Parameters.OperatorPassword := seOperatorPassword.Value;
 end;
 
 procedure TfmFptrConnection.FormCreate(Sender: TObject);
 begin
   CreatePorts(cbComPort.Items);
+end;
+
+procedure TfmFptrConnection.btnConnectClick(Sender: TObject);
+begin
+  DisableButtons;
+  try
+    UpdateObject;
+    memResult.Clear;
+    Check(FiscalPrinter.Open(Device.DeviceName));
+    Check(FiscalPrinter.ClaimDevice(0));
+    FiscalPrinter.DeviceEnabled := True;
+    Check(FiscalPrinter.ResultCode);
+    Check(FiscalPrinter.CheckHealth(OPOS_CH_INTERNAL));
+
+    memResult.Lines.Add('OK');
+    memResult.Lines.Add('Service object: ' + FiscalPrinter.ServiceObjectDescription);
+    memResult.Lines.Add('Device description: ' + FiscalPrinter.DeviceDescription);
+  except
+    on E: Exception do
+    begin
+      memResult.Lines.Add('ERROR: ' + E.Message);
+    end;
+  end;
+  EnableButtons;
+  FreeFiscalPrinter;
 end;
 
 end.

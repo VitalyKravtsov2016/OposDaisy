@@ -39,7 +39,7 @@ begin
     57600  : Result := 5;
     115200 : Result := 6;
   else
-    Result := 1;
+    Result := 3;
   end;
 end;
 
@@ -54,7 +54,7 @@ begin
     5: Result := 57600;
     6: Result := 115200;
   else
-    Result := 1;
+    Result := 19200;
   end;
 end;
 

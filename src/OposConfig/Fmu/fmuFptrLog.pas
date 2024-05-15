@@ -4,22 +4,21 @@ interface
 
 uses
   // VCL
-  ComCtrls, StdCtrls, Controls, Classes,
+  ComCtrls, StdCtrls, Controls, Classes, Spin,
   // Tnt
   TntClasses, TntStdCtrls, TntRegistry,
   // This
-  FiscalPrinterDevice, FptrTypes, Spin;
+  FiscalPrinterDevice, FptrTypes;
 
 type
   { TfmFptrLog }
 
   TfmFptrLog = class(TFptrPage)
-    gbLogParameters: TTntGroupBox;
     chbLogEnabled: TTntCheckBox;
-    lblMaxLogFileCount: TTntLabel;
-    seMaxLogFileCount: TSpinEdit;
-    edtLogFilePath: TTntEdit;
     lblLogFilePath: TTntLabel;
+    edtLogFilePath: TTntEdit;
+    seMaxLogFileCount: TSpinEdit;
+    lblMaxLogFileCount: TTntLabel;
     Label1: TLabel;
     procedure PageChange(Sender: TObject);
   public

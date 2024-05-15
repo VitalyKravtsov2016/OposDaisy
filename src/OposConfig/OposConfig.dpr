@@ -18,7 +18,7 @@ uses
   fmuPages in 'Fmu\fmuPages.pas' {fmPages},
   fmuDevice in 'Fmu\fmuDevice.pas' {fmDevice},
   fmuFptrLog in 'Fmu\fmuFptrLog.pas' {fmFptrLog},
-  fmuFptrConnection in 'Fmu\fmuFptrConnection.pas' {fmFptrConnection},
+  fmuFptrExtra in 'Fmu\fmuFptrExtra.pas' {fmFptrExtra},
   VersionInfo in '..\Shared\VersionInfo.pas',
   DriverError in '..\Shared\DriverError.pas',
   WException in '..\Shared\WException.pas',
@@ -26,11 +26,14 @@ uses
   LogFile in '..\Shared\LogFile.pas',
   FileUtils in '..\Shared\FileUtils.pas',
   untUtil in 'Units\untUtil.pas',
- FiscalPrinterDevice in 'Units\FiscalPrinterDevice.pas',
+  FiscalPrinterDevice in 'Units\FiscalPrinterDevice.pas',
   DeviceNotification in '..\Shared\DeviceNotification.pas',
   PrinterParameters in '..\OposDaisy\units\PrinterParameters.pas',
   PrinterParametersX in '..\OposDaisy\units\PrinterParametersX.pas',
-  PrinterParametersReg in '..\OposDaisy\units\PrinterParametersReg.pas';
+  PrinterParametersReg in '..\OposDaisy\units\PrinterParametersReg.pas',
+  fmuFptrConnection in 'Fmu\fmuFptrConnection.pas' {fmFptrConnection},
+  OposFiscalPrinter in '..\Opos\OposFiscalPrinter.pas',
+  OposFiscalPrinter_1_13_Lib_TLB in '..\Opos\OposFiscalPrinter_1_13_Lib_TLB.pas';
 
 {$R *.RES}
 {$R WindowsXP.RES}
@@ -38,6 +41,7 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TfmMain, fmMain);
+  Application.CreateForm(TfmFptrExtra, fmFptrExtra);
   Application.CreateForm(TfmFptrConnection, fmFptrConnection);
   Application.Run;
 end.

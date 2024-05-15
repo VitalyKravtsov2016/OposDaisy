@@ -6,14 +6,14 @@ uses
   // VCL
   Windows, Classes, SysUtils, Controls, ExtCtrls, StdCtrls, Forms,
   // Tnt
-  TntStdCtrls, TntComCtrls, TntSysUtils,
+  TntStdCtrls, TntComCtrls, TntSysUtils, TntExtCtrls,
   // Opos
   OposDevice,
   // This
-  BaseForm, untPages, TntExtCtrls;
+  BaseForm, untPages;
 
 type
-  { TfmFiscalPrinter }
+  { TfmPages }
 
   TfmPages = class(TBaseForm)
     btnDefaults: TTntButton;
@@ -53,7 +53,7 @@ implementation
 
 {$R *.DFM}
 
-{ TfmFiscalPrinter }
+{ TfmPages }
 
 constructor TfmPages.Create(AOwner: TComponent);
 begin

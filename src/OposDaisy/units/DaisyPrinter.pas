@@ -22,6 +22,22 @@ const
   MinVATRate = 1;
   MaxVATRate = 5;
 
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Baudrate constants
+
+  DFP_BR_NONE   = 0;
+  DFP_BR_1200   = 1;
+  DFP_BR_2400   = 2;
+  DFP_BR_4800   = 3;
+  DFP_BR_9600   = 4;
+  DFP_BR_14400  = 5;
+  DFP_BR_19200  = 6;
+  DFP_BR_28800  = 7;
+  DFP_BR_38400  = 8;
+  DFP_BR_57600  = 9;
+  DFP_BR_115200 = 10;
+
   /////////////////////////////////////////////////////////////////////////////
   // Barcode type constants
 
@@ -83,7 +99,7 @@ const
   DFP_SP_PRN_CONTRAST           = 18;
   DFP_SP_DISPLAY_ROWS           = 19;
   DFP_SP_DISPLAY_CHARS          = 20;
-  DFP_SP_DISPLAY_BAUDRATE       = 21;
+  DFP_SP_RS_BAUDRATE            = 21;
   DFP_SP_DISPLAY_SALES          = 22;
   DFP_SP_AUTOCAT                = 23;
   DFP_SP_PRINT_ERRORS           = 24;
@@ -178,7 +194,7 @@ const
   SErrorOK: WideString = 'No errors';
   SInvalidCrc: WideString = 'Invalid CRC';
   SEmptyData: WideString = 'Empty command to send';
-  SNoHardware: WideString = 'No conenction to device';
+  SNoHardware: WideString = 'No connection to device';
   SInvalidAnswerCode: WideString = 'Invalid answer code';
   SInvalidLengthValue: WideString = 'Invalid length value';
   SMaxSynReached: WideString = 'Max SYN count reached';
@@ -539,6 +555,7 @@ type
     function Reset: Integer;
     function Connect: Integer;
     function Disconnect: Integer;
+    function SearchDevice: Integer;
 
     function XReport(var R: TDFPReportAnswer): Integer;
     function ZReport(var R: TDFPReportAnswer): Integer;
@@ -2457,6 +2474,11 @@ begin
     if Answer <> 'P' then
       Result := ECommandFailed;
   end;
+end;
+
+function TDaisyPrinter.SearchDevice: Integer;
+begin
+  { !!! }
 end;
 
 end.

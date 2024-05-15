@@ -1,8 +1,8 @@
 object fmFptrConnection: TfmFptrConnection
   Left = 546
   Top = 170
-  Width = 518
-  Height = 350
+  Width = 287
+  Height = 446
   Caption = 'Connection'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,6 +12,9 @@ object fmFptrConnection: TfmFptrConnection
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  DesignSize = (
+    271
+    408)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMaxRetryCount: TTntLabel
@@ -68,41 +71,7 @@ object fmFptrConnection: TfmFptrConnection
     Top = 8
     Width = 257
     Height = 297
-    Shape = bsFrame
-  end
-  object lblPollInterval: TTntLabel
-    Left = 280
-    Top = 24
-    Width = 80
-    Height = 13
-    Caption = 'Poll interval, sec:'
-  end
-  object Bevel2: TBevel
-    Left = 272
-    Top = 8
-    Width = 225
-    Height = 113
-    Shape = bsFrame
-  end
-  object lblUsrPassword: TTntLabel
-    Left = 280
-    Top = 144
-    Width = 82
-    Height = 13
-    Caption = 'Operator number:'
-  end
-  object lblSysPassword: TTntLabel
-    Left = 280
-    Top = 176
-    Width = 92
-    Height = 13
-    Caption = 'Operator password:'
-  end
-  object Bevel3: TBevel
-    Left = 272
-    Top = 128
-    Width = 225
-    Height = 177
+    Anchors = [akLeft, akTop, akRight]
     Shape = bsFrame
   end
   object chbSearchByPort: TTntCheckBox
@@ -210,34 +179,24 @@ object fmFptrConnection: TfmFptrConnection
       'SERIAL'
       'SOCKET')
   end
-  object sePollInterval: TSpinEdit
-    Left = 376
-    Top = 24
-    Width = 113
-    Height = 22
-    MaxValue = 60
-    MinValue = 0
+  object btnConnect: TButton
+    Left = 192
+    Top = 376
+    Width = 75
+    Height = 25
+    Anchors = [akTop, akRight]
+    Caption = 'Connect'
     TabOrder = 9
-    Value = 1
+    OnClick = btnConnectClick
   end
-  object seOperatorNumber: TSpinEdit
-    Left = 384
-    Top = 144
-    Width = 105
-    Height = 22
-    MaxValue = 0
-    MinValue = 0
+  object memResult: TMemo
+    Left = 8
+    Top = 312
+    Width = 257
+    Height = 57
+    Anchors = [akLeft, akTop, akRight]
+    Color = clBtnFace
+    ReadOnly = True
     TabOrder = 10
-    Value = 0
-  end
-  object seOperatorPassword: TSpinEdit
-    Left = 384
-    Top = 176
-    Width = 105
-    Height = 22
-    MaxValue = 0
-    MinValue = 0
-    TabOrder = 11
-    Value = 0
   end
 end
