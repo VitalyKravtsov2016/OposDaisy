@@ -10,8 +10,8 @@ uses
   // DUnit
   TestFramework,
   // This
-  DaisyPrinter, LogFile, SerialPort, FileUtils, PrinterPort, SocketPort,
-  StringUtils, DebugUtils;
+  DaisyPrinter, DaisyPrinterInterface, LogFile, SerialPort, FileUtils,
+  PrinterPort, SocketPort, StringUtils, DebugUtils;
 
 type
   { TDaisyPrinterDataTest }

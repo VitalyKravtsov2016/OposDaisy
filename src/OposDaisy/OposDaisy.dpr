@@ -52,7 +52,8 @@ uses
   PrinterParametersX in 'units\PrinterParametersX.pas',
   PrinterParametersReg in 'units\PrinterParametersReg.pas',
   fmuLogo in 'Fmu\fmuLogo.pas' {fmLogo},
-  BaseForm in '..\Shared\BaseForm.pas';
+  BaseForm in '..\Shared\BaseForm.pas',
+  DaisyPrinterInterface in 'units\DaisyPrinterInterface.pas';
 
 exports
   DllGetClassObject,

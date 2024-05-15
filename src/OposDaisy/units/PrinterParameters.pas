@@ -76,6 +76,8 @@ type
     RemotePort: Integer;
     SearchByBaudRateEnabled: Boolean;
     SearchByPortEnabled: Boolean;
+    RefundCashoutLine1: WideString;
+    RefundCashoutLine2: WideString;
 
     constructor Create(ALogger: ILogFile);
     destructor Destroy; override;
@@ -128,6 +130,8 @@ begin
   RemotePort := DefRemotePort;
   SearchByBaudRateEnabled := DefSearchByBaudRateEnabled;
   SearchByPortEnabled := DefSearchByPortEnabled;
+  RefundCashoutLine1 := 'REFUND';
+  RefundCashoutLine2 := '';
 end;
 
 procedure TPrinterParameters.LogText(const Caption, Text: WideString);

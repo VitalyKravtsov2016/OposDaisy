@@ -31,7 +31,6 @@ uses
   DriverError in '..\..\src\Shared\DriverError.pas',
   DebugUtils in '..\..\src\Shared\DebugUtils.pas',
   DaisyPrinter in '..\..\src\OposDaisy\units\DaisyPrinter.pas',
-  duDaisyFiscalPrinter in 'units\duDaisyFiscalPrinter.pas',
   OPOSDaisyLib_TLB in '..\..\src\OposDaisy\OPOSDaisyLib_TLB.pas',
   DaisyFiscalPrinter in '..\..\src\OposDaisy\units\DaisyFiscalPrinter.pas',
   VersionInfo in '..\..\src\Shared\VersionInfo.pas',
@@ -56,7 +55,9 @@ uses
   BaseForm in '..\..\src\Shared\BaseForm.pas',
   PrinterParameters in '..\..\src\OposDaisy\units\PrinterParameters.pas',
   PrinterParametersX in '..\..\src\OposDaisy\units\PrinterParametersX.pas',
-  PrinterParametersReg in '..\..\src\OposDaisy\units\PrinterParametersReg.pas';
+  PrinterParametersReg in '..\..\src\OposDaisy\units\PrinterParametersReg.pas',
+  duDaisyFiscalPrinter in 'units\duDaisyFiscalPrinter.pas',
+  DaisyPrinterInterface in '..\..\src\OposDaisy\units\DaisyPrinterInterface.pas';
 
 {$R *.RES}
 {$R ..\..\src\OposDaisy\OposDaisy.tlb}

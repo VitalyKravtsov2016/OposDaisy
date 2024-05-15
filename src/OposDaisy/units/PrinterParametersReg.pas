@@ -192,6 +192,12 @@ begin
       if Reg.ValueExists('SearchByPortEnabled') then
         Parameters.SearchByPortEnabled := Reg.ReadBool('SearchByPortEnabled');
 
+      if Reg.ValueExists('RefundCashoutLine1') then
+        Parameters.RefundCashoutLine1 := Reg.ReadString('RefundCashoutLine1');
+
+      if Reg.ValueExists('RefundCashoutLine2') then
+        Parameters.RefundCashoutLine2 := Reg.ReadString('RefundCashoutLine2');
+
       Reg.CloseKey;
     end;
   finally
@@ -228,6 +234,8 @@ begin
     Reg.WriteInteger('RemotePort', FParameters.RemotePort);
     Reg.WriteBool('SearchByBaudRateEnabled', Parameters.SearchByBaudRateEnabled);
     Reg.WriteBool('SearchByPortEnabled', Parameters.SearchByPortEnabled);
+    Reg.WriteString('RefundCashoutLine1', FParameters.RefundCashoutLine1);
+    Reg.WriteString('RefundCashoutLine2', FParameters.RefundCashoutLine2);
 
     Reg.CloseKey;
   finally

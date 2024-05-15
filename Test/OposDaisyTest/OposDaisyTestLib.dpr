@@ -31,7 +31,8 @@ uses
   SocketPort in '..\..\src\Shared\SocketPort.pas',
   DriverError in '..\..\src\Shared\DriverError.pas',
   DebugUtils in '..\..\src\Shared\DebugUtils.pas',
-  DaisyPrinter in '..\..\src\OposDaisy\units\DaisyPrinter.pas';
+  DaisyPrinter in '..\..\src\OposDaisy\units\DaisyPrinter.pas',
+  DaisyPrinterInterface in '..\..\src\OposDaisy\units\DaisyPrinterInterface.pas';
 
 {$R *.RES}
 

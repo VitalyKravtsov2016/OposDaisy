@@ -8,456 +8,10 @@ uses
   // Tnt
   TntRegistry, TntClasses,
   // This
-  PrinterPort, LogFile, DriverError, StringUtils, ByteUtils;
-
-const
-  LF = #10;
-  TAB = #$09;
-  CRLF = #13#10;
-  BoolToStr: array [Boolean] of WideString = ('0', '1');
-
-  /////////////////////////////////////////////////////////////////////////////
-  // VAT rates constants
-
-  MinVATRate = 1;
-  MaxVATRate = 5;
-
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Baudrate constants
-
-  DFP_BR_NONE   = 0;
-  DFP_BR_1200   = 1;
-  DFP_BR_2400   = 2;
-  DFP_BR_4800   = 3;
-  DFP_BR_9600   = 4;
-  DFP_BR_14400  = 5;
-  DFP_BR_19200  = 6;
-  DFP_BR_28800  = 7;
-  DFP_BR_38400  = 8;
-  DFP_BR_57600  = 9;
-  DFP_BR_115200 = 10;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Barcode type constants
-
-  DFP_BT_EAN8         = 1;
-  DFP_BT_EAN13        = 2;
-  DFP_BT_CODE128      = 3;
-  DFP_BT_UPCE         = 4;
-  DFP_BT_UPCA         = 5;
-  DFP_BT_CODE25       = 6;
-  DFP_BT_CODE25ITF    = 7;
-  DFP_BT_CODE25ITFM10 = 8;
-  DFP_BT_CODE39       = 9;
-  DFP_BT_CODE39M43    = 10;
-  DFP_BT_CODE93       = 11;
-  DFP_BT_CODABAR      = 12;
-  DFP_BT_POSTNET      = 13;
-
-  DFP_BT_MIN          = 1;
-  DFP_BT_MAX          = 13;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Barcode position constants
-
-  DFP_BP_CENTER   = 1;
-  DFP_BP_RIGHT    = 2;
-  DFP_BP_LEFT     = 3;
-
-  DFP_BP_MIN      = 1;
-  DFP_BP_MAX      = 3;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Header and trailer constants
-
-  DFP_SP_HEADER_START_LINE  = 40;
-  DFP_SP_TRAILER_START_LINE = 48;
-  DFP_SP_PAYMENT_START_LINE = 60;
-  DFP_SP_COMMENT_START_LINE = 600;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // System parameter constants
-
-  DFP_SP_DECIMAL_POINT          = 1;
-  DFP_SP_NUM_HEADER_LINES       = 2;
-  DFP_SP_NUM_TRAILER_LINES      = 3;
-  DFP_SP_PRINT_OPTIONS          = 4;
-  DFP_SP_DETAILED_PRINT         = 5;
-  DFP_SP_HEADER_TYPE            = 6;
-  DFP_SP_TRAILER_TYPE           = 7;
-  DFP_SP_ENABLE_OPERATIONS      = 8;
-  DFP_SP_ENABLE_PAYMENTS        = 9;
-  DFP_SP_PRINTER_NUMBER         = 10;
-  DFP_SP_Z_REPORT_TYPE          = 11;
-  DFP_SP_PRINT_ALL              = 12;
-  DFP_SP_Z_REPORT_ZERO          = 13;
-  DFP_SP_SYSTEM_FONT            = 14;
-  DFP_SP_TRAILER_LOGO           = 15;
-  DFP_SP_AMOUNT_CURRENCY        = 16;
-  DFP_SP_FEED_LINES             = 17;
-  DFP_SP_PRN_CONTRAST           = 18;
-  DFP_SP_DISPLAY_ROWS           = 19;
-  DFP_SP_DISPLAY_CHARS          = 20;
-  DFP_SP_RS_BAUDRATE            = 21;
-  DFP_SP_DISPLAY_SALES          = 22;
-  DFP_SP_AUTOCAT                = 23;
-  DFP_SP_PRINT_ERRORS           = 24;
-
-  DFP_SP_MIN                    = 1;
-  DFP_SP_MAX                    = 24;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Default operator passwords
-
-  DFP_OPERATOR_PASSWORD_1 = 1;
-  DFP_OPERATOR_PASSWORD_2 = 2;
-  DFP_OPERATOR_PASSWORD_3 = 3;
-  DFP_OPERATOR_PASSWORD_4 = 4;
-  DFP_OPERATOR_PASSWORD_5 = 5;
-  DFP_OPERATOR_PASSWORD_6 = 6;
-  DFP_OPERATOR_PASSWORD_7 = 7;
-  DFP_OPERATOR_PASSWORD_8 = 8;
-  DFP_OPERATOR_PASSWORD_9 = 9;
-  DFP_OPERATOR_PASSWORD_10 = 10;
-  DFP_OPERATOR_PASSWORD_11 = 11;
-  DFP_OPERATOR_PASSWORD_12 = 12;
-  DFP_OPERATOR_PASSWORD_13 = 13;
-  DFP_OPERATOR_PASSWORD_14 = 14;
-  DFP_OPERATOR_PASSWORD_15 = 15;
-  DFP_OPERATOR_PASSWORD_16 = 16;
-  DFP_OPERATOR_PASSWORD_17 = 17;
-  DFP_OPERATOR_PASSWORD_18 = 18;
-  DFP_OPERATOR_PASSWORD_19 = 8888;
-  DFP_OPERATOR_PASSWORD_20 = 9999;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Cut mode constants
-
-  DFP_CM_NONE     = 0;
-  DFP_CM_FULL     = 1;
-  DFP_CM_PARTIAL  = 2;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Data type constants
-
-  DFP_DT_TOTAL  = 0;
-  DFP_DT_NET    = 1;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Paid code constants
-
-  DFP_PC_ERROR              = 1;
-  DFP_PC_VAT_NEGATIVE       = 2;
-  DFP_PC_SUM_LESS_TOTAL     = 3;
-  DFP_PC_SUM_GREATER_TOTAL  = 4;
-  DFP_PC_NEGATIVE_SUBTOTAL  = 5;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Payment mode constants
-
-  DFP_PM_CASH   = 1;
-  DFP_PM_MODE1  = 2;
-  DFP_PM_MODE2  = 3;
-  DFP_PM_MODE3  = 4;
-  DFP_PM_MODE4  = 5;
-
-  DFP_PM_MIN    = 1;
-  DFP_PM_MAX    = 5;
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Error constants
-
-  DFP_E_NOHARDWARE   = -1;
-  DFP_E_FAILURE      = -2;
-  DFP_E_CRC          = -3;
-
-  ENoError              = 0;    // No errors
-  EDateTimeNotSet       = 200;  // Date and time not set
-  EDisplayDisconnected  = 201;  // Customer display not connected
-  EInvalidCommandCode   = 202;  // Invalid command code
-  EPrinterError         = 203;  // Printer error
-  ESumsOverflow         = 204;  // Totalizer overflow
-  EInvalidCommandInMode = 205;  // Command is invalid in this mode
-  ERecJrnEmpty          = 206;  // Receipt or journal station empty
-  EInvalidDataSyntax    = 207;  // Invalid data syntax
-  EWrongPassword        = 208;  // Wrong password
-  ECutterError          = 209;  // Cutter error
-  EMemoryCleared        = 210;  // Memory cleared
-  EDocPrintAllowed      = 211;  // Document print not allowed
-  EInvalidAnswerLength  = 212;  // Invalid answer length
-  ECommandFailed        = 213;  // Command failed
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Error messages
-
-  SErrorOK: WideString = 'No errors';
-  SInvalidCrc: WideString = 'Invalid CRC';
-  SEmptyData: WideString = 'Empty command to send';
-  SNoHardware: WideString = 'No connection to device';
-  SInvalidAnswerCode: WideString = 'Invalid answer code';
-  SInvalidLengthValue: WideString = 'Invalid length value';
-  SMaxSynReached: WideString = 'Max SYN count reached';
-  SInvalidAnswer = 'Invalid answer';
+  PrinterPort, LogFile, DriverError, StringUtils, ByteUtils,
+  DaisyPrinterInterface;
 
 type
-  { TDFPDayStatus }
-
-  TDFPDayStatus = record
-    CashTotal: Currency;
-    Pay1Total: Currency;
-    Pay2Total: Currency;
-    Pay3Total: Currency;
-    Pay4Total: Currency;
-    ZRepNo: Integer;
-    DocNo: Integer;
-    InvoiceNo: Integer;
-  end;
-
-  { TDFPReceiptStatus }
-
-  TDFPReceiptStatus = record
-    CanVoid: Boolean; // Indicating the possibility to make corrections. [0/1].
-    TaxFreeTotal: Currency; // Total of Non-Taxable sales
-    Tax1Total: Currency; // Total of Taxable Space sales
-    Tax2Total: Currency; // Total of Taxable A sales
-    Tax3Total: Currency; // Total of Taxable B sales
-    Tax4Total: Currency; // Total of Taxable C sales
-    Tax5Total: Currency; // Total of Taxable D sales
-    InvoiceFlag: Boolean; // Flag whether is open a detailed fiscal receipt(invoice). For Georgia = 0
-    InvoiceNo: AnsiString;
-  end;
-
-  { TDFPBarcode }
-
-  TDFPBarcode = record
-    BType: Integer;
-    Data: AnsiString;
-    Position: Integer;
-    Scale: Integer;
-    Heightmm: Integer; // Height in mm
-    Text: Boolean;
-  end;
-
-  { TDFPOperatorName }
-
-  TDFPOperatorName = record
-    Number: Integer;
-    Password: Integer;
-    Name: WideString;
-  end;
-
-  { TDFPOperator }
-
-  TDFPOperator = record
-    Number: Integer;            // operator number
-    NumReceipts: Integer;       // number of fiscal receipts
-    TotalNum: Integer;          // number of sales
-    TotalAmount: Currency;      // amount of sales
-    DiscountNum: Integer;       // number of discounts
-    DiscountAmount: Currency;   // amount of discounts
-    SurchargeNum: Integer;      // number of surcharges
-    SurchargeAmount: Currency;  // amount of surcharges
-    VoidNum: Integer;           // number of corrections
-    VoidAmount: Currency;       // amount of corrections
-    Name: WideString;           // operator name.
-  end;
-
-  { TDFPDateRange }
-
-  TDFPDateRange = record
-    StartDate: TDateTime;
-    EndDate: TDateTime;
-  end;
-
-  { TDFPCashRequest }
-
-  TDFPCashRequest = record
-    Amount: Currency;
-    Text1: WideString;
-    Text2: WideString;
-  end;
-
-  { TDFPCashResponse }
-
-  TDFPCashResponse = record
-    CashAmount: Currency;
-    CashInAmount: Currency;
-    CashOutAmount: Currency;
-  end;
-
-  TDFPVATRates = array [MinVATRate..MaxVATRate] of Double;
-
-  { TDFPConstants }
-
-  TDFPConstants = record
-    MaxLogoWidth: Integer; // Horizontal size of Graphical Logo in pixels.
-    MaxLogoHeight: Integer; // Vertical size of Graphical Logo in pixels..
-    NumPaymentTypes: Integer; // Number of payment types
-    NumVATRate: Integer; // Number of tax group.
-    TaxFreeLetter: AnsiString; // Letter for non-taxable items (= 20h)
-    VATRate1Letter: AnsiString; // Symbol concerning first tax group
-    Dimension: Integer; // Dimension of inner arithmetics
-    DescriptionLength: Integer; // Number of symbols per line..
-    MessageLength: Integer; // Number of symbols per comment line
-    NameLength: Integer; // Length of names (operators,PLUs,departments).
-    MRCLength: Integer; // Length (number of symbols)of the MRC of FD
-    FMNumberLength: Integer; // Length (number of symbols)of the Fiscal Memory Number
-    REGNOLength: Integer; // Length (number of symbols)of REGNO
-    DepartmentsNumber: Integer; // Number of departments.
-    PLUNumber: Integer; // Number of PLUs.
-    NumberOfStockGroups: Integer; // Number of stock groups.
-    OperatorsNumber: Integer; // Number of operators..
-    PaymentNameLength: Integer; // Length of the payment names
-  end;
-
-  { TDFPPrintOptions }
-
-  TDFPPrintOptions = record
-    BlankLineAfterHeader: Boolean;
-    BlankLineAfterRegno: Boolean;
-    BlankLineAfterFooter: Boolean;
-    DelimiterLineBeforeTotal: Boolean;
-  end;
-
-  { TDFPDiagnosticInfo }
-
-  TDFPDiagnosticInfo = record
-    FirmwareVersion: AnsiString;
-    FirmwareDate: AnsiString;
-    FirmwareTime: AnsiString;
-    ChekSum: AnsiString;
-    Switches: Integer;
-    Country: Byte;
-    FDSerial: AnsiString;
-    FDNo: AnsiString;
-  end;
-
-  { TDFPTotals }
-
-  TDFPTotals = record
-    SalesTotalTaxFree: Currency; // SpaceGr Session Non-Taxable sales Total
-    SalesTotalTax: array [1..5] of Currency; // Sales totals by tax
-  end;
-
-  { TDFPFiscalRecord }
-
-  TDFPFiscalRecord = record
-    Number: Integer;          // Number of the last fiscal record.
-    SalesTotalTaxFree: Currency; // SpaceGr Session Non-Taxable sales Total
-    SalesTotalTax: array [1..5] of Currency; // Sales totals by tax
-    Date: TDateTime; // Date of the last fiscal record
-  end;
-
-  { TDFPFiscalRecords }
-
-  TDFPFiscalRecords = record
-    LogicalNumber: Integer;
-    PhysicalNumber: Integer;
-  end;
-
-  { TDFPPLU }
-
-  TDFPPLU = record
-    Sign: AnsiChar;
-    PLU: AnsiString;
-    Quantity: Double;
-    Price: Currency;
-    DiscountPercent: Double;
-    DiscountAmount: Currency;
-  end;
-
-  { TDFPTotal }
-
-  TDFPTotal = record
-    Text1: WideString;
-    Text2: WideString;
-    PaymentMode: Integer;
-    Amount: Currency;
-  end;
-
-  { TDFPTotalResponse }
-
-  TDFPTotalResponse = record
-    PaidCode: Integer;
-    Amount: Currency;
-  end;
-
-  { TDFPSubtotal }
-
-  TDFPSubtotal = record
-    PrintSubtotal: Boolean;
-    DisplaySubtotal: Boolean;
-    AdjustmentPercent: Double;
-  end;
-
-  { TDFPSubtotalResponse }
-
-  TDFPSubtotalResponse = record
-    SubTotal: Currency;
-    SalesTaxFree: Currency;
-    TaxTotals: array [1..MaxVATRate] of Currency;
-  end;
-
-  { TDFPVATRateResponse }
-
-  TDFPVATRateResponse = record
-    DataFound: Boolean;
-    VATRate: array [1..5] of Double;
-    Date: TDateTime;
-  end;
-
-  { TDFPSale }
-
-  TDFPSale = record
-    Text1: WideString;
-    Text2: WideString;
-    Tax: Byte;
-    Price: Currency;
-    Quantity: Double;
-    DiscountPercent: Double;
-    DiscountAmount: Currency;
-  end;
-
-  { TDFPOperatorPassword }
-
-  TDFPOperatorPassword = record
-    Number: Byte;
-    Password: Integer;
-  end;
-
-  { TDFPRecNumber }
-
-  TDFPRecNumber = record
-    DocNumber: Integer;
-    RecNumber: Integer;
-  end;
-
-  { TDFPReportAnswer }
-
-  TDFPReportAnswer = record
-    ReportNumber: Integer;
-    SalesTotalTaxFree: Currency;
-    SalesTotalTax: array [1..5] of Currency;
-  end;
-
-  { TDaisyCommand }
-
-  TDaisyCommand = record
-    Sequence: Byte;
-    Code: Byte;
-    Data: AnsiString;
-  end;
-
-  { TDaisyAnswer }
-
-  TDaisyAnswer = record
-    Sequence: Byte;
-    Code: Byte;
-    Data: WideString;
-    Status: AnsiString;
-  end;
-
   { TDaisyFrame }
 
   TDaisyFrame = class
@@ -471,53 +25,9 @@ type
       var Command: TDaisyCommand): Boolean;
   end;
 
-  { TDaisyStatus }
-
-  TDaisyStatus = record
-    Data: string;
-    // Byte 0
-    GeneralError: Boolean;
-    PrinterError: Boolean;
-    DisplayDisconnected: Boolean;
-    ClockNotSet: Boolean;
-    InvalidCommandCode: Boolean;
-    InvalidDataSyntax: Boolean;
-    // Byte 1
-    WrongPassword: Boolean;
-    CutterError: Boolean;
-    MemoryCleared: Boolean;
-    InvalidCommandInMode: Boolean;
-    SumsOverflow: Boolean;
-    // Byte 2
-    DocPrintAllowed: Boolean;
-    NonfiscalOpened: Boolean;
-    JrnNearEnd: Boolean;
-    FiscalOpened: Boolean;
-    JrnEmpty: Boolean;
-    RecNearEnd: Boolean;
-    RecJrnNearEnd: Boolean;
-    RecJrnEmpty: Boolean;
-
-    // Byte 3
-    FDError: Byte;  // Error number of Fiscal device
-    // Byte 4
-    FMError: Boolean; // 4.5
-    FMOverflow: Boolean; // 4.4, Fiscal memory full
-    FMLess50Zreports: Boolean; // 4.3, Room for less than 50 records in fiscal memory
-    FMInvalidRecord: Boolean; // 4.2, Invalid record in fiscal memory
-    FMWriteError: Boolean; // 4.0, Fiscal memory write error
-
-    // Byte 5
-    SerialNumber: Boolean; // 5.5, MRC is programmed
-    VATRatesSet: Boolean; // 5.4, Tax rates is programmed
-    Fiscalized: Boolean; // 5.3, Fiscalized device
-    FMFormatted: Boolean; // 5.1, Not used
-    FMReadOnly: Boolean; // 5.0, FM overflowed
-  end;
-
   { TDaisyPrinter }
 
-  TDaisyPrinter = class
+  TDaisyPrinter = class(TInterfacedObject, IDaisyPrinter)
   private
     FTxData: AnsiString;
     FRxData: AnsiString;
@@ -532,6 +42,17 @@ type
     FDiagnostic: TDFPDiagnosticInfo;
     FOnStatusUpdate: TNotifyEvent;
     FLastError: Integer;
+    function GetConstants: TDFPConstants;
+    function GetDiagnostic: TDFPDiagnosticInfo;
+    function GetLastError: Integer;
+    function GetLogger: ILogFile;
+    function GetOnStatusUpdate: TNotifyEvent;
+    function GetPort: IPrinterPort;
+    function GetRegKeyName: WideString;
+    function GetStatus: TDaisyStatus;
+    function GetVATRates: TDFPVATRates;
+    procedure SetOnStatusUpdate(const Value: TNotifyEvent);
+    procedure SetRegKeyName(const Value: WideString);
   public
     TxCount: Integer;
 
@@ -624,15 +145,15 @@ type
     function ReadLastDocNo(var DocNo: Integer): Integer;
     function WriteFiscalNumber(const FiscalNumber: AnsiString): Integer;
 
-    property Port: IPrinterPort read FPort;
-    property Logger: ILogFile read FLogger;
-    property Status: TDaisyStatus read FStatus;
-    property LastError: Integer read FLastError;
-    property VATRates: TDFPVATRates read FVATRates;
-    property Constants: TDFPConstants read FConstants;
-    property Diagnostic: TDFPDiagnosticInfo read FDiagnostic;
-    property RegKeyName: WideString read FRegKeyName write FRegKeyName;
-    property OnStatusUpdate: TNotifyEvent read FOnStatusUpdate write FOnStatusUpdate;
+    property Port: IPrinterPort read GetPort;
+    property Logger: ILogFile read GetLogger;
+    property Status: TDaisyStatus read GetStatus;
+    property LastError: Integer read GetLastError;
+    property VATRates: TDFPVATRates read GetVATRates;
+    property Constants: TDFPConstants read GetConstants;
+    property Diagnostic: TDFPDiagnosticInfo read GetDiagnostic;
+    property RegKeyName: WideString read GetRegKeyName write SetRegKeyName;
+    property OnStatusUpdate: TNotifyEvent read GetOnStatusUpdate write SetOnStatusUpdate;
   end;
 
 
@@ -1212,6 +733,61 @@ begin
   FPort := nil;
   FLogger := nil;
   inherited Destroy;
+end;
+
+function TDaisyPrinter.GetConstants: TDFPConstants;
+begin
+  Result := FConstants;
+end;
+
+function TDaisyPrinter.GetDiagnostic: TDFPDiagnosticInfo;
+begin
+  Result := FDiagnostic;
+end;
+
+function TDaisyPrinter.GetLastError: Integer;
+begin
+  Result := FLastError;
+end;
+
+function TDaisyPrinter.GetLogger: ILogFile;
+begin
+  Result := FLogger;
+end;
+
+function TDaisyPrinter.GetOnStatusUpdate: TNotifyEvent;
+begin
+  Result := FOnStatusUpdate;
+end;
+
+function TDaisyPrinter.GetPort: IPrinterPort;
+begin
+  Result := FPort;
+end;
+
+function TDaisyPrinter.GetRegKeyName: WideString;
+begin
+  Result := FRegKeyName;
+end;
+
+function TDaisyPrinter.GetStatus: TDaisyStatus;
+begin
+  Result := FStatus;
+end;
+
+function TDaisyPrinter.GetVATRates: TDFPVATRates;
+begin
+  Result := FVATRates;
+end;
+
+procedure TDaisyPrinter.SetOnStatusUpdate(const Value: TNotifyEvent);
+begin
+  FOnStatusUpdate := Value;
+end;
+
+procedure TDaisyPrinter.SetRegKeyName(const Value: WideString);
+begin
+  FRegKeyName := Value;
 end;
 
 procedure TDaisyPrinter.Lock;
@@ -2479,6 +2055,8 @@ end;
 function TDaisyPrinter.SearchDevice: Integer;
 begin
   { !!! }
+  Result := 0;
 end;
+
 
 end.

@@ -358,7 +358,7 @@ end;
 function ToleFiscalPrinter.GetDriver: TDaisyFiscalPrinter;
 begin
   if FDriver = nil then
-    FDriver := TDaisyFiscalPrinter.Create(nil);
+    FDriver := TDaisyFiscalPrinter.Create2(nil, nil);
   Result := FDriver;
 end;
 

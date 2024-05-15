@@ -15,10 +15,10 @@ uses
   gnugettext,
   // This
   OPOSDaisyLib_TLB, LogFile, WException, VersionInfo, DriverError,
-  DaisyPrinter, FiscalPrinterState, ServiceVersion, PrinterParameters,
-  PrinterParametersX, CashReceipt, SalesReceipt, ReceiptItem, StringUtils,
-  DebugUtils, FileUtils, SerialPort, PrinterPort, SocketPort, PrinterTypes,
-  DirectIOAPI, PrinterParametersReg, FiscalReceipt, NotifyThread;
+  DaisyPrinter, DaisyPrinterInterface, FiscalPrinterState, ServiceVersion,
+  PrinterParameters, PrinterParametersX, CashReceipt, SalesReceipt, ReceiptItem,
+  StringUtils, DebugUtils, FileUtils, SerialPort, PrinterPort, SocketPort,
+  PrinterTypes, DirectIOAPI, PrinterParametersReg, FiscalReceipt, NotifyThread;
 
 const
   // VatValue
@@ -53,9 +53,12 @@ type
     procedure SetRecEmpty(Value: Boolean);
     procedure StartDeviceThread;
     procedure StopDeviceThread;
+    procedure PrintRefundReceipt(Receipt: TSalesReceipt);
+    procedure PrintSalesReceipt(Receipt: TSalesReceipt);
+    function SalesReceiptToText(Receipt: TSalesReceipt): WideString;
   private
     FLogger: ILogFile;
-    FPrinter: TDaisyPrinter;
+    FPrinter: IDaisyPrinter;
     FReceipt: IFiscalReceipt;
     FVatRates: TDFPVATRates;
     FParams: TPrinterParameters;
@@ -70,7 +73,7 @@ type
       var pString: WideString);
     procedure DioGetDriverParameter(var pData: Integer;
       var pString: WideString);
-    function CreatePrinter: TDaisyPrinter;
+    function CreatePrinter: IDaisyPrinter;
     procedure CheckRecStation(Station: Integer);
     procedure CheckVATID(VatID: Integer);
   public
@@ -100,7 +103,7 @@ type
       OutputID: Integer);
 
     property Receipt: IFiscalReceipt read FReceipt;
-    property Printer: TDaisyPrinter read FPrinter;
+    property Printer: IDaisyPrinter read FPrinter;
     property PrinterState: Integer read GetPrinterState write SetPrinterState;
   private
     FNumHeaderLines: Integer;
@@ -251,7 +254,7 @@ type
                                     const UnitName: WideString): Integer; safecall;
     property OpenResult: Integer read Get_OpenResult;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create2(AOwner: TComponent; APrinter: IDaisyPrinter);
     destructor Destroy; override;
 
     function DecodeString(const Text: WideString): WideString;
@@ -305,9 +308,10 @@ end;
 
 { TDaisyFiscalPrinter }
 
-constructor TDaisyFiscalPrinter.Create(AOwner: TComponent);
+constructor TDaisyFiscalPrinter.Create2(AOwner: TComponent; APrinter: IDaisyPrinter);
 begin
   inherited Create(AOwner);
+  FPrinter := APrinter;
   FLogger := TLogFile.Create;
   FParams := TPrinterParameters.Create(FLogger);
   FOposDevice := TOposServiceDevice19.Create(FLogger);
@@ -321,8 +325,8 @@ begin
   if FOposDevice.Opened then
     Close;
 
-  FPrinter.Free;
   FParams.Free;
+  FPrinter := nil;
   FOposDevice.Free;
   FPrinterState.Free;
   FReceipt := nil;
@@ -333,7 +337,7 @@ end;
 
 procedure TDaisyFiscalPrinter.CheckVATID(VatID: Integer);
 begin
-  if (VatID < 1)or(VatID > DaisyPrinter.MaxVATRate) then
+  if (VatID < 1)or(VatID > DaisyPrinterInterface.MaxVATRate) then
     RaiseIllegalError(Format('Invalid VatID parameter, %d', [VatID]));
 end;
 
@@ -392,7 +396,9 @@ begin
     FPTR_RT_GENERIC,
     FPTR_RT_SERVICE,
     FPTR_RT_SIMPLE_INVOICE:
-      Result := TSalesReceipt.CreateReceipt(FAmountDecimalPlaces);
+      Result := TSalesReceipt.CreateReceipt(FAmountDecimalPlaces, False);
+    FPTR_RT_REFUND:
+      Result := TSalesReceipt.CreateReceipt(FAmountDecimalPlaces, True);
   else
     Result := nil;
     InvalidPropertyValue('FiscalReceiptType', IntToStr(FiscalReceiptType));
@@ -682,7 +688,7 @@ begin
   if (pData < 1) or (pData > Printer.Constants.NumPaymentTypes) then
     RaiseIllegalError('Invalid payment number');
 
-  N := DaisyPrinter.DFP_SP_PAYMENT_START_LINE + pData -1;
+  N := DaisyPrinterInterface.DFP_SP_PAYMENT_START_LINE + pData -1;
   Printer.Check(Printer.ReadText(N, pString));
 end;
 
@@ -693,7 +699,7 @@ begin
   if (pData < 1) or (pData > Printer.Constants.NumPaymentTypes) then
     RaiseIllegalError('Invalid payment number');
 
-  N := DaisyPrinter.DFP_SP_PAYMENT_START_LINE + pData -1;
+  N := DaisyPrinterInterface.DFP_SP_PAYMENT_START_LINE + pData -1;
   Printer.Check(Printer.WriteText(N, pString));
 end;
 
@@ -1968,7 +1974,7 @@ begin
   end;
 end;
 
-function TDaisyFiscalPrinter.CreatePrinter: TDaisyPrinter;
+function TDaisyFiscalPrinter.CreatePrinter: IDaisyPrinter;
 var
   PrinterPort: IPrinterPort;
   SerialParams: TSerialParams;
@@ -2212,6 +2218,97 @@ begin
 end;
 
 procedure TDaisyFiscalPrinter.Print(Receipt: TSalesReceipt);
+begin
+  if Receipt.IsRefund then
+  begin
+    PrintRefundReceipt(Receipt);
+  end else
+  begin
+    PrintSalesReceipt(Receipt);
+  end;
+end;
+
+procedure TDaisyFiscalPrinter.PrintRefundReceipt(Receipt: TSalesReceipt);
+var
+  i: Integer;
+  Lines: TTntStrings;
+  RecNumber: Integer;
+  CashRequest: TDFPCashRequest;
+  CashResponse: TDFPCashResponse;
+begin
+  Lines := TTntStringList.Create;
+  try
+    Lines.Text := SalesReceiptToText(Receipt);
+    // Print nonfiscal receipt
+    Printer.Check(Printer.StartNonfiscalReceipt(RecNumber));
+    for i := 0 to Lines.Count-1 do
+    begin
+      Printer.Check(Printer.PrintNonfiscalText(Lines[i]));
+    end;
+    Printer.Check(Printer.EndNonfiscalReceipt(RecNumber));
+  finally
+    Lines.Free;
+  end;
+  // CashOut receipt
+  CashRequest.Amount := -Abs(Receipt.GetTotal);
+  CashRequest.Text1 := Params.RefundCashoutLine1;
+  CashRequest.Text2 := Params.RefundCashoutLine2;
+  Printer.Check(Printer.PrintCash(CashRequest, CashResponse));
+end;
+
+function TDaisyFiscalPrinter.SalesReceiptToText(Receipt: TSalesReceipt): WideString;
+var
+  i: Integer;
+  Text: AnsiString;
+  Item: TReceiptItem;
+  SaleQuantity: Double;
+  SalePrice: Currency;
+  SalesItem: TSalesItem;
+  Lines: TTntStrings;
+  Barcode: TBarcodeRec;
+begin
+  Lines := TTntStringList.Create;
+  try
+    for i := 0 to Receipt.Items.Count-1 do
+    begin
+      Item := Receipt.Items[i];
+      if Item is TSalesItem then
+      begin
+        SalesItem := Item as TSalesItem;
+
+        if SalesItem.Description <> '' then
+          Lines.Add(SalesItem.Description);
+
+        if AmountToInt(SalesItem.UnitPrice) = 0 then
+        begin
+          SaleQuantity := 1;
+          SalePrice := SalesItem.Price;
+        end else
+        begin
+          SaleQuantity := SalesItem.Quantity;
+          SalePrice := SalesItem.UnitPrice;
+        end;
+        Text := Format('%.2f x .3f = %.2f', [SalePrice, SaleQuantity, SalesItem.Total]);
+        Lines.Add(Text);
+      end;
+      if Item is TTextItem then
+      begin
+        Text := (Item as TTextItem).Text;
+        Lines.Add(Text);
+      end;
+      if Item is TBarcodeItem then
+      begin
+        Barcode := StrToBarcode((Item as TBarcodeItem).Barcode);
+        Lines.Add(Barcode.Data);
+      end;
+    end;
+    Result := Lines.Text;
+  finally
+    Lines.Free;
+  end;
+end;
+
+procedure TDaisyFiscalPrinter.PrintSalesReceipt(Receipt: TSalesReceipt);
 var
   i: Integer;
   Sale: TDFPSale;

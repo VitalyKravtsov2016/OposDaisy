@@ -11,7 +11,7 @@ uses
   // Opos
   Opos, Oposhi, OposUtils,
   // This
-  BaseForm, DaisyPrinter;
+  BaseForm, DaisyPrinterInterface;
 
 const
   WM_NOTIFY = WM_USER + 1;
@@ -39,24 +39,24 @@ type
     procedure btnOpenClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
   private
-    FPrinter: TDaisyPrinter;
+    FPrinter: IDaisyPrinter;
     FApplicationTitle: WideString;
     FApplicationHandle: THandle;
 
     procedure UpdatePage;
-    property Printer: TDaisyPrinter read FPrinter;
+    property Printer: IDaisyPrinter read FPrinter;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
-procedure ShowLogoDialog(APrinter: TDaisyPrinter);
+procedure ShowLogoDialog(APrinter: IDaisyPrinter);
 
 implementation
 
 {$R *.DFM}
 
-procedure ShowLogoDialog(APrinter: TDaisyPrinter);
+procedure ShowLogoDialog(APrinter: IDaisyPrinter);
 var
   fm: TfmLogo;
 begin

@@ -23,6 +23,7 @@ type
 
   TSalesReceipt = class(TInterfacedObject, IFiscalReceipt)
   private
+    FIsRefund: Boolean;
     FIsOpened: Boolean;
     FIsVoided: Boolean;
     FChange: Currency;
@@ -31,9 +32,9 @@ type
     FItems: TReceiptItems;
     FDecimalPlaces: Integer;
     FAdjustmentPercent: Currency;
-
   protected
     procedure CheckNotVoided;
+    procedure SetRefundReceipt;
     procedure CheckPrice(Value: Currency);
     procedure CheckAmount(Amount: Currency);
     procedure CheckPercents(Value: Currency);
@@ -44,7 +45,7 @@ type
     function GetLastItem: TSalesItem;
     function AddItem(AData: TSalesItemRec): TSalesItem;
   public
-    constructor CreateReceipt(ADecimalPlaces: Integer);
+    constructor CreateReceipt(ADecimalPlaces: Integer; AIsRefund: Boolean);
     destructor Destroy; override;
 
     function RoundAmount(Amount: Currency): Currency;
@@ -137,6 +138,7 @@ type
 
     property Change: Currency read FChange;
     property Items: TReceiptItems read FItems;
+    property IsRefund: Boolean read FIsRefund;
     property Payments: TPayments read FPayments;
     property DecimalPlaces: Integer read FDecimalPlaces;
     property AdjustmentPercent: Currency read FAdjustmentPercent;
@@ -173,12 +175,14 @@ end;
 
 { TSalesReceipt }
 
-constructor TSalesReceipt.CreateReceipt(ADecimalPlaces: Integer);
+constructor TSalesReceipt.CreateReceipt(ADecimalPlaces: Integer; AIsRefund: Boolean);
 begin
   inherited Create;
   FRecItems := TList.Create;
   FItems := TReceiptItems.Create;
+
   FDecimalPlaces := ADecimalPlaces;
+  FIsRefund := AIsRefund;
 end;
 
 destructor TSalesReceipt.Destroy;
@@ -305,6 +309,7 @@ begin
   CheckPrice(Amount);
   CheckPrice(UnitAmount);
   CheckQuantity(Quantity);
+  SetRefundReceipt;
 
   Data.Price := -Amount;
   Data.VatInfo := VatInfo;
@@ -339,6 +344,8 @@ procedure TSalesReceipt.PrintRecItemRefundVoid(
   VatInfo: Integer; UnitAmount: Currency; const AUnitName: WideString);
 begin
   CheckNotVoided;
+  SetRefundReceipt;
+
   PrintRecItemRefund(ADescription, Amount, Quantity, VatInfo, UnitAmount,
     AUnitName);
 end;
@@ -401,6 +408,13 @@ begin
   CheckNotVoided;
 end;
 
+procedure TSalesReceipt.SetRefundReceipt;
+begin
+  if FRecItems.Count = 0 then
+    FIsRefund := True;
+end;
+
+
 procedure TSalesReceipt.PrintRecRefund(const Description: WideString;
   Amount: Currency; VatInfo: Integer);
 var
@@ -408,6 +422,7 @@ var
 begin
   CheckNotVoided;
   CheckAmount(Amount);
+  SetRefundReceipt;
 
   Data.Quantity := 1;
   Data.Price := -Amount;
@@ -426,6 +441,7 @@ var
 begin
   CheckNotVoided;
   CheckAmount(Amount);
+  SetRefundReceipt;
 
   Data.Quantity := 1;
   Data.Price := -Amount;
