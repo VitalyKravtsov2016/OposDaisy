@@ -6,9 +6,10 @@
 *******************************************************************
 
   OposDaisy_1.13_2.exe
-  15 May 2024
+  16 May 2024
 
   [+] Added Connect button in configuration utility to check connection
+  [+] Added refund receipt printing as nonfiscal receipt and cashout
   
 *******************************************************************
 

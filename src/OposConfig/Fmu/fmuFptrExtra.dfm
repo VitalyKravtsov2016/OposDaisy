@@ -11,6 +11,9 @@ object fmFptrExtra: TfmFptrExtra
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  DesignSize = (
+    243
+    317)
   PixelsPerInch = 96
   TextHeight = 13
   object lblPollInterval: TTntLabel
@@ -48,6 +51,20 @@ object fmFptrExtra: TfmFptrExtra
     Height = 97
     Shape = bsFrame
   end
+  object lblRefundLine1: TTntLabel
+    Left = 8
+    Top = 184
+    Width = 66
+    Height = 13
+    Caption = 'Refund line 1:'
+  end
+  object lblRefundLine2: TTntLabel
+    Left = 8
+    Top = 224
+    Width = 66
+    Height = 13
+    Caption = 'Refund line 2:'
+  end
   object sePollInterval: TSpinEdit
     Left = 112
     Top = 24
@@ -77,5 +94,23 @@ object fmFptrExtra: TfmFptrExtra
     MinValue = 0
     TabOrder = 2
     Value = 0
+  end
+  object edtRefundLine1: TTntEdit
+    Left = 8
+    Top = 200
+    Width = 225
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 3
+    Text = 'edtRefundLine1'
+  end
+  object edtRefundLine2: TTntEdit
+    Left = 8
+    Top = 240
+    Width = 225
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 4
+    Text = 'edtRefundLine1'
   end
 end

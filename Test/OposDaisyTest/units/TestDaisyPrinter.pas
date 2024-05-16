@@ -1,4 +1,4 @@
-unit MockDaisyPrinter;
+unit TestDaisyPrinter;
 
 interface
 
@@ -11,9 +11,9 @@ uses
   LogFile, PrinterPort, DaisyPrinterInterface;
 
 type
-  { TMockDaisyPrinter }
+  { TTestDaisyPrinter }
 
-  TMockDaisyPrinter = class(TInterfacedObject, IDaisyPrinter)
+  TTestDaisyPrinter = class(TInterfacedObject, IDaisyPrinter)
   private
     FLogger: ILogFile;
     FPort: IPrinterPort;
@@ -28,9 +28,7 @@ type
     function GetConstants: TDFPConstants;
     function GetDiagnostic: TDFPDiagnosticInfo;
     function GetLastError: Integer;
-    function GetLogger: ILogFile;
     function GetOnStatusUpdate: TNotifyEvent;
-    function GetPort: IPrinterPort;
     function GetRegKeyName: WideString;
     function GetStatus: TDaisyStatus;
     function GetVATRates: TDFPVATRates;
@@ -124,8 +122,6 @@ type
     function WriteFiscalNumber(const FiscalNumber: AnsiString): Integer;
 
     property Lines: TTntStrings read FLines;
-    property Port: IPrinterPort read GetPort;
-    property Logger: ILogFile read GetLogger;
     property Status: TDaisyStatus read GetStatus;
     property LastError: Integer read GetLastError;
     property VATRates: TDFPVATRates read GetVATRates;
@@ -137,510 +133,519 @@ type
 
 implementation
 
-{ TMockDaisyPrinter }
+{ TTestDaisyPrinter }
 
-constructor TMockDaisyPrinter.Create(APort: IPrinterPort; ALogger: ILogFile);
+constructor TTestDaisyPrinter.Create(APort: IPrinterPort; ALogger: ILogFile);
 begin
   inherited Create;
   FLines := TTntStringList.Create;
   FPort := APort;
   FLogger := ALogger;
+
+  FConstants.MaxLogoWidth := 576;
+  FConstants.MaxLogoHeight := 144;
+  FConstants.NumPaymentTypes := 5;
+  FConstants.NumVATRate := 5;
+  FConstants.TaxFreeLetter := '';
+  FConstants.VATRate1Letter := ' ';
+  FConstants.Dimension := 8;
+  FConstants.DescriptionLength := 48;
+  FConstants.MessageLength := 44;
+  FConstants.NameLength := 32;
+  FConstants.MRCLength := 10;
+  FConstants.FMNumberLength := 10;
+  FConstants.REGNOLength := 15;
+  FConstants.DepartmentsNumber := 50;
+  FConstants.PLUNumber := 30000;
+  FConstants.NumberOfStockGroups := 0;
+  FConstants.OperatorsNumber := 20;
+  FConstants.PaymentNameLength := 12;
 end;
 
-destructor TMockDaisyPrinter.Destroy;
+destructor TTestDaisyPrinter.Destroy;
 begin
   FLines.Free;
   inherited Destroy;
 end;
 
-function TMockDaisyPrinter.CancelReceipt: Integer;
+function TTestDaisyPrinter.CancelReceipt: Integer;
 begin
   Result := 0;
 end;
 
-procedure TMockDaisyPrinter.Check(Code: Integer);
+procedure TTestDaisyPrinter.Check(Code: Integer);
 begin
 
 end;
 
-function TMockDaisyPrinter.CheckStatus: Integer;
-begin
-  Result := 0;
-end;
-
-function TMockDaisyPrinter.ClearExternalDisplay: Integer;
+function TTestDaisyPrinter.CheckStatus: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Connect: Integer;
+function TTestDaisyPrinter.ClearExternalDisplay: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.DecodePrinterText(
+function TTestDaisyPrinter.Connect: Integer;
+begin
+  Result := 0;
+end;
+
+function TTestDaisyPrinter.DecodePrinterText(
   const Text: AnsiString): WideString;
 begin
   Result := Text;
 end;
 
-function TMockDaisyPrinter.Disconnect: Integer;
+function TTestDaisyPrinter.Disconnect: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.DisplayDateTime: Integer;
+function TTestDaisyPrinter.DisplayDateTime: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.DuplicatePrint(Count, DocNo: Integer): Integer;
+function TTestDaisyPrinter.DuplicatePrint(Count, DocNo: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.EncodePrinterText(
+function TTestDaisyPrinter.EncodePrinterText(
   const Text: WideString): AnsiString;
 begin
   Result := Text;
 end;
 
-function TMockDaisyPrinter.EndFiscalReceipt(var R: TDFPRecNumber): Integer;
+function TTestDaisyPrinter.EndFiscalReceipt(var R: TDFPRecNumber): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.EndNonfiscalReceipt(
+function TTestDaisyPrinter.EndNonfiscalReceipt(
   var RecNumber: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.FinalFiscalRecord(DataType: AnsiChar;
+function TTestDaisyPrinter.FinalFiscalRecord(DataType: AnsiChar;
   var R: TDFPFiscalRecord): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.FullCut: Integer;
+function TTestDaisyPrinter.FullCut: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.GetConstants: TDFPConstants;
+function TTestDaisyPrinter.GetConstants: TDFPConstants;
 begin
   Result := FConstants;
 end;
 
-function TMockDaisyPrinter.GetDiagnostic: TDFPDiagnosticInfo;
+function TTestDaisyPrinter.GetDiagnostic: TDFPDiagnosticInfo;
 begin
   Result := FDiagnostic;
 end;
 
-function TMockDaisyPrinter.GetLastError: Integer;
+function TTestDaisyPrinter.GetLastError: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.GetLogger: ILogFile;
+function TTestDaisyPrinter.GetOnStatusUpdate: TNotifyEvent;
 begin
 
 end;
 
-function TMockDaisyPrinter.GetOnStatusUpdate: TNotifyEvent;
+function TTestDaisyPrinter.GetRegKeyName: WideString;
 begin
 
 end;
 
-function TMockDaisyPrinter.GetPort: IPrinterPort;
+function TTestDaisyPrinter.GetStatus: TDaisyStatus;
 begin
 
 end;
 
-function TMockDaisyPrinter.GetRegKeyName: WideString;
-begin
-
-end;
-
-function TMockDaisyPrinter.GetStatus: TDaisyStatus;
-begin
-
-end;
-
-function TMockDaisyPrinter.GetVATRates: TDFPVATRates;
+function TTestDaisyPrinter.GetVATRates: TDFPVATRates;
 begin
   Result := FVATRates;
 end;
 
-function TMockDaisyPrinter.LoadLogo(const Logo: TGraphic): Integer;
+function TTestDaisyPrinter.LoadLogo(const Logo: TGraphic): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.LoadLogoFile(
+function TTestDaisyPrinter.LoadLogoFile(
   const FileName: WideString): Integer;
 begin
   Result := 0;
 end;
 
-procedure TMockDaisyPrinter.LoadParams;
+procedure TTestDaisyPrinter.LoadParams;
 begin
 
 end;
 
-procedure TMockDaisyPrinter.Lock;
+procedure TTestDaisyPrinter.Lock;
 begin
 
 end;
 
-function TMockDaisyPrinter.PaperCut(CutMode: Integer): Integer;
-begin
-  Result := 0;
-end;
-
-function TMockDaisyPrinter.PaperFeed(LineCount: Integer): Integer;
+function TTestDaisyPrinter.PaperCut(CutMode: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PartialCut: Integer;
+function TTestDaisyPrinter.PaperFeed(LineCount: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintBarcode(const Data: AnsiString): Integer;
+function TTestDaisyPrinter.PartialCut: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintBarcode2(
+function TTestDaisyPrinter.PrintBarcode(const Data: AnsiString): Integer;
+begin
+  Result := 0;
+end;
+
+function TTestDaisyPrinter.PrintBarcode2(
   const Barcode: TDFPBarcode): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintCash(const P: TDFPCashRequest;
+function TTestDaisyPrinter.PrintCash(const P: TDFPCashRequest;
   var R: TDFPCashResponse): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintDiagnosticInfo: Integer;
+function TTestDaisyPrinter.PrintDiagnosticInfo: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintFiscalText(
+function TTestDaisyPrinter.PrintFiscalText(
   const Text: WideString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintNonfiscalLine(
+function TTestDaisyPrinter.PrintNonfiscalLine(
   const Text: WideString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintNonfiscalText(
+function TTestDaisyPrinter.PrintNonfiscalText(
   const Text: WideString): Integer;
 begin
   Lines.Add(Text);
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintParameters: Integer;
+function TTestDaisyPrinter.PrintParameters: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintReportByNumbers(StartNum,
+function TTestDaisyPrinter.PrintReportByNumbers(StartNum,
   EndNum: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintTotal(const P: TDFPTotal;
+function TTestDaisyPrinter.PrintTotal(const P: TDFPTotal;
   var R: TDFPTotalResponse): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.PrintVATRates: Integer;
+function TTestDaisyPrinter.PrintVATRates: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadConstants(var R: TDFPConstants): Integer;
+function TTestDaisyPrinter.ReadConstants(var R: TDFPConstants): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadCutMode(var Value: Integer): Integer;
+function TTestDaisyPrinter.ReadCutMode(var Value: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadDateTime(var Date: TDateTime): Integer;
+function TTestDaisyPrinter.ReadDateTime(var Date: TDateTime): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadDayStatus(var R: TDFPDayStatus): Integer;
+function TTestDaisyPrinter.ReadDayStatus(var R: TDFPDayStatus): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadDetailedReceipt(
+function TTestDaisyPrinter.ReadDetailedReceipt(
   var Value: Boolean): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadDiagnosticInfo(CalcCRC: Boolean;
+function TTestDaisyPrinter.ReadDiagnosticInfo(CalcCRC: Boolean;
   var R: TDFPDiagnosticInfo): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadFreeFiscalRecords(
+function TTestDaisyPrinter.ReadFreeFiscalRecords(
   var R: TDFPFiscalrecords): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadIntParameter(N: Integer;
+function TTestDaisyPrinter.ReadIntParameter(N: Integer;
   var Value: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadLastDocNo(var DocNo: Integer): Integer;
+function TTestDaisyPrinter.ReadLastDocNo(var DocNo: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadLogoEnabled(var Value: Boolean): Integer;
+function TTestDaisyPrinter.ReadLogoEnabled(var Value: Boolean): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadOperator(N: Integer;
+function TTestDaisyPrinter.ReadOperator(N: Integer;
   var R: TDFPOperator): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadParameter(N: Integer;
+function TTestDaisyPrinter.ReadParameter(N: Integer;
   var S: AnsiString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadPrintOptions(
+function TTestDaisyPrinter.ReadPrintOptions(
   var Options: TDFPPrintOptions): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadReceiptStatus(
+function TTestDaisyPrinter.ReadReceiptStatus(
   var R: TDFPReceiptStatus): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadStatus: Integer;
+function TTestDaisyPrinter.ReadStatus: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadText(N: Integer;
+function TTestDaisyPrinter.ReadText(N: Integer;
   var S: WideString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadTotals(DataType: Integer;
+function TTestDaisyPrinter.ReadTotals(DataType: Integer;
   var R: TDFPTotals): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadVATRates(
+function TTestDaisyPrinter.ReadVATRates(
   var VATRates: TDFPVATRates): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ReadVATRatesOnDate(const P: TDFPDateRange;
+function TTestDaisyPrinter.ReadVATRatesOnDate(const P: TDFPDateRange;
   var R: TDFPVATRateResponse): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Reset: Integer;
+function TTestDaisyPrinter.Reset: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Sale(const P: TDFPSale): Integer;
+function TTestDaisyPrinter.Sale(const P: TDFPSale): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.SaleAndDisplay(const P: TDFPSale): Integer;
+function TTestDaisyPrinter.SaleAndDisplay(const P: TDFPSale): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.SaleByPLU(const P: TDFPPLU): Integer;
+function TTestDaisyPrinter.SaleByPLU(const P: TDFPPLU): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.SaleCommand(Cmd: Char;
+function TTestDaisyPrinter.SaleCommand(Cmd: Char;
   const P: TDFPSale): Integer;
 begin
   Result := 0;
 end;
 
-procedure TMockDaisyPrinter.SaveParams;
+procedure TTestDaisyPrinter.SaveParams;
 begin
 
 end;
 
-function TMockDaisyPrinter.SearchDevice: Integer;
-begin
-  Result := 0;
-end;
-
-function TMockDaisyPrinter.Send(const TxData: AnsiString): Integer;
+function TTestDaisyPrinter.SearchDevice: Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Send(const TxData: AnsiString;
+function TTestDaisyPrinter.Send(const TxData: AnsiString): Integer;
+begin
+  Result := 0;
+end;
+
+function TTestDaisyPrinter.Send(const TxData: AnsiString;
   var RxData: AnsiString): Integer;
 begin
   Result := 0;
 end;
 
-procedure TMockDaisyPrinter.SendCommand(const Tx: AnsiString;
+procedure TTestDaisyPrinter.SendCommand(const Tx: AnsiString;
   var RxData: AnsiString);
 begin
 
 end;
 
-procedure TMockDaisyPrinter.SetOnStatusUpdate(const Value: TNotifyEvent);
+procedure TTestDaisyPrinter.SetOnStatusUpdate(const Value: TNotifyEvent);
 begin
 
 end;
 
-procedure TMockDaisyPrinter.SetRegKeyName(const Value: WideString);
+procedure TTestDaisyPrinter.SetRegKeyName(const Value: WideString);
 begin
 
 end;
 
-function TMockDaisyPrinter.StartFiscalReceipt(
+function TTestDaisyPrinter.StartFiscalReceipt(
   const P: TDFPOperatorPassword; var R: TDFPRecNumber): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.StartNonfiscalReceipt(
+function TTestDaisyPrinter.StartNonfiscalReceipt(
   var RecNumber: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Subtotal(const P: TDFPSubtotal;
+function TTestDaisyPrinter.Subtotal(const P: TDFPSubtotal;
   var R: TDFPSubtotalResponse): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.Succeeded(ResultCode: Integer): Boolean;
+function TTestDaisyPrinter.Succeeded(ResultCode: Integer): Boolean;
 begin
   Result := ResultCode = 0;
 end;
 
-procedure TMockDaisyPrinter.Unlock;
+procedure TTestDaisyPrinter.Unlock;
 begin
 
 end;
 
-function TMockDaisyPrinter.WriteCutMode(Value: Integer): Integer;
-begin
-  Result := 0;
-end;
-
-function TMockDaisyPrinter.WriteDateTime(Date: TDateTime): Integer;
+function TTestDaisyPrinter.WriteCutMode(Value: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteDetailedReceipt(Value: Boolean): Integer;
+function TTestDaisyPrinter.WriteDateTime(Date: TDateTime): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteFiscalNumber(
+function TTestDaisyPrinter.WriteDetailedReceipt(Value: Boolean): Integer;
+begin
+  Result := 0;
+end;
+
+function TTestDaisyPrinter.WriteFiscalNumber(
   const FiscalNumber: AnsiString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteIntParameter(N, Value: Integer): Integer;
+function TTestDaisyPrinter.WriteIntParameter(N, Value: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteLogoEnabled(Value: Boolean): Integer;
+function TTestDaisyPrinter.WriteLogoEnabled(Value: Boolean): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteOperatorName(
+function TTestDaisyPrinter.WriteOperatorName(
   const P: TDFPOperatorName): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteParameter(N: Integer;
+function TTestDaisyPrinter.WriteParameter(N: Integer;
   const S: AnsiString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WritePrinterNumber(N: Integer): Integer;
+function TTestDaisyPrinter.WritePrinterNumber(N: Integer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WritePrintOptions(
+function TTestDaisyPrinter.WritePrintOptions(
   const Options: TDFPPrintOptions): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteText(N: Integer;
+function TTestDaisyPrinter.WriteText(N: Integer;
   const S: WideString): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.WriteVATRates(
+function TTestDaisyPrinter.WriteVATRates(
   const VATRates: TDFPVATRates): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.XReport(var R: TDFPReportAnswer): Integer;
+function TTestDaisyPrinter.XReport(var R: TDFPReportAnswer): Integer;
 begin
   Result := 0;
 end;
 
-function TMockDaisyPrinter.ZReport(var R: TDFPReportAnswer): Integer;
+function TTestDaisyPrinter.ZReport(var R: TDFPReportAnswer): Integer;
 begin
   Result := 0;
 end;

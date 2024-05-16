@@ -64,6 +64,7 @@ type
   private
     FData: TSalesItemRec;
     FAdjustment: Currency;
+    FAdjustmentText: WideString;
   public
     constructor CreateItem(AOwner: TReceiptItems; const AData: TSalesItemRec);
     function GetTotal: Currency; override;
@@ -78,6 +79,7 @@ type
     property UnitName: WideString read FData.UnitName;
     property Description: WideString read FData.Description;
     property Adjustment: Currency read FAdjustment write FAdjustment;
+    property AdjustmentText: WideString read FAdjustmentText write FAdjustmentText;
   end;
 
   { TTextItem }

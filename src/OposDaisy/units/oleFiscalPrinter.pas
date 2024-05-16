@@ -25,7 +25,7 @@ type
     function GetLock: TCriticalSection;
  public
     property Logger: ILogFile read GetLogger;
-    property Driver: TDaisyFiscalPrinter read GetDriver;
+    property Driver: TDaisyFiscalPrinter read GetDriver write FDriver;
   public
     destructor Destroy; override;
 

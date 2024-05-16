@@ -56,8 +56,11 @@ type
     procedure PrintRefundReceipt(Receipt: TSalesReceipt);
     procedure PrintSalesReceipt(Receipt: TSalesReceipt);
     function SalesReceiptToText(Receipt: TSalesReceipt): WideString;
+    function GetPort: IPrinterPort;
+    function CreatePort: IPrinterPort;
   private
     FLogger: ILogFile;
+    FPort: IPrinterPort;
     FPrinter: IDaisyPrinter;
     FReceipt: IFiscalReceipt;
     FVatRates: TDFPVATRates;
@@ -73,7 +76,6 @@ type
       var pString: WideString);
     procedure DioGetDriverParameter(var pData: Integer;
       var pString: WideString);
-    function CreatePrinter: IDaisyPrinter;
     procedure CheckRecStation(Station: Integer);
     procedure CheckVATID(VatID: Integer);
   public
@@ -103,7 +105,7 @@ type
       OutputID: Integer);
 
     property Receipt: IFiscalReceipt read FReceipt;
-    property Printer: IDaisyPrinter read FPrinter;
+    property Printer: IDaisyPrinter read FPrinter write FPrinter;
     property PrinterState: Integer read GetPrinterState write SetPrinterState;
   private
     FNumHeaderLines: Integer;
@@ -195,7 +197,7 @@ type
     function PrintPowerLossReport: Integer; safecall;
     function PrintRecItem(const Description: WideString; Price: Currency; Quantity: Integer;
                           VatInfo: Integer; UnitPrice: Currency; const UnitName: WideString): Integer; safecall;
-    function PrintRecItemAdjustment(AdjustmentType: Integer; const Description: WideString; 
+    function PrintRecItemAdjustment(AdjustmentType: Integer; const Description: WideString;
                                     Amount: Currency; VatInfo: Integer): Integer; safecall;
     function PrintRecMessage(const Message: WideString): Integer; safecall;
     function PrintRecNotPaid(const Description: WideString; Amount: Currency): Integer; safecall;
@@ -243,9 +245,9 @@ type
     function UpdateStatistics(const StatisticsBuffer: WideString): Integer; safecall;
     function CompareFirmwareVersion(const FirmwareFileName: WideString; out pResult: Integer): Integer; safecall;
     function UpdateFirmware(const FirmwareFileName: WideString): Integer; safecall;
-    function PrintRecItemAdjustmentVoid(AdjustmentType: Integer; const Description: WideString; 
+    function PrintRecItemAdjustmentVoid(AdjustmentType: Integer; const Description: WideString;
                                         Amount: Currency; VatInfo: Integer): Integer; safecall;
-    function PrintRecItemVoid(const Description: WideString; Price: Currency; Quantity: Integer; 
+    function PrintRecItemVoid(const Description: WideString; Price: Currency; Quantity: Integer;
                               VatInfo: Integer; UnitPrice: Currency; const UnitName: WideString): Integer; safecall;
     function PrintRecItemRefund(const Description: WideString; Amount: Currency; Quantity: Integer;
                                 VatInfo: Integer; UnitAmount: Currency; const UnitName: WideString): Integer; safecall;
@@ -263,6 +265,7 @@ type
 
     property Logger: ILogFile read FLogger;
     property Params: TPrinterParameters read FParams;
+    property Port: IPrinterPort read GetPort write FPort;
     property TestMode: Boolean read FTestMode write FTestMode;
     property OposDevice: TOposServiceDevice19 read FOposDevice;
     property LoadParamsEnabled: Boolean read FLoadParamsEnabled write FLoadParamsEnabled;
@@ -325,6 +328,7 @@ begin
   if FOposDevice.Opened then
     Close;
 
+  FPort := nil;
   FParams.Free;
   FPrinter := nil;
   FOposDevice.Free;
@@ -333,6 +337,44 @@ begin
   FDeviceThread.Free;
   FDeviceThread := nil;
   inherited Destroy;
+end;
+
+function TDaisyFiscalPrinter.GetPort: IPrinterPort;
+begin
+  if FPort = nil then
+    FPort := CreatePort;
+  Result := FPort;
+end;
+
+function TDaisyFiscalPrinter.CreatePort: IPrinterPort;
+var
+  SerialParams: TSerialParams;
+  SocketParams: TSocketParams;
+begin
+  case Params.ConnectionType of
+    ConnectionTypeSerial:
+    begin
+      SerialParams.PortName := Params.PortName;
+      SerialParams.BaudRate := Params.BaudRate;
+      SerialParams.DataBits := DATABITS_8;
+      SerialParams.StopBits := ONESTOPBIT;
+      SerialParams.Parity := NOPARITY;
+      SerialParams.FlowControl := FLOW_CONTROL_NONE;
+      SerialParams.ReconnectPort := False;
+      SerialParams.ByteTimeout := Params.ByteTimeout;
+      Result := TSerialPort.Create(SerialParams, Logger);
+    end;
+    ConnectionTypeSocket:
+    begin
+      SocketParams.RemoteHost := Params.RemoteHost;
+      SocketParams.RemotePort := Params.RemotePort;
+      SocketParams.ByteTimeout := Params.ByteTimeout;
+      SocketParams.MaxRetryCount := 1;
+      Result := TSocketPort.Create(SocketParams, Logger);
+    end;
+  else
+    raise Exception.Create('Invalid PrinterType value');
+  end;
 end;
 
 procedure TDaisyFiscalPrinter.CheckVATID(VatID: Integer);
@@ -410,7 +452,7 @@ begin
   try
     SetDeviceEnabled(False);
     OposDevice.ReleaseDevice;
-    Printer.Port.Close;
+    Port.Close;
 
     Result := ClearResult;
   except
@@ -619,7 +661,7 @@ function TDaisyFiscalPrinter.Claim(Timeout: Integer): Integer;
 begin
   try
     FOposDevice.ClaimDevice(Timeout);
-    Printer.Port.Open;
+    Port.Open;
     Result := ClearResult;
   except
     on E: Exception do
@@ -1947,7 +1989,7 @@ begin
 
     if FPrinter = nil then
     begin
-      FPrinter := CreatePrinter;
+      FPrinter := TDaisyPrinter.Create(Port, Logger);
     end;
     Printer.RegKeyName := TPrinterParametersReg.GetUsrKeyName(DeviceName);
     Printer.LoadParams;
@@ -1974,40 +2016,6 @@ begin
   end;
 end;
 
-function TDaisyFiscalPrinter.CreatePrinter: IDaisyPrinter;
-var
-  PrinterPort: IPrinterPort;
-  SerialParams: TSerialParams;
-  SocketParams: TSocketParams;
-begin
-  case Params.ConnectionType of
-    ConnectionTypeSerial:
-    begin
-      SerialParams.PortName := Params.PortName;
-      SerialParams.BaudRate := Params.BaudRate;
-      SerialParams.DataBits := DATABITS_8;
-      SerialParams.StopBits := ONESTOPBIT;
-      SerialParams.Parity := NOPARITY;
-      SerialParams.FlowControl := FLOW_CONTROL_NONE;
-      SerialParams.ReconnectPort := False;
-      SerialParams.ByteTimeout := Params.ByteTimeout;
-      PrinterPort := TSerialPort.Create(SerialParams, Logger);
-      Result := TDaisyPrinter.Create(PrinterPort, Logger);
-    end;
-    ConnectionTypeSocket:
-    begin
-      SocketParams.RemoteHost := Params.RemoteHost;
-      SocketParams.RemotePort := Params.RemotePort;
-      SocketParams.ByteTimeout := Params.ByteTimeout;
-      SocketParams.MaxRetryCount := 1;
-      PrinterPort := TSocketPort.Create(SocketParams, Logger);
-      Result := TDaisyPrinter.Create(PrinterPort, Logger);
-    end;
-  else
-    raise Exception.Create('Invalid PrinterType value');
-  end;
-end;
-
 function TDaisyFiscalPrinter.DoCloseDevice: Integer;
 begin
   try
@@ -2016,7 +2024,7 @@ begin
 
     SetDeviceEnabled(False);
     FOposDevice.Close;
-    Printer.Port.Close;
+    Port.Close;
     Result := ClearResult;
   except
     on E: Exception do
@@ -2257,6 +2265,8 @@ begin
 end;
 
 function TDaisyFiscalPrinter.SalesReceiptToText(Receipt: TSalesReceipt): WideString;
+const
+  AdjustmentName: array [Boolean] of WideString = ('CHARGE', 'DISCOUNT');
 var
   i: Integer;
   Text: AnsiString;
@@ -2266,9 +2276,17 @@ var
   SalesItem: TSalesItem;
   Lines: TTntStrings;
   Barcode: TBarcodeRec;
+  AdjustmentText: WideString;
 begin
   Lines := TTntStringList.Create;
   try
+    if Receipt.IsRefund then
+    begin
+      if Params.RefundCashoutLine1 <> '' then
+        Lines.Add(Params.RefundCashoutLine1);
+      if Params.RefundCashoutLine2 <> '' then
+        Lines.Add(Params.RefundCashoutLine2);
+    end;
     for i := 0 to Receipt.Items.Count-1 do
     begin
       Item := Receipt.Items[i];
@@ -2288,8 +2306,19 @@ begin
           SaleQuantity := SalesItem.Quantity;
           SalePrice := SalesItem.UnitPrice;
         end;
-        Text := Format('%.2f x .3f = %.2f', [SalePrice, SaleQuantity, SalesItem.Total]);
+        Text := Format('%.2f x %.3f = %.2f', [SalePrice, SaleQuantity, Receipt.RoundAmount(SalePrice * SaleQuantity)]);
+        Text := AlignLines('', Text, Printer.Constants.MessageLength);
         Lines.Add(Text);
+        // Adjustment
+        if SalesItem.Adjustment <> 0 then
+        begin
+          AdjustmentText := AdjustmentName[SalesItem.Adjustment < 0];
+          if SalesItem.AdjustmentText <> '' then
+            AdjustmentText := SalesItem.AdjustmentText;
+          Text := Format('= %.2f', [SalesItem.Adjustment]);
+          Text := AlignLines(AdjustmentText, Text, Printer.Constants.MessageLength);
+          Lines.Add(Text);
+        end;
       end;
       if Item is TTextItem then
       begin
@@ -2301,6 +2330,24 @@ begin
         Barcode := StrToBarcode((Item as TBarcodeItem).Barcode);
         Lines.Add(Barcode.Data);
       end;
+    end;
+    // Adjustment
+    if Receipt.AdjustmentPercent <> 0 then
+    begin
+      AdjustmentText := AdjustmentName[Receipt.AdjustmentPercent < 0];
+      if Receipt.AdjustmentText <> '' then
+        AdjustmentText := Receipt.AdjustmentText;
+      Text := Format('%.2f %%', [Receipt.AdjustmentPercent]);
+      Text := AlignLines(AdjustmentText, Text, Printer.Constants.MessageLength);
+      Lines.Add(Text);
+    end;
+
+    Text := Format('= %.2f', [Receipt.GetTotal]);
+    Text := AlignLines('TOTAL', Text, Printer.Constants.MessageLength);
+    Lines.Add(Text);
+    if Receipt.Lines.Count > 0 then
+    begin
+      Lines.AddStrings(Receipt.Lines);
     end;
     Result := Lines.Text;
   finally

@@ -507,9 +507,7 @@ type
     function GetConstants: TDFPConstants;
     function GetDiagnostic: TDFPDiagnosticInfo;
     function GetLastError: Integer;
-    function GetLogger: ILogFile;
     function GetOnStatusUpdate: TNotifyEvent;
-    function GetPort: IPrinterPort;
     function GetRegKeyName: WideString;
     function GetStatus: TDaisyStatus;
     function GetVATRates: TDFPVATRates;
@@ -602,8 +600,6 @@ type
     function ReadLastDocNo(var DocNo: Integer): Integer;
     function WriteFiscalNumber(const FiscalNumber: AnsiString): Integer;
 
-    property Port: IPrinterPort read GetPort;
-    property Logger: ILogFile read GetLogger;
     property Status: TDaisyStatus read GetStatus;
     property LastError: Integer read GetLastError;
     property VATRates: TDFPVATRates read GetVATRates;

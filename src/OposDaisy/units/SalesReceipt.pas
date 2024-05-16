@@ -32,6 +32,9 @@ type
     FItems: TReceiptItems;
     FDecimalPlaces: Integer;
     FAdjustmentPercent: Currency;
+    FAdjustmentText: WideString;
+    FLines: TTntStrings;
+    function IsPayed: Boolean;
   protected
     procedure CheckNotVoided;
     procedure SetRefundReceipt;
@@ -136,13 +139,15 @@ type
     function GetTotal: Currency;
     function GetPayment: Currency;
 
+    property Lines: TTntStrings read FLines;
     property Change: Currency read FChange;
     property Items: TReceiptItems read FItems;
     property IsRefund: Boolean read FIsRefund;
     property Payments: TPayments read FPayments;
     property DecimalPlaces: Integer read FDecimalPlaces;
     property AdjustmentPercent: Currency read FAdjustmentPercent;
-  end;
+    property AdjustmentText: WideString read FAdjustmentText;
+ end;
 
 implementation
 
@@ -180,6 +185,7 @@ begin
   inherited Create;
   FRecItems := TList.Create;
   FItems := TReceiptItems.Create;
+  FLines := TTntStringList.Create;
 
   FDecimalPlaces := ADecimalPlaces;
   FIsRefund := AIsRefund;
@@ -187,6 +193,7 @@ end;
 
 destructor TSalesReceipt.Destroy;
 begin
+  FLines.Free;
   FItems.Free;
   FRecItems.Free;
   inherited Destroy;
@@ -358,6 +365,12 @@ var
 begin
   CheckNotVoided;
   Item := GetLastItem;
+  Item.AdjustmentText := '';
+  if Item.Adjustment = 0 then
+  begin
+    Item.AdjustmentText := Description;
+  end;
+
   case AdjustmentType of
     FPTR_AT_AMOUNT_DISCOUNT:
     begin
@@ -471,6 +484,8 @@ begin
   if FAdjustmentPercent <> 0 then
     RaiseOposException(OPOS_E_ILLEGAL, 'Subtotal adjustment already defined');
 
+  FAdjustmentText := Description;
+
   case AdjustmentType of
     FPTR_AT_AMOUNT_DISCOUNT,
     FPTR_AT_AMOUNT_SURCHARGE:
@@ -546,18 +561,29 @@ begin
 
   Index := StrToIntDef(Description, 0);
   FPayments[Index] := FPayments[Index] + Payment;
-  if GetPayment >= GetTotal then
+  if IsPayed then
   begin
     FChange := GetPayment - GetTotal;
   end;
+end;
+
+function TSalesReceipt.IsPayed: Boolean;
+begin
+  Result := GetPayment >= GetTotal;
 end;
 
 procedure TSalesReceipt.PrintRecMessage(const Message: WideString);
 var
   Item: TTextItem;
 begin
-  Item := TTextItem.Create(FItems);
-  Item.Text := Message;
+  if (FRecItems.Count > 0) and IsPayed then
+  begin
+    Lines.Add(Message);
+  end else
+  begin
+    Item := TTextItem.Create(FItems);
+    Item.Text := Message;
+  end;
 end;
 
 procedure TSalesReceipt.PrintBarcode(const Barcode: string);

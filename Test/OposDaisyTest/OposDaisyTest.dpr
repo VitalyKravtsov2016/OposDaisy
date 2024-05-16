@@ -54,9 +54,11 @@ uses
   fmuLogo in '..\..\src\OposDaisy\Fmu\fmuLogo.pas' {fmLogo},
   BaseForm in '..\..\src\Shared\BaseForm.pas',
   oleFiscalPrinter in '..\..\src\OposDaisy\units\oleFiscalPrinter.pas',
-  MockDaisyPrinter in 'units\MockDaisyPrinter.pas';
+  TestDaisyPrinter in 'units\TestDaisyPrinter.pas',
+  TestPrinterPort in 'units\TestPrinterPort.pas';
 
 {$R *.RES}
+{$R ..\..\src\OposDaisy\OPOSDaisy.tlb}
 
 begin
   TGUITestRunner.RunTest(RegisteredTests);

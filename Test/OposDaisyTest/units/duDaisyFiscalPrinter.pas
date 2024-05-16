@@ -13,7 +13,8 @@ uses
   TntClasses, TntSysUtils,
   // This
   LogFile, DaisyFiscalPrinter, DaisyPrinter, SerialPort, FileUtils,
-  oleFiscalPrinter, StringUtils, PrinterParameters, DirectIOAPI;
+  oleFiscalPrinter, StringUtils, PrinterParameters, DirectIOAPI,
+  PrinterPort, TestDaisyPrinter, TestPrinterPort, DaisyPrinterInterface;
 
 const
   CRLF = #13#10;
@@ -24,6 +25,8 @@ type
   TDaisyFiscalPrinterTest = class(TTestCase)
   private
     FPrintHeader: Boolean;
+    FPort: IPrinterPort;
+    FPrinter: TTestDaisyPrinter;
     Driver: ToleFiscalPrinter;
 
     procedure ClaimDevice;
@@ -58,13 +61,14 @@ type
     procedure TestFiscalReceipt7;
     procedure TestFiscalReceipt8;
     procedure TestFiscalReceiptWithVAT;
-
     procedure TestFiscalReceiptWithAdjustments;
     procedure TestFiscalReceiptWithAdjustments2;
     procedure TestFiscalReceiptWithAdjustments3;
     procedure TestSetHeaderLine;
     procedure TestSetHeaderLine2;
     procedure TestCheckHealth;
+
+    procedure TestRefundReceipt;
   end;
 
 implementation
@@ -110,8 +114,11 @@ procedure TDaisyFiscalPrinterTest.SetUp;
 begin
   inherited SetUp;
   Driver := ToleFiscalPrinter.Create;
+  FPort := TTestPrinterPort.Create;
+  Driver.Driver.Port := FPort;
+  FPrinter := TTestDaisyPrinter.Create(FPort, Driver.Driver.Logger);
+  Driver.Driver.Printer := FPrinter;
   Driver.Driver.LoadParamsEnabled := False;
-
   Params.LogFileEnabled := True;
   Params.LogMaxCount := 10;
   Params.LogFilePath := GetModulePath + 'Logs';
@@ -132,6 +139,8 @@ end;
 procedure TDaisyFiscalPrinterTest.TearDown;
 begin
   Driver.Free;
+  FPort := nil;
+  FPrinter := nil;
   inherited TearDown;
 end;
 
@@ -199,11 +208,11 @@ begin
   FptrCheck(Driver.PrintRecCash(12.34));
   FptrCheck(Driver.PrintRecCash(23.45));
   FptrCheck(Driver.PrintRecCash(34.56));
-  FptrCheck(Driver.PrintRecTotal(0, 12.34, ''));
+  FptrCheck(Driver.PrintRecTotal(70.35, 12.34, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_TOTAL, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-  FptrCheck(Driver.PrintRecTotal(0, 23.45, ''));
+  FptrCheck(Driver.PrintRecTotal(70.35, 23.45, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_TOTAL, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-  FptrCheck(Driver.PrintRecTotal(0, 34.56, ''));
+  FptrCheck(Driver.PrintRecTotal(70.35, 34.56, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
 
   FptrCheck(Driver.EndFiscalReceipt(not FPrintHeader));
@@ -225,11 +234,11 @@ begin
   FptrCheck(Driver.PrintRecCash(10));
   FptrCheck(Driver.PrintRecCash(20));
   FptrCheck(Driver.PrintRecCash(30));
-  FptrCheck(Driver.PrintRecTotal(0, 10, ''));
+  FptrCheck(Driver.PrintRecTotal(60, 10, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_TOTAL, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-  FptrCheck(Driver.PrintRecTotal(0, 20, ''));
+  FptrCheck(Driver.PrintRecTotal(60, 20, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_TOTAL, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-  FptrCheck(Driver.PrintRecTotal(0, 30, ''));
+  FptrCheck(Driver.PrintRecTotal(60, 30, ''));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
   FptrCheck(Driver.EndFiscalReceipt(True));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
@@ -299,12 +308,12 @@ begin
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
   CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
   FptrCheck(Driver.BeginFiscalReceipt(True));
-  FptrCheck(Driver.PrintRecItem('TRK 1: AI-98', 578, 3302, 4, 175, ''));
+  FptrCheck(Driver.PrintRecItem('TRK 1: AI-98', 577.85, 3302, 4, 175, ''));
   FptrCheck(Driver.PrintRecItem('Receipt item 1', 620, 1000, 4, 620, 'pcs'));
   FptrCheck(Driver.PrintRecItem('Receipt item 2', 1250, 1000, 4, 1250, 'pcs'));
   FptrCheck(Driver.PrintRecItem('Receipt item 3', 650, 1000, 4, 650, 'pcs'));
-  FptrCheck(Driver.PrintRecTotal(3098, 2521, '1'));
-  FptrCheck(Driver.PrintRecTotal(3098, 577, '0'));
+  FptrCheck(Driver.PrintRecTotal(3097.85, 2521, '1'));
+  FptrCheck(Driver.PrintRecTotal(3097.85, 577, '0'));
   FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 
@@ -367,8 +376,8 @@ begin
 
   FptrCheck(DirectIO2(30, 72, '4'));
   FptrCheck(DirectIO2(30, 73, '1'));
-  FptrCheck(Driver.PrintRecItem('TRK 1:AI-92-K4/K5', 139, 870, 4, 160, 'litres'));
-  FptrCheck(Driver.PrintRecTotal(139, 139, '1'));
+  FptrCheck(Driver.PrintRecItem('TRK 1:AI-92-K4/K5', 139.20, 870, 4, 160, 'litres'));
+  FptrCheck(Driver.PrintRecTotal(139.20, 139.20, '1'));
   FptrCheck(Driver.PrintRecMessage('Kaspi ¹2832880234      '));
   FptrCheck(Driver.PrintRecMessage('Operator: Cashier1'));
   FptrCheck(Driver.PrintRecMessage('Transaction number: 11822'));
@@ -554,6 +563,66 @@ begin
   OpenClaimEnable;
   FptrCheck(Driver.CheckHealth(OPOS_CH_INTERNAL));
   FptrCheck(Driver.CheckHealth(OPOS_CH_EXTERNAL));
+end;
+
+procedure TDaisyFiscalPrinterTest.TestRefundReceipt;
+var
+  i: Integer;
+  ResultCode: Integer;
+const
+  Lines: array [0..12] of string = (
+    'REFUND1',
+    'REFUND2',
+    'PrintRecMessage.1',
+    'Receipt item 1',
+    '                     590.00 x 1.000 = 590.00',
+    'Discount 40                         = -40.00',
+    'Receipt item 2',
+    '                     123.00 x 1.000 = 123.00',
+    'DISCOUNT                            = -20.00',
+    'PrintRecMessage.2',
+    'Discount 10%                        -10.00 %',
+    'TOTAL                               = 587.70',
+    'PrintRecMessage.3'
+  );
+
+
+begin
+  Params.RefundCashoutLine1 := 'REFUND1';
+  Params.RefundCashoutLine2 := 'REFUND2';
+
+  OpenClaimEnable;
+  CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_REFUND);
+  CheckEquals(FPTR_RT_REFUND, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
+
+  FptrCheck(Driver.BeginFiscalReceipt(True));
+  CheckEquals(FPTR_PS_FISCAL_RECEIPT, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.1'));
+  FptrCheck(Driver.PrintRecItem('Receipt item 1', 590, 1000, 4, 590, 'pcs'));
+  FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 40', 40, 4));
+  FptrCheck(Driver.PrintRecItem('Receipt item 2', 123, 1000, 4, 123, 'pcs'));
+  FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, '', 20, 4));
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.2'));
+  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));
+
+  ResultCode := Driver.PrintRecTotal(12345, 12345, '0');
+  CheckEquals(OPOS_E_EXTENDED, ResultCode, 'PrintRecTotal');
+  ResultCode := Driver.GetPropertyNumber(PIDX_ResultCodeExtended);
+  CheckEquals(OPOS_EFPTR_BAD_ITEM_AMOUNT, ResultCode, 'PrintRecTotal');
+
+  FptrCheck(Driver.PrintRecTotal(587.7, 587.7, '0'));
+  CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.3'));
+  FptrCheck(Driver.EndFiscalReceipt(False));
+  CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+
+  CheckEquals(Length(Lines), FPrinter.Lines.Count, 'Lines.Count');
+  for i := Low(Lines) to High(Lines) do
+  begin
+    CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
+  end;
 end;
 
 initialization
