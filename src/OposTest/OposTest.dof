@@ -80,11 +80,11 @@ UnsafeType=0
 UnsafeCode=0
 UnsafeCast=0
 [Linker]
-MapFile=3
+MapFile=0
 OutputObjs=0
 ConsoleApp=1
-DebugInfo=1
-RemoteSymbols=1
+DebugInfo=0
+RemoteSymbols=0
 MinStackSize=16384
 MaxStackSize=1048576
 ImageBase=4194304
@@ -94,7 +94,7 @@ OutputDir=..\Bin
 UnitOutputDir=DCU
 PackageDLLOutputDir=
 PackageDCPOutputDir=
-SearchPath=C:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug
+SearchPath=
 Packages=Vcl50;Vclx50;alvd5;Vclmid50;NMFast50
 Conditionals=
 DebugSourceDirs=
@@ -115,7 +115,7 @@ AutoIncBuild=1
 MajorVer=1
 MinorVer=13
 Release=0
-Build=731
+Build=3
 Debug=0
 PreRelease=0
 Special=0
@@ -126,9 +126,9 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=SHTRIH-M
 FileDescription=OPOS test utility
-FileVersion=1.13.0.731
+FileVersion=1.13.0.3
 InternalName=OPOS test
-LegalCopyright=SHTRIH-M © 2013
+LegalCopyright=SHTRIH-M © 2013 
 LegalTrademarks=
 OriginalFilename=OposTest.exe
 ProductName=OPOS drivers
@@ -143,12 +143,16 @@ Item0=DEBUG
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=1
-Item0=Barcode
+Count=4
+Item0=C:\COMPON~1\JVCL\jcl\lib\d7\debug
+Item1=c:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;$(DELPHI)\Comp\jvcl\lib\D7\debug
+Item2=$(DELPHI)\Lib\Debug;c:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;$(DELPHI)\Comp\jvcl\lib\D7\debug
+Item3=Barcode
 [HistoryLists\hlUnitOutputDirectory]
 Count=2
 Item0=DCU
 Item1=..\..\DCU
 [HistoryLists\hlOutputDirectorry]
-Count=1
-Item0=Bin
+Count=2
+Item0=..\Bin
+Item1=Bin

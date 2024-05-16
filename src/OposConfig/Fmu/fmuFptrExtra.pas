@@ -27,6 +27,7 @@ type
     edtRefundLine1: TTntEdit;
     lblRefundLine2: TTntLabel;
     edtRefundLine2: TTntEdit;
+    procedure PageModified(Sender: TObject);
   public
     procedure UpdatePage; override;
     procedure UpdateObject; override;
@@ -58,6 +59,11 @@ begin
   Parameters.OperatorPassword := seOperatorPassword.Value;
   Parameters.RefundCashoutLine1 := edtRefundLine1.Text;
   Parameters.RefundCashoutLine2 := edtRefundLine2.Text;
+end;
+
+procedure TfmFptrExtra.PageModified(Sender: TObject);
+begin
+  Modified;
 end;
 
 end.

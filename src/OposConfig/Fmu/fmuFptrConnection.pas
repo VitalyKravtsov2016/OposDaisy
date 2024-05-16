@@ -39,6 +39,7 @@ type
     memResult: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
+    procedure PageModified(Sender: TObject);
   public
     procedure UpdatePage; override;
     procedure UpdateObject; override;
@@ -89,8 +90,11 @@ end;
 procedure TfmFptrConnection.btnConnectClick(Sender: TObject);
 begin
   DisableButtons;
+  FiscalPrinter;
   try
     UpdateObject;
+    Device.SaveParams;
+
     memResult.Clear;
     Check(FiscalPrinter.Open(Device.DeviceName));
     Check(FiscalPrinter.ClaimDevice(0));
@@ -108,7 +112,13 @@ begin
     end;
   end;
   EnableButtons;
+  FiscalPrinter.Close;
   FreeFiscalPrinter;
+end;
+
+procedure TfmFptrConnection.PageModified(Sender: TObject);
+begin
+  Modified;
 end;
 
 end.

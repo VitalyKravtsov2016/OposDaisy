@@ -82,6 +82,7 @@ object fmFptrConnection: TfmFptrConnection
     Alignment = taLeftJustify
     Caption = 'Find device on all available COM ports'
     TabOrder = 8
+    OnClick = PageModified
   end
   object chbSearchByBaudRate: TTntCheckBox
     Left = 24
@@ -91,6 +92,7 @@ object fmFptrConnection: TfmFptrConnection
     Alignment = taLeftJustify
     Caption = 'Find device on all available baud rates'
     TabOrder = 7
+    OnClick = PageModified
   end
   object cbMaxRetryCount: TTntComboBox
     Left = 128
@@ -100,6 +102,7 @@ object fmFptrConnection: TfmFptrConnection
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 6
+    OnChange = PageModified
     Items.Strings = (
       'INFINITE'
       '1'
@@ -122,6 +125,7 @@ object fmFptrConnection: TfmFptrConnection
     MinValue = 0
     TabOrder = 5
     Value = 0
+    OnChange = PageModified
   end
   object cbBaudRate: TTntComboBox
     Left = 128
@@ -131,6 +135,7 @@ object fmFptrConnection: TfmFptrConnection
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 4
+    OnChange = PageModified
     Items.Strings = (
       '2400'
       '4800'
@@ -148,6 +153,7 @@ object fmFptrConnection: TfmFptrConnection
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 3
+    OnChange = PageModified
   end
   object seRemotePort: TSpinEdit
     Left = 128
@@ -158,6 +164,7 @@ object fmFptrConnection: TfmFptrConnection
     MinValue = 0
     TabOrder = 2
     Value = 0
+    OnChange = PageModified
   end
   object edtRemoteHost: TTntEdit
     Left = 128
@@ -166,6 +173,7 @@ object fmFptrConnection: TfmFptrConnection
     Height = 21
     TabOrder = 1
     Text = 'edtRemoteHost'
+    OnChange = PageModified
   end
   object cbConnectionType: TTntComboBox
     Left = 128
@@ -175,6 +183,7 @@ object fmFptrConnection: TfmFptrConnection
     Style = csDropDownList
     ItemHeight = 13
     TabOrder = 0
+    OnChange = PageModified
     Items.Strings = (
       'SERIAL'
       'SOCKET')

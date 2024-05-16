@@ -74,6 +74,7 @@ object fmFptrExtra: TfmFptrExtra
     MinValue = 0
     TabOrder = 0
     Value = 1
+    OnChange = PageModified
   end
   object seOperatorNumber: TSpinEdit
     Left = 120
@@ -84,6 +85,7 @@ object fmFptrExtra: TfmFptrExtra
     MinValue = 0
     TabOrder = 1
     Value = 0
+    OnChange = PageModified
   end
   object seOperatorPassword: TSpinEdit
     Left = 120
@@ -94,6 +96,7 @@ object fmFptrExtra: TfmFptrExtra
     MinValue = 0
     TabOrder = 2
     Value = 0
+    OnChange = PageModified
   end
   object edtRefundLine1: TTntEdit
     Left = 8
@@ -103,6 +106,7 @@ object fmFptrExtra: TfmFptrExtra
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     Text = 'edtRefundLine1'
+    OnChange = PageModified
   end
   object edtRefundLine2: TTntEdit
     Left = 8
@@ -112,5 +116,6 @@ object fmFptrExtra: TfmFptrExtra
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 4
     Text = 'edtRefundLine1'
+    OnChange = PageModified
   end
 end
