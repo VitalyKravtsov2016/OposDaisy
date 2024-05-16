@@ -69,6 +69,7 @@ type
     procedure TestCheckHealth;
 
     procedure TestRefundReceipt;
+    procedure TestRefundReceipt2;
   end;
 
 implementation
@@ -603,6 +604,66 @@ begin
   FptrCheck(Driver.PrintRecItem('Receipt item 1', 590, 1000, 4, 590, 'pcs'));
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 40', 40, 4));
   FptrCheck(Driver.PrintRecItem('Receipt item 2', 123, 1000, 4, 123, 'pcs'));
+  FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, '', 20, 4));
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.2'));
+  FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));
+
+  ResultCode := Driver.PrintRecTotal(12345, 12345, '0');
+  CheckEquals(OPOS_E_EXTENDED, ResultCode, 'PrintRecTotal');
+  ResultCode := Driver.GetPropertyNumber(PIDX_ResultCodeExtended);
+  CheckEquals(OPOS_EFPTR_BAD_ITEM_AMOUNT, ResultCode, 'PrintRecTotal');
+
+  FptrCheck(Driver.PrintRecTotal(587.7, 587.7, '0'));
+  CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.3'));
+  FptrCheck(Driver.EndFiscalReceipt(False));
+  CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+
+  CheckEquals(Length(Lines), FPrinter.Lines.Count, 'Lines.Count');
+  for i := Low(Lines) to High(Lines) do
+  begin
+    CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
+  end;
+end;
+
+procedure TDaisyFiscalPrinterTest.TestRefundReceipt2;
+var
+  i: Integer;
+  ResultCode: Integer;
+const
+  Lines: array [0..12] of string = (
+    'REFUND1',
+    'REFUND2',
+    'PrintRecMessage.1',
+    'Receipt item 1',
+    '                     590.00 x 1.000 = 590.00',
+    'Discount 40                         = -40.00',
+    'Receipt item 2',
+    '                     123.00 x 1.000 = 123.00',
+    'DISCOUNT                            = -20.00',
+    'PrintRecMessage.2',
+    'Discount 10%                        -10.00 %',
+    'TOTAL                               = 587.70',
+    'PrintRecMessage.3'
+  );
+
+
+begin
+  Params.RefundCashoutLine1 := 'REFUND1';
+  Params.RefundCashoutLine2 := 'REFUND2';
+
+  OpenClaimEnable;
+  CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
+  CheckEquals(FPTR_RT_SALES, Driver.GetPropertyNumber(PIDXFptr_FiscalReceiptType));
+
+  FptrCheck(Driver.BeginFiscalReceipt(True));
+  CheckEquals(FPTR_PS_FISCAL_RECEIPT, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+
+  FptrCheck(Driver.PrintRecMessage('PrintRecMessage.1'));
+  FptrCheck(Driver.PrintRecItemRefund('Receipt item 1', 590, 1000, 4, 590, 'pcs'));
+  FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, 'Discount 40', 40, 4));
+  FptrCheck(Driver.PrintRecItemRefund('Receipt item 2', 123, 1000, 4, 123, 'pcs'));
   FptrCheck(Driver.PrintRecItemAdjustment(FPTR_AT_AMOUNT_DISCOUNT, '', 20, 4));
   FptrCheck(Driver.PrintRecMessage('PrintRecMessage.2'));
   FptrCheck(Driver.PrintRecSubtotalAdjustment(FPTR_AT_PERCENTAGE_DISCOUNT, 'Discount 10%', 10));

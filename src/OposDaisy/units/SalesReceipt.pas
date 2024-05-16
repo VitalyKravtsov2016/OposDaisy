@@ -323,7 +323,7 @@ begin
   Data.Quantity := Quantity;
   Data.UnitName := UnitName;
   Data.UnitPrice := UnitAmount;
-  Data.Description := '';
+  Data.Description := ADescription;
   AddItem(Data);
 end;
 
