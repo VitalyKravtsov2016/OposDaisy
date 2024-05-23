@@ -60,6 +60,7 @@ type
     procedure TestFiscalReceipt6;
     procedure TestFiscalReceipt7;
     procedure TestFiscalReceipt8;
+    procedure TestFiscalReceipt9;
     procedure TestFiscalReceiptWithVAT;
     procedure TestFiscalReceiptWithAdjustments;
     procedure TestFiscalReceiptWithAdjustments2;
@@ -411,6 +412,17 @@ begin
   FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 
+procedure TDaisyFiscalPrinterTest.TestFiscalReceipt9;
+begin
+  OpenClaimEnable;
+  Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
+  FptrCheck(Driver.BeginFiscalReceipt(True));
+  FptrCheck(Driver.PrintRecItem('¿»-92', 50.01, 16560, 2, 3.02, 'Î'));
+  FptrCheck(Driver.PrintRecTotal(50.01, 50.01, '1'));
+  FptrCheck(Driver.PrintRecMessage('Operator: Cashier1'));
+  FptrCheck(Driver.PrintRecMessage('Transaction number: 16770'));
+  FptrCheck(Driver.EndFiscalReceipt(False));
+end;
 
 procedure TDaisyFiscalPrinterTest.TestFiscalReceiptWithVAT;
 begin

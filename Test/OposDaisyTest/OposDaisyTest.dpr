@@ -55,7 +55,8 @@ uses
   BaseForm in '..\..\src\Shared\BaseForm.pas',
   oleFiscalPrinter in '..\..\src\OposDaisy\units\oleFiscalPrinter.pas',
   TestDaisyPrinter in 'units\TestDaisyPrinter.pas',
-  TestPrinterPort in 'units\TestPrinterPort.pas';
+  TestPrinterPort in 'units\TestPrinterPort.pas',
+  duSalesReceipt in 'units\duSalesReceipt.pas';
 
 {$R *.RES}
 {$R ..\..\src\OposDaisy\OPOSDaisy.tlb}

@@ -526,7 +526,7 @@ begin
   for i := 0 to FRecItems.Count-1 do
   begin
     Item := TSalesItem(FRecItems[i]);
-    Result := Result + Item.GetTotal;
+    Result := Result + RoundAmount(Item.GetTotal);
   end;
   Result := Result + (Result * FAdjustmentPercent/100);
 end;
