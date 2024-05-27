@@ -122,7 +122,7 @@ AutoIncBuild=1
 MajorVer=1
 MinorVer=13
 Release=0
-Build=6
+Build=9
 Debug=0
 PreRelease=0
 Special=0
@@ -133,9 +133,9 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=SHTRIH-M
 FileDescription=DAISY FX 1300 OPOS service
-FileVersion=1.13.0.6
-InternalName=DAISY FX 1300 OPOS service 
-LegalCopyright=SHTRIH-M © 2013 
+FileVersion=1.13.0.9
+InternalName=DAISY FX 1300 OPOS service
+LegalCopyright=SHTRIH-M © 2013
 LegalTrademarks=
 OriginalFilename=OposDaisy.dll
 ProductName=DAISY FX 1300 OPOS driver
@@ -150,18 +150,12 @@ Item0=DEBUG
 Count=1
 Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
 [HistoryLists\hlSearchPath]
-Count=6
-Item0=$(DELPHI)\Lib\Debug;C:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;C:\COMPON~1\JVCL\jcl\lib\d7\debug
-Item1=$(DELPHI)\Lib\Debug;C:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;c:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;$(DELPHI)\Comp\jvcl\lib\D7\debug
-Item2=C:\COMPON~1\JVCL\jcl\lib\d7\debug
-Item3=c:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;$(DELPHI)\Comp\jvcl\lib\D7\debug
-Item4=$(DELPHI)\Lib\Debug;c:\PROGRA~2\Borland\Delphi7\Comp\jcl\lib\d7\debug;$(DELPHI)\Comp\jvcl\lib\D7\debug
-Item5=Barcode
+Count=1
+Item0=Barcode
 [HistoryLists\hlUnitOutputDirectory]
 Count=2
 Item0=DCU
 Item1=..\..\DCU
 [HistoryLists\hlOutputDirectorry]
-Count=2
-Item0=..\Bin
-Item1=Bin
+Count=1
+Item0=Bin

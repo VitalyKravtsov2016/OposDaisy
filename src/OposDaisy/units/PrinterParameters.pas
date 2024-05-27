@@ -39,7 +39,8 @@ const
   // Default values
 
   DefBaudRate = CBR_19200;
-  DefByteTimeout = 500;
+  DefByteTimeout = 500; // 500 ms
+  DefCommandTimeout = 30; // 30 seconds
   DefConnectionType = ConnectionTypeSerial;
   DefPollInterval = 0;
   DefLogFileEnabled = True;
@@ -60,9 +61,12 @@ type
   private
     FLogger: ILogFile;
     FBaudRate: Integer;
+    FByteTimeout: Integer;
+    FCommandTimeout: Integer;
     procedure SetBaudRate(const Value: Integer);
+    procedure SetByteTimeout(const Value: Integer);
+    procedure SetCommandTimeout(const Value: Integer);
   public
-    ByteTimeout: Integer;
     ConnectionType: Integer;
     PollInterval: Integer;
     LogFileEnabled: Boolean;
@@ -93,6 +97,8 @@ type
 
     property Logger: ILogFile read FLogger;
     property BaudRate: Integer read FBaudRate write SetBaudRate;
+    property ByteTimeout: Integer read FByteTimeout write SetByteTimeout;
+    property CommandTimeout: Integer read FCommandTimeout write SetCommandTimeout;
   end;
 
 implementation
@@ -117,6 +123,7 @@ begin
 
   BaudRate := DefBaudRate;
   ByteTimeout := DefByteTimeout;
+  CommandTimeout := DefCommandTimeout;
   ConnectionType := DefConnectionType;
   PollInterval := DefPollInterval;
   LogFileEnabled := DefLogFileEnabled;
@@ -241,6 +248,18 @@ function TPrinterParameters.ItemByText(
   const ParamName: WideString): WideString;
 begin
 
+end;
+
+procedure TPrinterParameters.SetByteTimeout(const Value: Integer);
+begin
+  if (Value >= 100)and(Value <= 1000) then
+    FByteTimeout := Value;
+end;
+
+procedure TPrinterParameters.SetCommandTimeout(const Value: Integer);
+begin
+  if (Value >= 1)and(Value <= 60) then
+    FCommandTimeout := Value;
 end;
 
 end.

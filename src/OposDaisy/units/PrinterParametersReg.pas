@@ -153,6 +153,9 @@ begin
       if Reg.ValueExists('ByteTimeout') then
         Parameters.ByteTimeout := Reg.ReadInteger('ByteTimeout');
 
+      if Reg.ValueExists('CommandTimeout') then
+        Parameters.CommandTimeout := Reg.ReadInteger('CommandTimeout');
+
       if Reg.ValueExists('ConnectionType') then
         Parameters.ConnectionType := Reg.ReadInteger('ConnectionType');
 
@@ -221,6 +224,7 @@ begin
     Reg.WriteString('', FiscalPrinterProgID);
     Reg.WriteInteger('BaudRate', FParameters.BaudRate);
     Reg.WriteInteger('ByteTimeout', FParameters.ByteTimeout);
+    Reg.WriteInteger('CommandTimeout', FParameters.CommandTimeout);
     Reg.WriteInteger('ConnectionType', FParameters.ConnectionType);
     Reg.WriteInteger('PollInterval', FParameters.PollInterval);
     Reg.WriteBool('LogFileEnabled', Parameters.LogFileEnabled);

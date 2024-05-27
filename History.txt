@@ -5,6 +5,14 @@
 
 *******************************************************************
 
+  OposDaisy_1.13_4.exe
+  27 May 2024
+
+  [+] Added parameter "Command timeout" in seconds. 
+      Default value is 30 seconds
+  
+*******************************************************************
+
   OposDaisy_1.13_3.exe
   23 May 2024
 

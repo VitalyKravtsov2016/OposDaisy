@@ -42,6 +42,8 @@ type
     FDiagnostic: TDFPDiagnosticInfo;
     FOnStatusUpdate: TNotifyEvent;
     FLastError: Integer;
+    FCommandTimeout: Integer;
+
     function GetConstants: TDFPConstants;
     function GetDiagnostic: TDFPDiagnosticInfo;
     function GetLastError: Integer;
@@ -53,6 +55,8 @@ type
     function GetVATRates: TDFPVATRates;
     procedure SetOnStatusUpdate(const Value: TNotifyEvent);
     procedure SetRegKeyName(const Value: WideString);
+    function GetCommandTimeout: Integer;
+    procedure SetCommandTimeout(const Value: Integer);
   public
     TxCount: Integer;
 
@@ -153,6 +157,7 @@ type
     property Constants: TDFPConstants read GetConstants;
     property Diagnostic: TDFPDiagnosticInfo read GetDiagnostic;
     property RegKeyName: WideString read GetRegKeyName write SetRegKeyName;
+    property CommandTimeout: Integer read GetCommandTimeout write SetCommandTimeout;
     property OnStatusUpdate: TNotifyEvent read GetOnStatusUpdate write SetOnStatusUpdate;
   end;
 
@@ -725,6 +730,8 @@ begin
   FPort := APort;
   FLogger := ALogger;
   FRegKeyName := 'SHTRIH-M\OposDaisy';
+  FCommandTimeout := 30;
+
   LoadParams;
 end;
 
@@ -733,6 +740,16 @@ begin
   FPort := nil;
   FLogger := nil;
   inherited Destroy;
+end;
+
+function TDaisyPrinter.GetCommandTimeout: Integer;
+begin
+  Result := FCommandTimeout;
+end;
+
+procedure TDaisyPrinter.SetCommandTimeout(const Value: Integer);
+begin
+  FCommandTimeout := Value;
 end;
 
 function TDaisyPrinter.GetConstants: TDFPConstants;
@@ -1006,19 +1023,19 @@ begin
 end;
 
 procedure TDaisyPrinter.SendCommand(const Tx: AnsiString; var RxData: AnsiString);
-var
-  B: Byte;
-  S: string;
-  i, j: Integer;
 const
   STX = $01;
   SYN = $16;
   NAK = $15;
-
-  MaxSYNCount = 50;
   MaxCommandCount = 3;
+var
+  B: Byte;
+  S: string;
+  i: Integer;
+  TickCount: Integer;
 begin
   Port.Lock;
+  TickCount := GetTickCount;
   try
     if Length(Tx) = 0 then
       raise Exception.Create(SEmptyData);
@@ -1038,7 +1055,8 @@ begin
 
       Port.Write(FTxData);
       // 01
-      for j := 1 to MaxSYNCount do
+      B := 0;
+      while True do
       begin
         B := Ord(Port.Read(1)[1]);
         Logger.Debug('<- ' + StrToHex(Chr(B)));
@@ -1050,7 +1068,7 @@ begin
           end;
           SYN:
           begin
-            if j = MaxSYNCount then
+            if ((Integer(GetTickCount)-TickCount) > (CommandTimeout * 1000)) then
               RaiseError(DFP_E_NOHARDWARE, SMaxSynReached);
 
             Sleep(100);

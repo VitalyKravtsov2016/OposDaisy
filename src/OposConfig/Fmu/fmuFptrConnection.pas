@@ -34,9 +34,10 @@ type
     edtRemoteHost: TTntEdit;
     cbConnectionType: TTntComboBox;
     lblConnectionType: TTntLabel;
-    Bevel1: TBevel;
     btnConnect: TButton;
     memResult: TMemo;
+    lblCommandTimeout: TTntLabel;
+    seCommandTimeout: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure PageModified(Sender: TObject);
@@ -64,6 +65,7 @@ begin
     cbComPort.ItemIndex := 0;
   cbBaudRate.ItemIndex := BaudRateToInt(Parameters.BaudRate);
   seByteTimeout.Value := Parameters.ByteTimeout;
+  seCommandTimeout.Value := Parameters.CommandTimeout;
   cbMaxRetryCount.ItemIndex := Parameters.MaxRetryCount;
   chbSearchByBaudRate.Checked := Parameters.SearchByBaudRateEnabled;
   chbSearchByPort.Checked := Parameters.SearchByPortEnabled;
@@ -77,6 +79,7 @@ begin
   Parameters.PortName := cbComPort.Text;
   Parameters.BaudRate := IntToBaudRate(cbBaudRate.ItemIndex);
   Parameters.ByteTimeout := seByteTimeout.Value;
+  Parameters.CommandTimeout := seCommandTimeout.Value;
   Parameters.MaxRetryCount := cbMaxRetryCount.ItemIndex;
   Parameters.SearchByBaudRateEnabled := chbSearchByBaudRate.Checked;
   Parameters.SearchByPortEnabled := chbSearchByPort.Checked;

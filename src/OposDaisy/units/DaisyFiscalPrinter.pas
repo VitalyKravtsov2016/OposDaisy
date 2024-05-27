@@ -1991,6 +1991,7 @@ begin
     begin
       FPrinter := TDaisyPrinter.Create(Port, Logger);
     end;
+    Printer.CommandTimeout := Params.CommandTimeout;
     Printer.RegKeyName := TPrinterParametersReg.GetUsrKeyName(DeviceName);
     Printer.LoadParams;
     Printer.OnStatusUpdate := PrinterStatusUpdate;

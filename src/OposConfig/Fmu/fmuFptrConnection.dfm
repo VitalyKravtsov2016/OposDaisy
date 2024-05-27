@@ -2,7 +2,7 @@ object fmFptrConnection: TfmFptrConnection
   Left = 546
   Top = 170
   Width = 287
-  Height = 446
+  Height = 487
   Caption = 'Connection'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,94 +14,93 @@ object fmFptrConnection: TfmFptrConnection
   OnCreate = FormCreate
   DesignSize = (
     271
-    408)
+    448)
   PixelsPerInch = 96
   TextHeight = 13
   object lblMaxRetryCount: TTntLabel
-    Left = 24
-    Top = 216
+    Left = 8
+    Top = 248
     Width = 74
     Height = 13
     Caption = 'Connect retries:'
   end
   object lblByteTimeout: TTntLabel
-    Left = 24
+    Left = 8
     Top = 184
     Width = 80
     Height = 13
     Caption = 'Byte timeout, ms:'
   end
   object lblBaudRate: TTntLabel
-    Left = 24
+    Left = 8
     Top = 152
     Width = 46
     Height = 13
     Caption = 'Baudrate:'
   end
   object lblComPort: TTntLabel
-    Left = 24
+    Left = 8
     Top = 120
     Width = 48
     Height = 13
     Caption = 'COM port:'
   end
   object lblRemotePort: TTntLabel
-    Left = 24
+    Left = 8
     Top = 88
     Width = 61
     Height = 13
     Caption = 'Remote port:'
   end
   object lblRemoteHost: TTntLabel
-    Left = 24
+    Left = 8
     Top = 56
     Width = 63
     Height = 13
     Caption = 'Remote host:'
   end
   object lblConnectionType: TTntLabel
-    Left = 24
+    Left = 8
     Top = 24
     Width = 80
     Height = 13
     Caption = 'Connection type:'
   end
-  object Bevel1: TBevel
+  object lblCommandTimeout: TTntLabel
     Left = 8
-    Top = 8
-    Width = 257
-    Height = 297
-    Anchors = [akLeft, akTop, akRight]
-    Shape = bsFrame
+    Top = 216
+    Width = 110
+    Height = 13
+    Caption = 'Command timeout, sec.'
   end
   object chbSearchByPort: TTntCheckBox
-    Left = 24
-    Top = 272
+    Left = 8
+    Top = 304
     Width = 233
     Height = 17
     Alignment = taLeftJustify
     Caption = 'Find device on all available COM ports'
-    TabOrder = 8
+    TabOrder = 9
     OnClick = PageModified
   end
   object chbSearchByBaudRate: TTntCheckBox
-    Left = 24
-    Top = 248
+    Left = 8
+    Top = 280
     Width = 233
     Height = 17
     Alignment = taLeftJustify
     Caption = 'Find device on all available baud rates'
-    TabOrder = 7
+    TabOrder = 8
     OnClick = PageModified
   end
   object cbMaxRetryCount: TTntComboBox
     Left = 128
-    Top = 216
+    Top = 248
     Width = 129
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    TabOrder = 6
+    TabOrder = 7
     OnChange = PageModified
     Items.Strings = (
       'INFINITE'
@@ -121,8 +120,8 @@ object fmFptrConnection: TfmFptrConnection
     Top = 184
     Width = 129
     Height = 22
-    MaxValue = 0
-    MinValue = 0
+    MaxValue = 1000
+    MinValue = 100
     TabOrder = 5
     Value = 0
     OnChange = PageModified
@@ -190,22 +189,33 @@ object fmFptrConnection: TfmFptrConnection
   end
   object btnConnect: TButton
     Left = 192
-    Top = 376
+    Top = 416
     Width = 75
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Connect'
-    TabOrder = 9
+    TabOrder = 10
     OnClick = btnConnectClick
   end
   object memResult: TMemo
     Left = 8
-    Top = 312
+    Top = 352
     Width = 257
     Height = 57
     Anchors = [akLeft, akTop, akRight]
     Color = clBtnFace
     ReadOnly = True
-    TabOrder = 10
+    TabOrder = 11
+  end
+  object seCommandTimeout: TSpinEdit
+    Left = 128
+    Top = 216
+    Width = 129
+    Height = 22
+    MaxValue = 100
+    MinValue = 1
+    TabOrder = 6
+    Value = 0
+    OnChange = PageModified
   end
 end

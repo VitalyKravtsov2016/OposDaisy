@@ -513,6 +513,8 @@ type
     function GetVATRates: TDFPVATRates;
     procedure SetOnStatusUpdate(const Value: TNotifyEvent);
     procedure SetRegKeyName(const Value: WideString);
+    function GetCommandTimeout: Integer;
+    procedure SetCommandTimeout(const Value: Integer);
 
     procedure Lock;
     procedure Unlock;
@@ -606,6 +608,7 @@ type
     property Constants: TDFPConstants read GetConstants;
     property Diagnostic: TDFPDiagnosticInfo read GetDiagnostic;
     property RegKeyName: WideString read GetRegKeyName write SetRegKeyName;
+    property CommandTimeout: Integer read GetCommandTimeout write SetCommandTimeout;
     property OnStatusUpdate: TNotifyEvent read GetOnStatusUpdate write SetOnStatusUpdate;
   end;
 
