@@ -12,7 +12,7 @@ unit OposDaisyLib_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 04.06.2024 14:07:18 from Type Library described below.
+// File generated on 04.06.2024 17:35:30 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: C:\projects\OposDaisy\src\OposDaisy\OposDaisy.tlb (1)

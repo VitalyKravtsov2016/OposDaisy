@@ -5,7 +5,7 @@
 
 *******************************************************************
 
-  OposDaisy_1.13_5.exe
+  OposDaisy_1.13_6.exe
   4 June 2024
 
   [+] Added command retries

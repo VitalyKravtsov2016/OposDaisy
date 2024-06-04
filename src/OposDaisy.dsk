@@ -1,14 +1,14 @@
 [Closed Files]
-File_0=SourceModule,'c:\program files (x86)\borland\delphi7\Comp\FastMM\FastMM4.pas',0,1,1,1,1,0,0
-File_1=SourceModule,'C:\projects\OposDaisy\Test\OposDaisyTest\units\TestDaisyPrinter.pas',0,1,1,25,5,0,0
-File_2=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinterInterface.pas',0,1,488,1,517,0,0
-File_3=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas',0,1,1007,28,1022,0,0
-File_4=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',0,1,2033,25,2044,0,0
-File_5=SourceModule,'C:\projects\OposDaisy\src\Shared\SerialPort.pas',0,1,63,1,85,0,0
-File_6=SourceModule,'C:\projects\OposDaisy\src\Opos\Opos.pas',0,1,136,22,155,0,0
-File_7=SourceModule,'D:\projects\OposDaisy\Test\OposDaisyTest\units\duDaisyFiscalPrinter.pas',0,1,403,3,418,0,0
-File_8=SourceModule,'D:\projects\OposDaisy\Test\OposDaisyTest\units\duSalesReceipt.pas',0,1,22,2,36,0,0
-File_9=SourceModule,'D:\projects\OposDaisy\src\OposDaisy\units\SalesReceipt.pas',0,1,511,49,528,0,0
+File_0=SourceModule,'C:\projects\OposDaisy\Test\OposDaisyTest\units\duDaisyFiscalPrinter.pas',0,1,167,42,176,0,0
+File_1=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\oleFiscalPrinter.pas',0,1,1,34,11,0,0
+File_2=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',0,1,1236,1,1239,0,0
+File_3=SourceModule,'C:\projects\OposDaisy\src\Opos\Oposhi.pas',0,1,1,1,1,0,0
+File_4=SourceModule,'C:\projects\OposDaisy\src\Opos\OposFptrhi.pas',0,1,149,23,168,0,0
+File_5=SourceModule,'C:\projects\OposDaisy\Test\OposDaisyTest\units\TestDaisyPrinter.pas',0,1,1,45,11,0,0
+File_6=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinterInterface.pas',0,1,1,22,7,0,0
+File_7=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas',0,1,1,1,15,0,0
+File_8=SourceModule,'C:\projects\OposDaisy\src\Opos\Opos.pas',0,1,136,22,155,0,0
+File_9=SourceModule,'c:\program files (x86)\borland\delphi7\Comp\FastMM\FastMM4.pas',0,1,1,1,1,0,0
 
 [Modules]
 Count=0
@@ -20,6 +20,10 @@ FormState=0
 FormOnTop=0
 
 [C:\projects\OposDaisy\Test\OposDaisyTest\OposDaisyTest.dpr]
+FormState=0
+FormOnTop=0
+
+[C:\projects\OposDaisy\Test\AcceptanceTest\AcceptanceTest.dpr]
 FormState=0
 FormOnTop=0
 
@@ -40,10 +44,6 @@ FormState=0
 FormOnTop=0
 
 [C:\projects\OposDaisy\src\OposDaisy\OposDaisy.tlb]
-FormState=0
-FormOnTop=0
-
-[C:\projects\OposDaisy\Test\AcceptanceTest\AcceptanceTest.dpr]
 FormState=0
 FormOnTop=0
 
@@ -96,8 +96,8 @@ Left=268
 Top=225
 Width=1652
 Height=122
-MaxLeft=-1
-MaxTop=-1
+MaxLeft=-8
+MaxTop=-8
 MaxWidth=1936
 MaxHeight=122
 ClientWidth=1920
