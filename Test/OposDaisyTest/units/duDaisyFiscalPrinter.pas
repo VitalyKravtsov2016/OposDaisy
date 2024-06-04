@@ -68,9 +68,9 @@ type
     procedure TestSetHeaderLine;
     procedure TestSetHeaderLine2;
     procedure TestCheckHealth;
-
     procedure TestRefundReceipt;
     procedure TestRefundReceipt2;
+    procedure TestPowerState;
   end;
 
 implementation
@@ -176,12 +176,14 @@ var
 begin
   if Driver.GetPropertyNumber(PIDX_DeviceEnabled) = 0 then
   begin
+    CheckEquals(OPOS_PS_UNKNOWN, Driver.GetPropertyNumber(PIDX_PowerState), 'OPOS_PS_UNKNOWN');
     Driver.SetPropertyNumber(PIDX_DeviceEnabled, 1);
     ResultCode := Driver.GetPropertyNumber(PIDX_ResultCode);
     FptrCheck(ResultCode);
 
     CheckEquals(OPOS_SUCCESS, ResultCode, 'OPOS_SUCCESS');
     CheckEquals(1, Driver.GetPropertyNumber(PIDX_DeviceEnabled), 'DeviceEnabled');
+    CheckEquals(OPOS_PS_ONLINE, Driver.GetPropertyNumber(PIDX_PowerState), 'OPOS_PS_ONLINE');
   end;
 end;
 
@@ -696,6 +698,17 @@ begin
   begin
     CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
   end;
+end;
+
+procedure TDaisyFiscalPrinterTest.TestPowerState;
+begin
+  OpenClaimEnable;
+  FPrinter.IsOnline := False;
+  CheckEquals(OPOS_E_NOHARDWARE, Driver.PrintXReport, 'OPOS_E_NOHARDWARE.0');
+  CheckEquals(OPOS_E_NOHARDWARE, Driver.GetPropertyNumber(PIDX_ResultCode), 'OPOS_E_NOHARDWARE.1');
+  CheckEquals(0, Driver.GetPropertyNumber(PIDX_ResultCodeExtended), 'PIDX_ResultCodeExtended');
+  CheckEquals('No connection to device', Driver.GetPropertyString(PIDXFptr_ErrorString), 'PIDXFptr_ErrorString');
+  CheckEquals(OPOS_PS_OFF_OFFLINE, Driver.GetPropertyNumber(PIDX_PowerState), 'OPOS_PS_OFF_OFFLINE');
 end;
 
 initialization

@@ -1,6 +1,7 @@
 Library OposDaisyTestLib;
 
 uses
+  FastMM4, 
   SysUtils,
   TestFramework,
   GUITestRunner,
@@ -32,9 +33,34 @@ uses
   DriverError in '..\..\src\Shared\DriverError.pas',
   DebugUtils in '..\..\src\Shared\DebugUtils.pas',
   DaisyPrinter in '..\..\src\OposDaisy\units\DaisyPrinter.pas',
-  DaisyPrinterInterface in '..\..\src\OposDaisy\units\DaisyPrinterInterface.pas';
+  DaisyPrinterInterface in '..\..\src\OposDaisy\units\DaisyPrinterInterface.pas',
+  duDaisyFiscalPrinter in 'units\duDaisyFiscalPrinter.pas',
+  DaisyFiscalPrinter in '..\..\src\OposDaisy\units\DaisyFiscalPrinter.pas',
+  OPOSDaisyLib_TLB in '..\..\src\OposDaisy\OPOSDaisyLib_TLB.pas',
+  OposEventsRCS in '..\..\src\Opos\OposEventsRCS.pas',
+  VersionInfo in '..\..\src\Shared\VersionInfo.pas',
+  FiscalPrinterState in '..\..\src\OposDaisy\units\FiscalPrinterState.pas',
+  ServiceVersion in '..\..\src\Shared\ServiceVersion.pas',
+  DeviceService in '..\..\src\Shared\DeviceService.pas',
+  PrinterParameters in '..\..\src\OposDaisy\units\PrinterParameters.pas',
+  PrinterParametersX in '..\..\src\OposDaisy\units\PrinterParametersX.pas',
+  PrinterParametersReg in '..\..\src\OposDaisy\units\PrinterParametersReg.pas',
+  CashReceipt in '..\..\src\OposDaisy\units\CashReceipt.pas',
+  FiscalReceipt in '..\..\src\OposDaisy\units\FiscalReceipt.pas',
+  SalesReceipt in '..\..\src\OposDaisy\units\SalesReceipt.pas',
+  ReceiptItem in '..\..\src\OposDaisy\units\ReceiptItem.pas',
+  MathUtils in '..\..\src\OposDaisy\units\MathUtils.pas',
+  PrinterTypes in '..\..\src\Shared\PrinterTypes.pas',
+  DirectIOAPI in '..\..\src\OposDaisy\units\DirectIOAPI.pas',
+  fmuLogo in '..\..\src\OposDaisy\Fmu\fmuLogo.pas' {fmLogo},
+  BaseForm in '..\..\src\Shared\BaseForm.pas',
+  oleFiscalPrinter in '..\..\src\OposDaisy\units\oleFiscalPrinter.pas',
+  TestDaisyPrinter in 'units\TestDaisyPrinter.pas',
+  TestPrinterPort in 'units\TestPrinterPort.pas',
+  duSalesReceipt in 'units\duSalesReceipt.pas';
 
 {$R *.RES}
+{$R ..\..\src\OposDaisy\OPOSDaisy.tlb}
 
 exports
   RegisteredTests name 'Test';

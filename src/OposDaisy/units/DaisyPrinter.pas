@@ -57,6 +57,8 @@ type
     procedure SetRegKeyName(const Value: WideString);
     function GetCommandTimeout: Integer;
     procedure SetCommandTimeout(const Value: Integer);
+    function DoSend(const TxData: AnsiString;
+      var RxData: AnsiString): Integer;
   public
     TxCount: Integer;
 
@@ -477,6 +479,46 @@ begin
   end;
 end;
 
+
+function CanRepeatCommand(Code: Integer): Boolean;
+begin
+  Result := False;
+  case Code of
+    $3D, // Set date and time
+    $2B, // Header and print options
+    $60, // Write tax rates
+    $65, // Operator password
+    $66, // Operator name
+    $96, // Set System parameters
+    $83, // Program departments
+    $73, // Write logo
+    $95, // Set text field
+    $97, // Set payments
+    $5B, // Set MRC
+    $62, // Set TIN
+    // INFORMATION
+    $3E, // Date and time information
+    $4A, // Read status
+    $41, // Current net / total sums
+    $40, // Final fiscal record
+    $44, // Free fiscal records
+    $4C, // Status of fiscal receipt
+    $5A, // Diagnostic information
+    $61, // Current tax rates
+    $63, // Information for TIN
+    $6B, // Information for PLU
+    $67, // Information for the receipt
+    $6E, // Information for the day
+    $70, // Information for operator
+    $71, // Number of last documents
+    $72, // Information from FM by number
+    $92, // Information from FM by date
+    $80, // Receiving constant values
+    $47, // Print diagnostic information
+    $B1: // Read EJT
+      Result := True;
+  end;
+end;
 
 function StrToDouble(const S: AnsiString): Double;
 var
@@ -962,24 +1004,31 @@ begin
   Result := Send(TxData, RxData);
 end;
 
-(*
 function TDaisyPrinter.Send(const TxData: AnsiString; var RxData: AnsiString): Integer;
+var
+  i: Integer;
+  CommandCode: Byte;
+const
+  MaxRepeatCount = 3;
 begin
-  try
-    SendCommand(TxData, RxData);
-    Result := CheckStatus;
-  except
-    on E: Exception do
-      Result := HandleException(E);
-  end;
-  if Failed(Result) then
+  Result := 0;
+  CommandCode := Ord(TxData[1]);
+  for i := 1 to MaxRepeatCount do
   begin
-    Logger.Error(GetErrorText(Result));
+    try
+      Result := DoSend(TxData, RxData);
+      Break;
+    except
+      on E: Exception do
+      begin
+        if (not CanRepeatCommand(CommandCode)) or (i=MaxRepeatCount) then
+          raise;
+      end;
+    end;
   end;
 end;
-*)
 
-function TDaisyPrinter.Send(const TxData: AnsiString; var RxData: AnsiString): Integer;
+function TDaisyPrinter.DoSend(const TxData: AnsiString; var RxData: AnsiString): Integer;
 var
   TickCount: Integer;
   TimeText: AnsiString;
@@ -1006,7 +1055,7 @@ begin
     begin
       TimeText := Format(' (time=%d ms)', [Integer(GetTickCount) - TickCount]);
       Logger.Error(E.Message + TimeText);
-      raise;
+      raise EConnectionError.Create(E.Message);
     end;
   end;
   Logger.Debug(Logger.Separator);
@@ -1075,7 +1124,7 @@ begin
             Continue;
           end;
         else
-          RaiseError(DFP_E_NOHARDWARE, SNoHardware);
+          // RaiseError(DFP_E_NOHARDWARE, SNoHardware); !!!
         end;
       end;
       if B = NAK then Continue;

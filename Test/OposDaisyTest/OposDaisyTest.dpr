@@ -1,6 +1,7 @@
 program OposDaisyTest;
 
 uses
+  FastMM4, 
   SysUtils,
   TestFramework,
   GUITestRunner,

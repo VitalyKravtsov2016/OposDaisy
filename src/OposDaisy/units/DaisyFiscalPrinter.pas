@@ -2062,6 +2062,17 @@ var
   DriverError: EDriverError;
   OPOSException: EOPOSException;
 begin
+  if E is EConnectionError then
+  begin
+    FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
+    OPOSError.ResultCode := OPOS_E_NOHARDWARE;
+    OPOSError.ErrorString := E.Message;
+    OPOSError.ResultCodeExtended := 0;
+    FOposDevice.HandleException(OPOSError);
+    Result := OPOSError.ResultCode;
+    Exit;
+  end;
+
   if E is EDriverError then
   begin
     DriverError := E as EDriverError;
@@ -2135,7 +2146,7 @@ begin
       StartDeviceThread;
     end else
     begin
-      FOposDevice.PowerState := OPOS_PS_OFF_OFFLINE;
+      FOposDevice.PowerState := OPOS_PS_UNKNOWN;
       StopDeviceThread;
       Printer.Disconnect;
     end;

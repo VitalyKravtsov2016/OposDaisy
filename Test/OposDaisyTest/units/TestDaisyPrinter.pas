@@ -15,12 +15,14 @@ type
 
   TTestDaisyPrinter = class(TInterfacedObject, IDaisyPrinter)
   private
+    FIsOnline: Boolean;
     FLogger: ILogFile;
     FPort: IPrinterPort;
     FLines: TTntStrings;
     FVATRates: TDFPVATRates;
     FConstants: TDFPConstants;
     FDiagnostic: TDFPDiagnosticInfo;
+    procedure CheckOnline;
   public
     constructor Create(APort: IPrinterPort; ALogger: ILogFile);
     destructor Destroy; override;
@@ -120,12 +122,15 @@ type
     function ReadDayStatus(var R: TDFPDayStatus): Integer;
     function ReadLastDocNo(var DocNo: Integer): Integer;
     function WriteFiscalNumber(const FiscalNumber: AnsiString): Integer;
+    function GetCommandTimeout: Integer;
+    procedure SetCommandTimeout(const Value: Integer);
 
     property Lines: TTntStrings read FLines;
     property Status: TDaisyStatus read GetStatus;
     property LastError: Integer read GetLastError;
     property VATRates: TDFPVATRates read GetVATRates;
     property Constants: TDFPConstants read GetConstants;
+    property IsOnline: Boolean read FIsOnline write FIsOnline;
     property Diagnostic: TDFPDiagnosticInfo read GetDiagnostic;
     property RegKeyName: WideString read GetRegKeyName write SetRegKeyName;
     property OnStatusUpdate: TNotifyEvent read GetOnStatusUpdate write SetOnStatusUpdate;
@@ -142,6 +147,7 @@ begin
   FPort := APort;
   FLogger := ALogger;
 
+  FIsOnline := True;
   FConstants.MaxLogoWidth := 576;
   FConstants.MaxLogoHeight := 144;
   FConstants.NumPaymentTypes := 5;
@@ -642,12 +648,29 @@ end;
 
 function TTestDaisyPrinter.XReport(var R: TDFPReportAnswer): Integer;
 begin
+  CheckOnline;
   Result := 0;
 end;
 
 function TTestDaisyPrinter.ZReport(var R: TDFPReportAnswer): Integer;
 begin
   Result := 0;
+end;
+
+function TTestDaisyPrinter.GetCommandTimeout: Integer;
+begin
+  Result := 0;
+end;
+
+procedure TTestDaisyPrinter.SetCommandTimeout(const Value: Integer);
+begin
+
+end;
+
+procedure TTestDaisyPrinter.CheckOnline;
+begin
+  if not IsOnline then
+    raise EConnectionError.Create('No connection to device');
 end;
 
 end.

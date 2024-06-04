@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  Classes, Graphics,
+  Classes, SysUtils, Graphics,
   // This
   LogFile, PrinterPort;
 
@@ -199,6 +199,10 @@ const
   SInvalidAnswer = 'Invalid answer';
 
 type
+  { EConnectionError }
+
+  EConnectionError = class(Exception);
+
   { TDFPDayStatus }
 
   TDFPDayStatus = record
