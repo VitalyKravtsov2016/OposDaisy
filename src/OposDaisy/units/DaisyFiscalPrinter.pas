@@ -117,7 +117,6 @@ type
     FRecEmpty: Boolean;
     FAmountDecimalPlaces: Integer;
     // boolean
-    FDayOpened: Boolean;
     FAsyncMode: Boolean;
     FDuplicateReceipt: Boolean;
     FFlagWhenIdle: Boolean;
@@ -486,7 +485,6 @@ begin
   FAmountDecimalPlaces := 2;
   FDescriptionLength := 0; { !!! }
   FMessageLength := 0; { !!! }
-  FDayOpened := False;
   FAsyncMode := False;
   FDuplicateReceipt := False;
   FFlagWhenIdle := False;
@@ -572,7 +570,8 @@ begin
     StopDeviceThread;
     FReceipt := CreateReceipt(FFiscalReceiptType);
     FReceipt.BeginFiscalReceipt(PrintHeader);
-    FDayOpened := True;
+    Params.DayOpened := True;
+    SaveUsrParameters(Params, FOposDevice.DeviceName, Logger);
     Result := ClearResult;
   except
     on E: Exception do
@@ -1050,7 +1049,7 @@ begin
       PIDXFptr_CheckTotal             : Result := BoolToInt[FCheckTotal];
       PIDXFptr_CountryCode            : Result := FCountryCode;
       PIDXFptr_CoverOpen              : Result := BoolToInt[False];
-      PIDXFptr_DayOpened              : Result := BoolToInt[FDayOpened];
+      PIDXFptr_DayOpened              : Result := BoolToInt[Params.DayOpened];
       PIDXFptr_DescriptionLength      : Result := FDescriptionLength;
       PIDXFptr_DuplicateReceipt       : Result := BoolToInt[FDuplicateReceipt];
       PIDXFptr_ErrorLevel             : Result := FErrorLevel;
@@ -1669,7 +1668,8 @@ begin
     SetPrinterState(FPTR_PS_REPORT);
     try
       Printer.Check(Printer.ZReport(R));
-      FDayOpened := False;
+      Params.DayOpened := False;
+      SaveUsrParameters(Params, FOposDevice.DeviceName, Logger);
     finally
       SetPrinterState(FPTR_PS_MONITOR);
     end;
@@ -1981,7 +1981,6 @@ begin
     begin
       LoadParameters(FParams, DeviceName, FLogger);
     end;
-
     Logger.MaxCount := FParams.LogMaxCount;
     Logger.Enabled := FParams.LogFileEnabled;
     Logger.FilePath := FParams.LogFilePath;

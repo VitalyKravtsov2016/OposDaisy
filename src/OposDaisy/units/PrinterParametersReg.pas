@@ -27,6 +27,7 @@ type
   public
     constructor Create(AParameters: TPrinterParameters; ALogger: ILogFile);
 
+
     procedure Load(const DeviceName: WideString);
     procedure Save(const DeviceName: WideString);
     class function GetUsrKeyName(const DeviceName: WideString): WideString;
@@ -36,6 +37,8 @@ type
   end;
 
 procedure DeleteParametersReg(const DeviceName: WideString; Logger: ILogFile);
+procedure DeleteUsrParametersReg(const DeviceName: WideString; Logger: ILogFile);
+
 procedure LoadParametersReg(Item: TPrinterParameters; const DeviceName: WideString;
   Logger: ILogFile);
 
@@ -63,6 +66,20 @@ begin
       Logger.Error('TPrinterParametersReg.Save', E);
   end;
   Reg.Free;
+end;
+
+procedure DeleteUsrParametersReg(const DeviceName: WideString; Logger: ILogFile);
+var
+  Reg: TTntRegistry;
+begin
+  Reg := TTntRegistry.Create;
+  try
+    Reg.Access := KEY_ALL_ACCESS;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    Reg.DeleteKey(TPrinterParametersReg.GetUsrKeyName(DeviceName));
+  finally
+    Reg.Free;
+  end;
 end;
 
 procedure LoadParametersReg(Item: TPrinterParameters; const DeviceName: WideString;
@@ -253,11 +270,46 @@ begin
 end;
 
 procedure TPrinterParametersReg.LoadUsrParameters(const DeviceName: WideString);
+var
+  Reg: TTntRegistry;
+  KeyName: WideString;
 begin
+  Reg := TTntRegistry.Create;
+  try
+    Reg.Access := KEY_READ;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    KeyName := GetUsrKeyName(DeviceName);
+    if Reg.OpenKey(KeyName, False) then
+    begin
+      if Reg.ValueExists('DayOpened') then
+      begin
+        Parameters.DayOpened := Reg.ReadBool('DayOpened');
+      end;
+    end;
+    Reg.CloseKey;
+  finally
+    Reg.Free;
+  end;
 end;
 
 procedure TPrinterParametersReg.SaveUsrParameters(const DeviceName: WideString);
+var
+  Reg: TTntRegistry;
+  KeyName: WideString;
 begin
+  Reg := TTntRegistry.Create;
+  try
+    Reg.Access := KEY_ALL_ACCESS;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    KeyName := GetUsrKeyName(DeviceName);
+    if Reg.OpenKey(KeyName, True) then
+    begin
+      Reg.WriteBool('DayOpened', Parameters.DayOpened);
+    end;
+    Reg.CloseKey;
+  finally
+    Reg.Free;
+  end;
 end;
 
 end.

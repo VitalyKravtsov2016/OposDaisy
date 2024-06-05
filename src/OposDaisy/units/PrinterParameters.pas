@@ -82,6 +82,7 @@ type
     SearchByPortEnabled: Boolean;
     RefundCashoutLine1: WideString;
     RefundCashoutLine2: WideString;
+    DayOpened: Boolean;
 
     constructor Create(ALogger: ILogFile);
     destructor Destroy; override;
@@ -139,6 +140,7 @@ begin
   SearchByPortEnabled := DefSearchByPortEnabled;
   RefundCashoutLine1 := 'REFUND';
   RefundCashoutLine2 := '';
+  DayOpened := True;
 end;
 
 procedure TPrinterParameters.LogText(const Caption, Text: WideString);

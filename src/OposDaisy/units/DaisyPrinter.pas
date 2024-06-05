@@ -773,8 +773,6 @@ begin
   FLogger := ALogger;
   FRegKeyName := 'SHTRIH-M\OposDaisy';
   FCommandTimeout := 30;
-
-  LoadParams;
 end;
 
 destructor TDaisyPrinter.Destroy;
@@ -891,7 +889,7 @@ begin
   try
     Reg.Access := KEY_READ;
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey(RegKeyName, True) then
+    if Reg.OpenKey(RegKeyName, False) then
     begin
       TxCount := Reg.ReadInteger('FrameNumber');
     end;

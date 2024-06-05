@@ -5,6 +5,17 @@
 
 *******************************************************************
 
+  OposDaisy_1.13_7.exe
+  5 June 2024
+
+  [-] Changed DayOpened property behavior
+      DayOpened is True on driver start if no previous value stored in registry.
+      DayOpened sets to True after successful beginFiscalReceipt method call.
+      DayOpened sets to False after successful printZReport method call.
+      Driver will keep DayOpened value after reopen.
+  
+*******************************************************************
+
   OposDaisy_1.13_6.exe
   4 June 2024
 

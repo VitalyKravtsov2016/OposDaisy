@@ -14,18 +14,20 @@ uses
   // This
   LogFile, DaisyFiscalPrinter, DaisyPrinter, SerialPort, FileUtils,
   oleFiscalPrinter, StringUtils, PrinterParameters, DirectIOAPI,
-  PrinterPort, TestDaisyPrinter, TestPrinterPort, DaisyPrinterInterface;
+  PrinterPort, TestDaisyPrinter, TestPrinterPort, DaisyPrinterInterface,
+  PrinterParametersReg;
 
 const
   CRLF = #13#10;
+  DeviceName = 'DeviceName';
 
 type
   { TDaisyFiscalPrinterTest }
 
   TDaisyFiscalPrinterTest = class(TTestCase)
   private
-    FPrintHeader: Boolean;
     FPort: IPrinterPort;
+    FPrintHeader: Boolean;
     FPrinter: TTestDaisyPrinter;
     Driver: ToleFiscalPrinter;
 
@@ -71,6 +73,7 @@ type
     procedure TestRefundReceipt;
     procedure TestRefundReceipt2;
     procedure TestPowerState;
+    procedure TestDayOpened;
   end;
 
 implementation
@@ -150,7 +153,7 @@ procedure TDaisyFiscalPrinterTest.OpenService;
 begin
   if Driver.GetPropertyNumber(PIDX_State) = OPOS_S_CLOSED then
   begin
-    FptrCheck(Driver.OpenService(OPOS_CLASSKEY_FPTR, 'DeviceName', nil));
+    FptrCheck(Driver.OpenService(OPOS_CLASSKEY_FPTR, DeviceName, nil));
     if Driver.GetPropertyNumber(PIDX_CapPowerReporting) <> 0 then
     begin
       Driver.SetPropertyNumber(PIDX_PowerNotify, OPOS_PN_ENABLED);
@@ -710,6 +713,25 @@ begin
   CheckEquals('No connection to device', Driver.GetPropertyString(PIDXFptr_ErrorString), 'PIDXFptr_ErrorString');
   CheckEquals(OPOS_PS_OFF_OFFLINE, Driver.GetPropertyNumber(PIDX_PowerState), 'OPOS_PS_OFF_OFFLINE');
 end;
+
+procedure TDaisyFiscalPrinterTest.TestDayOpened;
+begin
+  DeleteUsrParametersReg(DeviceName, Driver.Logger);
+
+  OpenClaimEnable;
+  CheckEquals(1, Driver.GetPropertyNumber(PIDXFptr_DayOpened), 'DayOpened.0');
+  FptrCheck(Driver.PrintZReport, 'PrintZReport');
+  CheckEquals(0, Driver.GetPropertyNumber(PIDXFptr_DayOpened), 'DayOpened.1');
+  FptrCheck(Driver.Close, 'Close');
+  OpenClaimEnable;
+  CheckEquals(0, Driver.GetPropertyNumber(PIDXFptr_DayOpened), 'DayOpened.2');
+  TestFiscalReceipt;
+  CheckEquals(1, Driver.GetPropertyNumber(PIDXFptr_DayOpened), 'DayOpened.3');
+  FptrCheck(Driver.Close, 'Close');
+  OpenClaimEnable;
+  CheckEquals(1, Driver.GetPropertyNumber(PIDXFptr_DayOpened), 'DayOpened.4');
+end;
+
 
 initialization
   RegisterTest('', TDaisyFiscalPrinterTest.Suite);
