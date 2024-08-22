@@ -5,6 +5,14 @@
 
 *******************************************************************
 
+  OposDaisy_1.13_8.exe
+  22 August 2024
+
+  [-] Changed refund receipt. Fist cashout will be made, 
+      then nonfiscal receipt printed
+  
+*******************************************************************
+
   OposDaisy_1.13_7.exe
   5 June 2024
 

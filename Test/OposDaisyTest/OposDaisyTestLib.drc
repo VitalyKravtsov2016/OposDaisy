@@ -105,7 +105,7 @@
 #define IdResourceStrings_RSStackENOTSOCK 65213
 #define IdResourceStrings_RSStackEDESTADDRREQ 65214
 #define IdResourceStrings_RSStackEMSGSIZE 65215
-#define TntSystem_SInvalidUTF7 65216
+#define WinHelpViewer_hNoKeyword 65216
 #define DBConsts_SBcdOverflow 65217
 #define DBConsts_SInvalidBcdValue 65218
 #define DBConsts_SCouldNotParseTimeStamp 65219
@@ -121,166 +121,166 @@
 #define IdResourceStrings_RSStatusResolving 65229
 #define IdResourceStrings_RSStatusConnecting 65230
 #define IdResourceStrings_RSStatusConnected 65231
-#define ComConst_SCreateRegKeyError 65232
-#define ComConst_SOleError 65233
-#define ComConst_SObjectFactoryMissing 65234
-#define ComConst_STypeInfoMissing 65235
-#define ComConst_SBadTypeInfo 65236
-#define ComConst_SDispIntfMissing 65237
-#define ComConst_SNoMethod 65238
-#define ComConst_SVarNotObject 65239
-#define ComConst_STooManyParams 65240
-#define ComConst_SDCOMNotInstalled 65241
-#define ComConst_SDAXError 65242
-#define ComConst_SAutomationWarning 65243
-#define ComConst_SNoCloseActiveServer1 65244
-#define ComConst_SNoCloseActiveServer2 65245
-#define TntFormatStrUtils_SInvalidFormatSpecifier 65246
-#define TntSystem_SBufferOverflow 65247
-#define ExtCtrls_clNameInactiveCaption 65248
-#define ExtCtrls_clNameInactiveCaptionText 65249
-#define ExtCtrls_clNameInfoBk 65250
-#define ExtCtrls_clNameInfoText 65251
-#define ExtCtrls_clNameMenu 65252
-#define ExtCtrls_clNameMenuText 65253
-#define ExtCtrls_clNameNone 65254
-#define ExtCtrls_clNameScrollBar 65255
-#define ExtCtrls_clName3DDkShadow 65256
-#define ExtCtrls_clName3DLight 65257
-#define ExtCtrls_clNameWindow 65258
-#define ExtCtrls_clNameWindowFrame 65259
-#define ExtCtrls_clNameWindowText 65260
-#define ComStrs_sInvalidOwner 65261
-#define ComStrs_sInvalidComCtl32 65262
-#define WinHelpViewer_hNoKeyword 65263
-#define ExtCtrls_clNameCream 65264
-#define ExtCtrls_clNameMedGray 65265
-#define ExtCtrls_clNameActiveBorder 65266
-#define ExtCtrls_clNameActiveCaption 65267
-#define ExtCtrls_clNameAppWorkSpace 65268
-#define ExtCtrls_clNameBackground 65269
-#define ExtCtrls_clNameBtnFace 65270
-#define ExtCtrls_clNameBtnHighlight 65271
-#define ExtCtrls_clNameBtnShadow 65272
-#define ExtCtrls_clNameBtnText 65273
-#define ExtCtrls_clNameCaptionText 65274
-#define ExtCtrls_clNameDefault 65275
-#define ExtCtrls_clNameGrayText 65276
-#define ExtCtrls_clNameHighlight 65277
-#define ExtCtrls_clNameHighlightText 65278
-#define ExtCtrls_clNameInactiveBorder 65279
-#define ExtCtrls_clNameGreen 65280
-#define ExtCtrls_clNameOlive 65281
-#define ExtCtrls_clNameNavy 65282
-#define ExtCtrls_clNamePurple 65283
-#define ExtCtrls_clNameTeal 65284
-#define ExtCtrls_clNameGray 65285
-#define ExtCtrls_clNameSilver 65286
-#define ExtCtrls_clNameRed 65287
-#define ExtCtrls_clNameLime 65288
-#define ExtCtrls_clNameYellow 65289
-#define ExtCtrls_clNameBlue 65290
-#define ExtCtrls_clNameFuchsia 65291
-#define ExtCtrls_clNameAqua 65292
-#define ExtCtrls_clNameWhite 65293
-#define ExtCtrls_clNameMoneyGreen 65294
-#define ExtCtrls_clNameSkyBlue 65295
-#define Consts_SIconToClipboard 65296
-#define Consts_SDuplicateMenus 65297
-#define Consts_SPictureLabel 65298
-#define Consts_SPictureDesc 65299
-#define Consts_SPreviewLabel 65300
-#define Consts_SDockedCtlNeedsName 65301
-#define Consts_SDockTreeRemoveError 65302
-#define Consts_SDockZoneNotFound 65303
-#define Consts_SDockZoneHasNoCtl 65304
-#define Consts_SNoGetItemEventHandler 65305
-#define HelpIntfs_hNoTableOfContents 65306
-#define HelpIntfs_hNothingFound 65307
-#define HelpIntfs_hNoContext 65308
-#define HelpIntfs_hNoTopics 65309
-#define ExtCtrls_clNameBlack 65310
-#define ExtCtrls_clNameMaroon 65311
-#define Consts_SmkcSpace 65312
-#define Consts_SmkcPgUp 65313
-#define Consts_SmkcPgDn 65314
-#define Consts_SmkcEnd 65315
-#define Consts_SmkcHome 65316
-#define Consts_SmkcLeft 65317
-#define Consts_SmkcUp 65318
-#define Consts_SmkcRight 65319
-#define Consts_SmkcDown 65320
-#define Consts_SmkcIns 65321
-#define Consts_SmkcDel 65322
-#define Consts_SmkcShift 65323
-#define Consts_SmkcCtrl 65324
-#define Consts_SmkcAlt 65325
-#define Consts_srNone 65326
-#define Consts_sAllFilter 65327
-#define Consts_SMsgDlgConfirm 65328
-#define Consts_SMsgDlgYes 65329
-#define Consts_SMsgDlgNo 65330
-#define Consts_SMsgDlgOK 65331
-#define Consts_SMsgDlgCancel 65332
-#define Consts_SMsgDlgHelp 65333
-#define Consts_SMsgDlgAbort 65334
-#define Consts_SMsgDlgRetry 65335
-#define Consts_SMsgDlgIgnore 65336
-#define Consts_SMsgDlgAll 65337
-#define Consts_SMsgDlgNoToAll 65338
-#define Consts_SMsgDlgYesToAll 65339
-#define Consts_SmkcBkSp 65340
-#define Consts_SmkcTab 65341
-#define Consts_SmkcEsc 65342
-#define Consts_SmkcEnter 65343
-#define Consts_SYesButton 65344
-#define Consts_SNoButton 65345
-#define Consts_SHelpButton 65346
-#define Consts_SCloseButton 65347
-#define Consts_SIgnoreButton 65348
-#define Consts_SRetryButton 65349
-#define Consts_SAbortButton 65350
-#define Consts_SAllButton 65351
-#define Consts_SCannotDragForm 65352
-#define Consts_SVMetafiles 65353
-#define Consts_SVEnhMetafiles 65354
-#define Consts_SVIcons 65355
-#define Consts_SVBitmaps 65356
-#define Consts_SMsgDlgWarning 65357
-#define Consts_SMsgDlgError 65358
-#define Consts_SMsgDlgInformation 65359
-#define Consts_SWindowDCError 65360
-#define Consts_SWindowClass 65361
-#define Consts_SCannotFocus 65362
-#define Consts_SParentRequired 65363
-#define Consts_SMDIChildNotVisible 65364
-#define Consts_SVisibleChanged 65365
-#define Consts_SCannotShowModal 65366
-#define Consts_SMenuIndexError 65367
-#define Consts_SMenuReinserted 65368
-#define Consts_SMenuNotFound 65369
-#define Consts_SNoTimers 65370
-#define Consts_SGroupIndexTooLow 65371
-#define Consts_SNoMDIForm 65372
-#define Consts_SControlParentSetToSelf 65373
-#define Consts_SOKButton 65374
-#define Consts_SCancelButton 65375
-#define Consts_SInvalidIcon 65376
-#define Consts_SInvalidMetafile 65377
-#define Consts_SInvalidPixelFormat 65378
-#define Consts_SInvalidImage 65379
-#define Consts_SScanLine 65380
-#define Consts_SChangeIconSize 65381
-#define Consts_SUnknownExtension 65382
-#define Consts_SUnknownClipboardFormat 65383
-#define Consts_SOutOfResources 65384
-#define Consts_SNoCanvasHandle 65385
-#define Consts_SInvalidImageSize 65386
-#define Consts_SInvalidImageList 65387
-#define Consts_SReplaceImage 65388
-#define Consts_SImageIndexError 65389
-#define Consts_SImageReadFail 65390
-#define Consts_SImageWriteFail 65391
+#define ExtCtrls_clNameInactiveBorder 65232
+#define ExtCtrls_clNameInactiveCaption 65233
+#define ExtCtrls_clNameInactiveCaptionText 65234
+#define ExtCtrls_clNameInfoBk 65235
+#define ExtCtrls_clNameInfoText 65236
+#define ExtCtrls_clNameMenu 65237
+#define ExtCtrls_clNameMenuText 65238
+#define ExtCtrls_clNameNone 65239
+#define ExtCtrls_clNameScrollBar 65240
+#define ExtCtrls_clName3DDkShadow 65241
+#define ExtCtrls_clName3DLight 65242
+#define ExtCtrls_clNameWindow 65243
+#define ExtCtrls_clNameWindowFrame 65244
+#define ExtCtrls_clNameWindowText 65245
+#define ComStrs_sInvalidOwner 65246
+#define ComStrs_sInvalidComCtl32 65247
+#define ExtCtrls_clNameSkyBlue 65248
+#define ExtCtrls_clNameCream 65249
+#define ExtCtrls_clNameMedGray 65250
+#define ExtCtrls_clNameActiveBorder 65251
+#define ExtCtrls_clNameActiveCaption 65252
+#define ExtCtrls_clNameAppWorkSpace 65253
+#define ExtCtrls_clNameBackground 65254
+#define ExtCtrls_clNameBtnFace 65255
+#define ExtCtrls_clNameBtnHighlight 65256
+#define ExtCtrls_clNameBtnShadow 65257
+#define ExtCtrls_clNameBtnText 65258
+#define ExtCtrls_clNameCaptionText 65259
+#define ExtCtrls_clNameDefault 65260
+#define ExtCtrls_clNameGrayText 65261
+#define ExtCtrls_clNameHighlight 65262
+#define ExtCtrls_clNameHighlightText 65263
+#define ExtCtrls_clNameMaroon 65264
+#define ExtCtrls_clNameGreen 65265
+#define ExtCtrls_clNameOlive 65266
+#define ExtCtrls_clNameNavy 65267
+#define ExtCtrls_clNamePurple 65268
+#define ExtCtrls_clNameTeal 65269
+#define ExtCtrls_clNameGray 65270
+#define ExtCtrls_clNameSilver 65271
+#define ExtCtrls_clNameRed 65272
+#define ExtCtrls_clNameLime 65273
+#define ExtCtrls_clNameYellow 65274
+#define ExtCtrls_clNameBlue 65275
+#define ExtCtrls_clNameFuchsia 65276
+#define ExtCtrls_clNameAqua 65277
+#define ExtCtrls_clNameWhite 65278
+#define ExtCtrls_clNameMoneyGreen 65279
+#define Consts_sAllFilter 65280
+#define Consts_SIconToClipboard 65281
+#define Consts_SDuplicateMenus 65282
+#define Consts_SPictureLabel 65283
+#define Consts_SPictureDesc 65284
+#define Consts_SPreviewLabel 65285
+#define Consts_SDockedCtlNeedsName 65286
+#define Consts_SDockTreeRemoveError 65287
+#define Consts_SDockZoneNotFound 65288
+#define Consts_SDockZoneHasNoCtl 65289
+#define Consts_SNoGetItemEventHandler 65290
+#define HelpIntfs_hNoTableOfContents 65291
+#define HelpIntfs_hNothingFound 65292
+#define HelpIntfs_hNoContext 65293
+#define HelpIntfs_hNoTopics 65294
+#define ExtCtrls_clNameBlack 65295
+#define Consts_SmkcEnter 65296
+#define Consts_SmkcSpace 65297
+#define Consts_SmkcPgUp 65298
+#define Consts_SmkcPgDn 65299
+#define Consts_SmkcEnd 65300
+#define Consts_SmkcHome 65301
+#define Consts_SmkcLeft 65302
+#define Consts_SmkcUp 65303
+#define Consts_SmkcRight 65304
+#define Consts_SmkcDown 65305
+#define Consts_SmkcIns 65306
+#define Consts_SmkcDel 65307
+#define Consts_SmkcShift 65308
+#define Consts_SmkcCtrl 65309
+#define Consts_SmkcAlt 65310
+#define Consts_srNone 65311
+#define Consts_SMsgDlgInformation 65312
+#define Consts_SMsgDlgConfirm 65313
+#define Consts_SMsgDlgYes 65314
+#define Consts_SMsgDlgNo 65315
+#define Consts_SMsgDlgOK 65316
+#define Consts_SMsgDlgCancel 65317
+#define Consts_SMsgDlgHelp 65318
+#define Consts_SMsgDlgAbort 65319
+#define Consts_SMsgDlgRetry 65320
+#define Consts_SMsgDlgIgnore 65321
+#define Consts_SMsgDlgAll 65322
+#define Consts_SMsgDlgNoToAll 65323
+#define Consts_SMsgDlgYesToAll 65324
+#define Consts_SmkcBkSp 65325
+#define Consts_SmkcTab 65326
+#define Consts_SmkcEsc 65327
+#define Consts_SCancelButton 65328
+#define Consts_SYesButton 65329
+#define Consts_SNoButton 65330
+#define Consts_SHelpButton 65331
+#define Consts_SCloseButton 65332
+#define Consts_SIgnoreButton 65333
+#define Consts_SRetryButton 65334
+#define Consts_SAbortButton 65335
+#define Consts_SAllButton 65336
+#define Consts_SCannotDragForm 65337
+#define Consts_SVMetafiles 65338
+#define Consts_SVEnhMetafiles 65339
+#define Consts_SVIcons 65340
+#define Consts_SVBitmaps 65341
+#define Consts_SMsgDlgWarning 65342
+#define Consts_SMsgDlgError 65343
+#define Consts_SImageWriteFail 65344
+#define Consts_SWindowDCError 65345
+#define Consts_SWindowClass 65346
+#define Consts_SCannotFocus 65347
+#define Consts_SParentRequired 65348
+#define Consts_SMDIChildNotVisible 65349
+#define Consts_SVisibleChanged 65350
+#define Consts_SCannotShowModal 65351
+#define Consts_SMenuIndexError 65352
+#define Consts_SMenuReinserted 65353
+#define Consts_SMenuNotFound 65354
+#define Consts_SNoTimers 65355
+#define Consts_SGroupIndexTooLow 65356
+#define Consts_SNoMDIForm 65357
+#define Consts_SControlParentSetToSelf 65358
+#define Consts_SOKButton 65359
+#define Consts_SInvalidBitmap 65360
+#define Consts_SInvalidIcon 65361
+#define Consts_SInvalidMetafile 65362
+#define Consts_SInvalidPixelFormat 65363
+#define Consts_SInvalidImage 65364
+#define Consts_SScanLine 65365
+#define Consts_SChangeIconSize 65366
+#define Consts_SUnknownExtension 65367
+#define Consts_SUnknownClipboardFormat 65368
+#define Consts_SOutOfResources 65369
+#define Consts_SNoCanvasHandle 65370
+#define Consts_SInvalidImageSize 65371
+#define Consts_SInvalidImageList 65372
+#define Consts_SReplaceImage 65373
+#define Consts_SImageIndexError 65374
+#define Consts_SImageReadFail 65375
+#define ComConst_SOleError 65376
+#define ComConst_SObjectFactoryMissing 65377
+#define ComConst_STypeInfoMissing 65378
+#define ComConst_SBadTypeInfo 65379
+#define ComConst_SDispIntfMissing 65380
+#define ComConst_SNoMethod 65381
+#define ComConst_SVarNotObject 65382
+#define ComConst_STooManyParams 65383
+#define ComConst_SDCOMNotInstalled 65384
+#define ComConst_SDAXError 65385
+#define ComConst_SAutomationWarning 65386
+#define ComConst_SNoCloseActiveServer1 65387
+#define ComConst_SNoCloseActiveServer2 65388
+#define TntFormatStrUtils_SInvalidFormatSpecifier 65389
+#define TntSystem_SBufferOverflow 65390
+#define TntSystem_SInvalidUTF7 65391
 #define RTLConsts_SReadError 65392
 #define RTLConsts_SReadOnlyProperty 65393
 #define RTLConsts_SRegCreateFailed 65394
@@ -296,7 +296,7 @@
 #define RTLConsts_SThreadError 65404
 #define RTLConsts_SMissingDateTimeField 65405
 #define RTLConsts_SInvalidDateTime 65406
-#define Consts_SInvalidBitmap 65407
+#define ComConst_SCreateRegKeyError 65407
 #define RTLConsts_SFCreateErrorEx 65408
 #define RTLConsts_SFOpenErrorEx 65409
 #define RTLConsts_SIniFileWriteError 65410
@@ -453,7 +453,7 @@ BEGIN
 	IdResourceStringsCore_RSSocksServerTTLExpiredError,	"TTL expired."
 	IdResourceStringsCore_RSSocksServerCommandError,	"Command not supported."
 	IdResourceStringsCore_RSSocksServerAddressError,	"Address type not supported."
-	IdResourceStringsCore_RSInterceptCircularLink,	"%s: Circular links are not allowed"
+	IdResourceStringsCore_RSInterceptCircularLink,	"%d: Circular links are not allowed"
 	IdResourceStringsCore_RSNotEnoughDataInBuffer,	"Not enough data in buffer. (%d/%d)"
 	IdResourceStringsCore_RSTooMuchDataInBuffer,	"Too much data in buffer."
 	IdResourceStringsCore_RSFileNotFound,	"File \"%s\" not found"
@@ -461,7 +461,7 @@ BEGIN
 	IdResourceStringsCore_RSObjectTypeNotSupported,	"Object type not supported."
 	IdResourceStringsCore_RSIdNoDataToRead,	"No data to read."
 	IdResourceStrings_RSConnectionClosedGracefully,	"Connection Closed Gracefully."
-	IdResourceStrings_RSCouldNotBindSocket,	"Could not bind socket."
+	IdResourceStrings_RSCouldNotBindSocket,	"Could not bind socket. Address and port are already in use."
 	IdResourceStrings_RSInvalidPortRange,	"Invalid Port Range (%d - %d)"
 	IdResourceStrings_RSInvalidServiceName,	"%s is not a valid service."
 	IdResourceStrings_RSInvalidIPv6Address,	"%s is not a valid IPv6 address"
@@ -524,7 +524,7 @@ BEGIN
 	IdResourceStrings_RSStackENOTSOCK,	"Socket operation on non-socket."
 	IdResourceStrings_RSStackEDESTADDRREQ,	"Destination address required."
 	IdResourceStrings_RSStackEMSGSIZE,	"Message too long."
-	TntSystem_SInvalidUTF7,	"Invalid UTF7"
+	WinHelpViewer_hNoKeyword,	"No help keyword specified."
 	DBConsts_SBcdOverflow,	"BCD overflow"
 	DBConsts_SInvalidBcdValue,	"%s is not a valid BCD value"
 	DBConsts_SCouldNotParseTimeStamp,	"Could not parse SQL TimeStamp string"
@@ -540,22 +540,7 @@ BEGIN
 	IdResourceStrings_RSStatusResolving,	"Resolving hostname %s."
 	IdResourceStrings_RSStatusConnecting,	"Connecting to %s."
 	IdResourceStrings_RSStatusConnected,	"Connected."
-	ComConst_SCreateRegKeyError,	"Error creating system registry entry"
-	ComConst_SOleError,	"OLE error %.8x"
-	ComConst_SObjectFactoryMissing,	"Object factory for class %s missing"
-	ComConst_STypeInfoMissing,	"Type information missing for class %s"
-	ComConst_SBadTypeInfo,	"Incorrect type information for class %s"
-	ComConst_SDispIntfMissing,	"Dispatch interface missing from class %s"
-	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
-	ComConst_SVarNotObject,	"Variant does not reference an automation object"
-	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
-	ComConst_SDCOMNotInstalled,	"DCOM not installed"
-	ComConst_SDAXError,	"DAX Error"
-	ComConst_SAutomationWarning,	"COM Server Warning"
-	ComConst_SNoCloseActiveServer1,	"There are still active COM objects in this application.  One or more clients may have references to these objects, so manually closing "
-	ComConst_SNoCloseActiveServer2,	"this application may cause those client application(s) to fail.\r\n\r\nAre you sure you want to close this application?"
-	TntFormatStrUtils_SInvalidFormatSpecifier,	"Invalid Format Specifier: %s"
-	TntSystem_SBufferOverflow,	"Buffer overflow"
+	ExtCtrls_clNameInactiveBorder,	"Inactive Border"
 	ExtCtrls_clNameInactiveCaption,	"Inactive Caption"
 	ExtCtrls_clNameInactiveCaptionText,	"Inactive Caption Text"
 	ExtCtrls_clNameInfoBk,	"Info Background"
@@ -571,7 +556,7 @@ BEGIN
 	ExtCtrls_clNameWindowText,	"Window Text"
 	ComStrs_sInvalidOwner,	"Invalid owner"
 	ComStrs_sInvalidComCtl32,	"This control requires version 4.70 or greater of COMCTL32.DLL"
-	WinHelpViewer_hNoKeyword,	"No help keyword specified."
+	ExtCtrls_clNameSkyBlue,	"Sky Blue"
 	ExtCtrls_clNameCream,	"Cream"
 	ExtCtrls_clNameMedGray,	"Medium Gray"
 	ExtCtrls_clNameActiveBorder,	"Active Border"
@@ -587,7 +572,7 @@ BEGIN
 	ExtCtrls_clNameGrayText,	"Gray Text"
 	ExtCtrls_clNameHighlight,	"Highlight Background"
 	ExtCtrls_clNameHighlightText,	"Highlight Text"
-	ExtCtrls_clNameInactiveBorder,	"Inactive Border"
+	ExtCtrls_clNameMaroon,	"Maroon"
 	ExtCtrls_clNameGreen,	"Green"
 	ExtCtrls_clNameOlive,	"Olive"
 	ExtCtrls_clNameNavy,	"Navy"
@@ -603,7 +588,7 @@ BEGIN
 	ExtCtrls_clNameAqua,	"Aqua"
 	ExtCtrls_clNameWhite,	"White"
 	ExtCtrls_clNameMoneyGreen,	"Money Green"
-	ExtCtrls_clNameSkyBlue,	"Sky Blue"
+	Consts_sAllFilter,	"All"
 	Consts_SIconToClipboard,	"Clipboard does not support Icons"
 	Consts_SDuplicateMenus,	"Menu '%s' is already being used by another form"
 	Consts_SPictureLabel,	"Picture:"
@@ -619,7 +604,7 @@ BEGIN
 	HelpIntfs_hNoContext,	"No context-sensitive help installed"
 	HelpIntfs_hNoTopics,	"No topic-based help system installed"
 	ExtCtrls_clNameBlack,	"Black"
-	ExtCtrls_clNameMaroon,	"Maroon"
+	Consts_SmkcEnter,	"Enter"
 	Consts_SmkcSpace,	"Space"
 	Consts_SmkcPgUp,	"PgUp"
 	Consts_SmkcPgDn,	"PgDn"
@@ -635,7 +620,7 @@ BEGIN
 	Consts_SmkcCtrl,	"Ctrl+"
 	Consts_SmkcAlt,	"Alt+"
 	Consts_srNone,	"(None)"
-	Consts_sAllFilter,	"All"
+	Consts_SMsgDlgInformation,	"Information"
 	Consts_SMsgDlgConfirm,	"Confirm"
 	Consts_SMsgDlgYes,	"&Yes"
 	Consts_SMsgDlgNo,	"&No"
@@ -651,7 +636,7 @@ BEGIN
 	Consts_SmkcBkSp,	"BkSp"
 	Consts_SmkcTab,	"Tab"
 	Consts_SmkcEsc,	"Esc"
-	Consts_SmkcEnter,	"Enter"
+	Consts_SCancelButton,	"Cancel"
 	Consts_SYesButton,	"&Yes"
 	Consts_SNoButton,	"&No"
 	Consts_SHelpButton,	"&Help"
@@ -667,7 +652,7 @@ BEGIN
 	Consts_SVBitmaps,	"Bitmaps"
 	Consts_SMsgDlgWarning,	"Warning"
 	Consts_SMsgDlgError,	"Error"
-	Consts_SMsgDlgInformation,	"Information"
+	Consts_SImageWriteFail,	"Failed to write ImageList data to stream"
 	Consts_SWindowDCError,	"Error creating window device context"
 	Consts_SWindowClass,	"Error creating window class"
 	Consts_SCannotFocus,	"Cannot focus a disabled or invisible window"
@@ -683,7 +668,7 @@ BEGIN
 	Consts_SNoMDIForm,	"Cannot create form. No MDI forms are currently active"
 	Consts_SControlParentSetToSelf,	"A control cannot have itself as its parent"
 	Consts_SOKButton,	"OK"
-	Consts_SCancelButton,	"Cancel"
+	Consts_SInvalidBitmap,	"Bitmap image is not valid"
 	Consts_SInvalidIcon,	"Icon image is not valid"
 	Consts_SInvalidMetafile,	"Metafile is not valid"
 	Consts_SInvalidPixelFormat,	"Invalid pixel format"
@@ -699,7 +684,22 @@ BEGIN
 	Consts_SReplaceImage,	"Unable to Replace Image"
 	Consts_SImageIndexError,	"Invalid ImageList Index"
 	Consts_SImageReadFail,	"Failed to read ImageList data from stream"
-	Consts_SImageWriteFail,	"Failed to write ImageList data to stream"
+	ComConst_SOleError,	"OLE error %.8x"
+	ComConst_SObjectFactoryMissing,	"Object factory for class %s missing"
+	ComConst_STypeInfoMissing,	"Type information missing for class %s"
+	ComConst_SBadTypeInfo,	"Incorrect type information for class %s"
+	ComConst_SDispIntfMissing,	"Dispatch interface missing from class %s"
+	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
+	ComConst_SVarNotObject,	"Variant does not reference an automation object"
+	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
+	ComConst_SDCOMNotInstalled,	"DCOM not installed"
+	ComConst_SDAXError,	"DAX Error"
+	ComConst_SAutomationWarning,	"COM Server Warning"
+	ComConst_SNoCloseActiveServer1,	"There are still active COM objects in this application.  One or more clients may have references to these objects, so manually closing "
+	ComConst_SNoCloseActiveServer2,	"this application may cause those client application(s) to fail.\r\n\r\nAre you sure you want to close this application?"
+	TntFormatStrUtils_SInvalidFormatSpecifier,	"Invalid Format Specifier: %s"
+	TntSystem_SBufferOverflow,	"Buffer overflow"
+	TntSystem_SInvalidUTF7,	"Invalid UTF7"
 	RTLConsts_SReadError,	"Stream read error"
 	RTLConsts_SReadOnlyProperty,	"Property is read-only"
 	RTLConsts_SRegCreateFailed,	"Failed to create key %s"
@@ -715,7 +715,7 @@ BEGIN
 	RTLConsts_SThreadError,	"Thread Error: %s (%d)"
 	RTLConsts_SMissingDateTimeField,	"?"
 	RTLConsts_SInvalidDateTime,	"''%s'' is not a valid date and time"
-	Consts_SInvalidBitmap,	"Bitmap image is not valid"
+	ComConst_SCreateRegKeyError,	"Error creating system registry entry"
 	RTLConsts_SFCreateErrorEx,	"Cannot create file \"%s\". %s"
 	RTLConsts_SFOpenErrorEx,	"Cannot open file \"%s\". %s"
 	RTLConsts_SIniFileWriteError,	"Unable to write to %s"

@@ -2,9 +2,8 @@ Library OposDaisyTestLib;
 
 uses
   FastMM4, 
-  SysUtils,
   TestFramework,
-  GUITestRunner,
+  TextTestRunner,
   LogFile in '..\..\src\Shared\LogFile.pas',
   Opos in '..\..\src\Opos\Opos.pas',
   OposUtils in '..\..\src\Opos\OposUtils.pas',

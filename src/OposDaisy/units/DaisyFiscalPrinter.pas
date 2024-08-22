@@ -2255,10 +2255,15 @@ var
   CashRequest: TDFPCashRequest;
   CashResponse: TDFPCashResponse;
 begin
+  // CashOut receipt
+  CashRequest.Amount := -Abs(Receipt.GetTotal);
+  CashRequest.Text1 := Params.RefundCashoutLine1;
+  CashRequest.Text2 := Params.RefundCashoutLine2;
+  Printer.Check(Printer.PrintCash(CashRequest, CashResponse));
+  // Print nonfiscal receipt
   Lines := TTntStringList.Create;
   try
     Lines.Text := SalesReceiptToText(Receipt);
-    // Print nonfiscal receipt
     Printer.Check(Printer.StartNonfiscalReceipt(RecNumber));
     for i := 0 to Lines.Count-1 do
     begin
@@ -2268,11 +2273,6 @@ begin
   finally
     Lines.Free;
   end;
-  // CashOut receipt
-  CashRequest.Amount := -Abs(Receipt.GetTotal);
-  CashRequest.Text1 := Params.RefundCashoutLine1;
-  CashRequest.Text2 := Params.RefundCashoutLine2;
-  Printer.Check(Printer.PrintCash(CashRequest, CashResponse));
 end;
 
 function TDaisyFiscalPrinter.SalesReceiptToText(Receipt: TSalesReceipt): WideString;
