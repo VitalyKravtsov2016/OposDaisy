@@ -2255,6 +2255,9 @@ var
   CashRequest: TDFPCashRequest;
   CashResponse: TDFPCashResponse;
 begin
+  if Receipt.GetCashlessPayment <> 0 then
+    raiseIllegalError('Cashless refund prohibited');
+
   // CashOut receipt
   CashRequest.Amount := -Abs(Receipt.GetTotal);
   CashRequest.Text1 := Params.RefundCashoutLine1;

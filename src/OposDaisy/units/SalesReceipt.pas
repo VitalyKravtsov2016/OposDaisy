@@ -138,6 +138,8 @@ type
     procedure PrintBarcode(const Barcode: string);
     function GetTotal: Currency;
     function GetPayment: Currency;
+    function GetCashPayment: Currency;
+    function GetCashlessPayment: Currency;
 
     property Lines: TTntStrings read FLines;
     property Change: Currency read FChange;
@@ -540,6 +542,22 @@ begin
   begin
     Result := Result + FPayments[i];
   end;
+end;
+
+function TSalesReceipt.GetCashlessPayment: Currency;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 1 to High(FPayments) do
+  begin
+    Result := Result + FPayments[i];
+  end;
+end;
+
+function TSalesReceipt.GetCashPayment: Currency;
+begin
+  Result := FPayments[0];
 end;
 
 procedure TSalesReceipt.PrintRecSubtotalAdjustVoid(

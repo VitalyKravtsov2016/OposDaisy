@@ -72,6 +72,7 @@ type
     procedure TestCheckHealth;
     procedure TestRefundReceipt;
     procedure TestRefundReceipt2;
+    procedure TestRefundReceipt3;
     procedure TestPowerState;
     procedure TestDayOpened;
   end;
@@ -701,6 +702,22 @@ begin
   begin
     CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
   end;
+end;
+
+procedure TDaisyFiscalPrinterTest.TestRefundReceipt3;
+var
+  ResultCode: Integer;
+begin
+  OpenClaimEnable;
+  Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
+
+  FptrCheck(Driver.BeginFiscalReceipt(True));
+  FptrCheck(Driver.PrintRecItemRefund('Receipt item 1', 590, 1000, 4, 590, 'pcs'));
+  FptrCheck(Driver.PrintRecTotal(590, 100, '0'));
+  FptrCheck(Driver.PrintRecTotal(590, 490, '1'));
+  ResultCode := Driver.EndFiscalReceipt(False);
+  CheckEquals(OPOS_E_ILLEGAL, ResultCode, 'PrintRecTotal');
+  CheckEquals('Cashless refund prohibited', Driver.GetPropertyString(PIDXFptr_ErrorString), 'PIDXFptr_ErrorString');
 end;
 
 procedure TDaisyFiscalPrinterTest.TestPowerState;
