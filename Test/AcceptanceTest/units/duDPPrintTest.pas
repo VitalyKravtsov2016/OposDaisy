@@ -14,6 +14,8 @@ uses
   PrinterPort, SocketPort, StringUtils, DebugUtils;
 
 type
+  TPayments = array [DFP_PM_MIN..DFP_PM_MAX] of Currency;
+
   { TDaisyPrinterPrintTest }
 
   TDaisyPrinterPrintTest = class(TTestCase)
@@ -29,6 +31,7 @@ type
   public
     function CreateSerialPort: TSerialPort;
     function CreateSocketPort: TSocketPort;
+    procedure PrintFiscalReceipt(Total: Currency; Payments: TPayments);
   published
     procedure TestLoadLogo;
     procedure TestPrintDiagnosticInfo;
@@ -37,12 +40,14 @@ type
     procedure TestNonFiscalReceipt;
     procedure TestFiscalReceipt;
     procedure TestFiscalReceipt2;
+    procedure TestFiscalReceipt3;
     procedure TestResetNonfiscalReceipt;
     procedure TestPrintVATRates;
     procedure TestPrintParameters;
     procedure TestPrintBarcode;
     procedure TestPrintBarcode2;
     procedure TestPrintCash;
+    procedure TestPrintCash2;
     procedure TestHeaderAndTrailer;
     procedure TestDuplicatePrint;
     procedure TestReadVATRates;
@@ -77,7 +82,7 @@ function TDaisyPrinterPrintTest.CreateSerialPort: TSerialPort;
 var
   SerialParams: TSerialParams;
 begin
-  SerialParams.PortName := 'COM3';
+  SerialParams.PortName := 'COM6';
   SerialParams.BaudRate := 19200;
   SerialParams.DataBits := 8;
   SerialParams.StopBits := ONESTOPBIT;
@@ -221,6 +226,44 @@ begin
   CheckEquals(False, Printer.Status.NonfiscalOpened, 'NonfiscalOpened.3');
 end;
 
+procedure TDaisyPrinterPrintTest.PrintFiscalReceipt(Total: Currency; Payments: TPayments);
+var
+  i: integer;
+  SaleRequest: TDFPSale;
+  RecNumber: TDFPRecNumber;
+  Operator: TDFPOperatorPassword;
+  TotalRequest: TDFPTotal;
+  TotalResponse: TDFPTotalResponse;
+  EndResponse: TDFPRecNumber;
+begin
+  Printer.Check(Printer.Reset);
+
+  Operator.Number := 1;
+  Operator.Password := 1;
+  Printer.Check(Printer.StartFiscalReceipt(Operator, RecNumber));
+  CheckEquals(True, Printer.Status.FiscalOpened, 'FiscalOpened.1');
+  // Sale
+  SaleRequest.Text1 := 'Sale text 1';
+  SaleRequest.Text2 := '';
+  SaleRequest.Tax := 1;
+  SaleRequest.Price := Total;
+  SaleRequest.Quantity := 1;
+  SaleRequest.DiscountPercent := 0;
+  SaleRequest.DiscountAmount := 0;
+  Printer.Check(Printer.Sale(SaleRequest));
+  // Payments
+  for i := Low(Payments) to High(Payments) do
+  begin
+    TotalRequest.Text1 := '';
+    TotalRequest.Text2 := '';
+    TotalRequest.PaymentMode := i;
+    TotalRequest.Amount := Payments[i];
+    Printer.Check(Printer.PrintTotal(TotalRequest, TotalResponse));
+  end;
+  // EndFiscalReceipt
+  Printer.Check(Printer.EndFiscalReceipt(EndResponse));
+end;
+
 procedure TDaisyPrinterPrintTest.TestFiscalReceipt;
 const
   StatusNormal = '80 80 C0 80 80 90';
@@ -287,7 +330,7 @@ begin
   TotalRequest.Amount := 0.01;
   Printer.Check(Printer.PrintTotal(TotalRequest, TotalResponse));
   // Payment3
-  TotalRequest.Text1 := '';
+  TotalRequest.Text1 := 'PAYMENT3';
   TotalRequest.Text2 := '';
   TotalRequest.PaymentMode := DFP_PM_MODE3;
   TotalRequest.Amount := 0.01;
@@ -481,6 +524,30 @@ begin
   CheckEquals(123.46, R.CashOutAmount, 'CashOutAmount');
 end;
 
+procedure TDaisyPrinterPrintTest.TestPrintCash2;
+var
+  P: TDFPCashRequest;
+  R: TDFPCashResponse;
+  DayStatus1: TDFPDayStatus;
+  DayStatus2: TDFPDayStatus;
+begin
+  Printer.Check(Printer.Reset);
+  // DayStatus1
+  Printer.Check(Printer.ReadDayStatus(DayStatus1));
+  // CashIn
+  P.Text1 := '';
+  P.Text2 := '';
+  P.Amount := 1.23;
+  Printer.Check(Printer.PrintCash(P, R));
+  // DayStatus2
+  Printer.Check(Printer.ReadDayStatus(DayStatus2));
+  CheckEquals(DayStatus1.CashTotal, DayStatus2.CashTotal, 'CashTotal');
+  CheckEquals(DayStatus1.Pay1Total, DayStatus2.Pay1Total, 'Pay1Total');
+  CheckEquals(DayStatus1.Pay2Total, DayStatus2.Pay2Total, 'Pay2Total');
+  CheckEquals(DayStatus1.Pay3Total, DayStatus2.Pay3Total, 'Pay3Total');
+  CheckEquals(DayStatus1.Pay4Total, DayStatus2.Pay4Total, 'Pay4Total');
+end;
+
 procedure TDaisyPrinterPrintTest.TestHeaderAndTrailer;
 var
   i: Integer;
@@ -560,50 +627,30 @@ begin
   CheckEquals('2', S, 'DFP_SP_DECIMAL_POINT=2');
 end;
 
-(*
-  SalePLURequest.Sign := '+';
-  SalePLURequest.PLU := '0001';
-  SalePLURequest.Quantity := 1;
-  SalePLURequest.Price := 123.45;
-  SalePLURequest.DiscountPercent := 0;
-  SalePLURequest.DiscountAmount := 0;
-  Printer.Check(Printer.SaleByPLU(): Integer;
-
-  // Barcodes test
-  Printer.Check(Printer.PrintFiscalText('EAN8'));
-  Printer.Check(Printer.PrintBarcode('1,1123234'));
-  Printer.Check(Printer.PrintFiscalText('EAN13'));
-  Printer.Check(Printer.PrintBarcode('2,123456789012'));
-  Printer.Check(Printer.PrintFiscalText('Code128'));
-  Printer.Check(Printer.PrintBarcode('3,123456789012'));
-  Printer.Check(Printer.PrintFiscalText('UPCE'));
-  Printer.Check(Printer.PrintBarcode('4,01234567'));
-  Printer.Check(Printer.PrintFiscalText('UPCA'));
-  Printer.Check(Printer.PrintBarcode('5,01234567891'));
-  Printer.Check(Printer.PrintFiscalText('STF25'));
-  Printer.Check(Printer.PrintBarcode('6,01234567'));
-  Printer.Check(Printer.PrintFiscalText('ITF25'));
-  Printer.Check(Printer.PrintBarcode('7,01234567'));
-  Printer.Check(Printer.PrintFiscalText('ITF25M10'));
-  Printer.Check(Printer.PrintBarcode('8,01234567'));
-  Printer.Check(Printer.PrintFiscalText('Code39'));
-  Printer.Check(Printer.PrintBarcode('9,01234567'));
-  Printer.Check(Printer.PrintFiscalText('Code39Mod43'));
-  Printer.Check(Printer.PrintBarcode('10,01234567'));
-  Printer.Check(Printer.PrintFiscalText('Code93'));
-  Printer.Check(Printer.PrintBarcode('11,01234567'));
-  Printer.Check(Printer.PrintFiscalText('CODABAR'));
-  Printer.Check(Printer.PrintBarcode('12,01234567'));
-  Printer.Check(Printer.PrintFiscalText('POSTNET'));
-  Printer.Check(Printer.PrintBarcode('13,01234567'));
-
-  SubtotalRequest.PrintSubtotal := False;
-  SubtotalRequest.DisplaySubtotal := False;
-  SubtotalRequest.SubtotalPercent := 0;
-  Printer.Check(Printer.Subtotal(SubtotalRequest, SubtotalResponse));
-*)
-
-
+procedure TDaisyPrinterPrintTest.TestFiscalReceipt3;
+var
+  Payments: TPayments;
+  DayStatus1: TDFPDayStatus;
+  DayStatus2: TDFPDayStatus;
+begin
+  Printer.Check(Printer.Reset);
+  // DayStatus1
+  Printer.Check(Printer.ReadDayStatus(DayStatus1));
+  // Receipt
+  Payments[1] := 1.23;
+  Payments[2] := 2.34;
+  Payments[3] := 3.45;
+  Payments[4] := 4.56;
+  Payments[5] := 5.67;
+  PrintFiscalReceipt(17.25, Payments);
+  // DayStatus2
+  Printer.Check(Printer.ReadDayStatus(DayStatus2));
+  CheckEquals(DayStatus1.CashTotal + Payments[1], DayStatus2.CashTotal, 'CashTotal');
+  CheckEquals(DayStatus1.Pay1Total + Payments[2], DayStatus2.Pay1Total, 'Pay1Total');
+  CheckEquals(DayStatus1.Pay2Total + Payments[3], DayStatus2.Pay2Total, 'Pay2Total');
+  CheckEquals(DayStatus1.Pay3Total + Payments[4], DayStatus2.Pay3Total, 'Pay3Total');
+  CheckEquals(DayStatus1.Pay4Total + Payments[5], DayStatus2.Pay4Total, 'Pay4Total');
+end;
 
 initialization
   RegisterTest('', TDaisyPrinterPrintTest.Suite);

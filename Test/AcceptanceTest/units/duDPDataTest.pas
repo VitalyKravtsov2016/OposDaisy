@@ -92,7 +92,7 @@ function TDaisyPrinterDataTest.CreateSerialPort: TSerialPort;
 var
   SerialParams: TSerialParams;
 begin
-  SerialParams.PortName := 'COM4';
+  SerialParams.PortName := 'COM6';
   SerialParams.BaudRate := 9600;
   SerialParams.DataBits := 8;
   SerialParams.StopBits := ONESTOPBIT;

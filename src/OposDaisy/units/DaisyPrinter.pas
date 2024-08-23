@@ -43,6 +43,7 @@ type
     FOnStatusUpdate: TNotifyEvent;
     FLastError: Integer;
     FCommandTimeout: Integer;
+    FSeqNumber: Integer;
 
     function GetConstants: TDFPConstants;
     function GetDiagnostic: TDFPDiagnosticInfo;
@@ -59,9 +60,9 @@ type
     procedure SetCommandTimeout(const Value: Integer);
     function DoSend(const TxData: AnsiString;
       var RxData: AnsiString): Integer;
+    procedure SetSeqNumber(const Value: Integer);
+    function ValidSeqNumber(const Value: Integer): Boolean;
   public
-    TxCount: Integer;
-
     constructor Create(APort: IPrinterPort; ALogger: ILogFile);
     destructor Destroy; override;
 
@@ -97,6 +98,7 @@ type
     function PaperFeed(LineCount: Integer): Integer;
     function PaperCut(CutMode: Integer): Integer;
     function StartFiscalReceipt(const P: TDFPOperatorPassword; var R: TDFPRecNumber): Integer;
+    function StartRefundReceipt(const P: TDFPOperatorPassword; var R: TDFPRecNumber): Integer;
     function Sale(const P: TDFPSale): Integer;
     function SaleAndDisplay(const P: TDFPSale): Integer;
     function ReadVATRatesOnDate(const P: TDFPDateRange; var R: TDFPVATRateResponse): Integer;
@@ -158,6 +160,7 @@ type
     property VATRates: TDFPVATRates read GetVATRates;
     property Constants: TDFPConstants read GetConstants;
     property Diagnostic: TDFPDiagnosticInfo read GetDiagnostic;
+    property SeqNumber: Integer read FSeqNumber write SetSeqNumber;
     property RegKeyName: WideString read GetRegKeyName write SetRegKeyName;
     property CommandTimeout: Integer read GetCommandTimeout write SetCommandTimeout;
     property OnStatusUpdate: TNotifyEvent read GetOnStatusUpdate write SetOnStatusUpdate;
@@ -773,6 +776,7 @@ begin
   FLogger := ALogger;
   FRegKeyName := 'SHTRIH-M\OposDaisy';
   FCommandTimeout := 30;
+  SeqNumber := $20;
 end;
 
 destructor TDaisyPrinter.Destroy;
@@ -780,6 +784,17 @@ begin
   FPort := nil;
   FLogger := nil;
   inherited Destroy;
+end;
+
+function TDaisyPrinter.ValidSeqNumber(const Value: Integer): Boolean;
+begin
+  Result := Value in [$20..$FF];
+end;
+
+procedure TDaisyPrinter.SetSeqNumber(const Value: Integer);
+begin
+  if ValidSeqNumber(Value) then
+    FSeqNumber := Value;
 end;
 
 function TDaisyPrinter.GetCommandTimeout: Integer;
@@ -867,7 +882,7 @@ begin
     Reg.RootKey := HKEY_CURRENT_USER;
     if Reg.OpenKey(RegKeyName, True) then
     begin
-      Reg.WriteInteger('FrameNumber', TxCount);
+      Reg.WriteInteger('FrameNumber', SeqNumber);
     end else
     begin
       FLogger.Error('Registry key open error');
@@ -891,7 +906,7 @@ begin
     Reg.RootKey := HKEY_CURRENT_USER;
     if Reg.OpenKey(RegKeyName, False) then
     begin
-      TxCount := Reg.ReadInteger('FrameNumber');
+      SeqNumber := Reg.ReadInteger('FrameNumber');
     end;
   except
     on E: Exception do
@@ -1087,7 +1102,7 @@ begin
     if Length(Tx) = 0 then
       raise Exception.Create(SEmptyData);
 
-    FCommand.Sequence := TxCount;
+    FCommand.Sequence := SeqNumber;
     FCommand.Code := Ord(Tx[1]);
     FCommand.Data := Copy(Tx, 2, Length(Tx));
     FTxData := TDaisyFrame.EncodeCommand(FCommand);
@@ -1151,11 +1166,12 @@ begin
         RaiseError(DFP_E_NOHARDWARE, SNoHardware);
     end;
 
-    Inc(TxCount);
-    if not(TxCount in [$20..$7F]) then
+    Inc(FSeqNumber);
+    if not ValidSeqNumber(SeqNumber) then
     begin
-      TxCount := $20;
+      SeqNumber := $20;
     end;
+
     SaveParams;
   finally
     Port.Unlock;
@@ -1279,6 +1295,24 @@ var
 begin
   Logger.Debug(Format('TDaisyPrinter.StartFiscalReceipt(%d,%d)', [P.Number, P.Password]));
   Command := #$30 + Format('%d,%d', [P.Number, P.Password]);
+
+  Result := Send(Command, Answer);
+  if Succeeded(Result) then
+  begin
+    R.DocNumber := GetIntParam(Answer, 1);
+    R.RecNumber := GetIntParam(Answer, 2);
+  end;
+end;
+
+function TDaisyPrinter.StartRefundReceipt(const P: TDFPOperatorPassword;
+  var R: TDFPRecNumber): Integer;
+var
+  Answer: AnsiString;
+  Command: AnsiString;
+begin
+  Logger.Debug(Format('TDaisyPrinter.StartFiscalReceipt(%d,%d)', [P.Number, P.Password]));
+  Command := #$30 + Format('%d,%d,1', [P.Number, P.Password]) + TAB + 'R0,34,23-08-24 15:05' + TAB + '123';
+
   Result := Send(Command, Answer);
   if Succeeded(Result) then
   begin
@@ -2122,6 +2156,5 @@ begin
   { !!! }
   Result := 0;
 end;
-
 
 end.
