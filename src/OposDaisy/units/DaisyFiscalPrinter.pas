@@ -962,6 +962,14 @@ function TDaisyFiscalPrinter.GetData(DataItem: Integer; out OptArgs: Integer;
       Day.Pay2Total + Day.Pay3Total + Day.Pay3Total;
   end;
 
+  function ReadDayCashTotal: Currency;
+  var
+    Day: TDFPDayStatus;
+  begin
+    Printer.Check(Printer.ReadDayStatus(Day));
+    Result := Day.CashTotal;
+  end;
+
   function ReadZReportNumber: Integer;
   var
     Day: TDFPDayStatus;
@@ -981,6 +989,7 @@ begin
       FPTR_GD_FIRMWARE: Data := FOposDevice.PhysicalDeviceDescription;
       FPTR_GD_PRINTER_ID: Data := Printer.Diagnostic.FDNo;
       FPTR_GD_CURRENT_TOTAL: Data := AmountToOutStr(Receipt.GetTotal());
+      FPTR_GD_GRAND_TOTAL: Data := AmountToOutStr(ReadDayCashTotal);
       FPTR_GD_DAILY_TOTAL: Data := AmountToOutStr(ReadDayTotal);
       FPTR_GD_Z_REPORT: Data := IntToStr(ReadZReportNumber);
       FPTR_GD_RECEIPT_NUMBER: Data := IntToStr(ReadReceiptNumber);
