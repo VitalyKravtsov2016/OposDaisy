@@ -1323,12 +1323,12 @@ end;
 
 function TDaisyPrinter.SaleCommand(Cmd: Char; const P: TDFPSale): Integer;
 const
-  TaxLetters = 'ABCD';
+  TaxLetters = ' ABCD';
 var
   Command: AnsiString;
 begin
   Logger.Debug('TDaisyPrinter.SaleCommand');
-  if not(P.Tax in [1..4]) then
+  if not(P.Tax in [1..5]) then
     raise Exception.CreateFmt('Invalid tax value, %d', [P.Tax]);
 
   Command := EncodePrinterText(P.Text1) + LF +

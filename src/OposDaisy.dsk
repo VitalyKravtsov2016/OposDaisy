@@ -1,103 +1,97 @@
 [Closed Files]
-File_0=SourceModule,'D:\Projects\OposDaisy\Test\AcceptanceTest\units\duDPPrintTest.pas',0,1,236,38,243,0,0
-File_1=SourceModule,'D:\Projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas',0,1,1,46,10,0,0
-File_2=SourceModule,'D:\Projects\OposDaisy\src\OposDaisy\units\DaisyPrinterInterface.pas',0,1,146,13,163,0,0
-File_3=SourceModule,'D:\Projects\OposDaisy\Test\AcceptanceTest\units\duDPDataTest.pas',0,1,669,1,685,0,0
-File_4=SourceModule,'C:\Program Files (x86)\Borland\Delphi7\Comp\dunit-9.3.0\src\GUITestRunner.pas',0,1,20,19,38,0,0
-File_5=SourceModule,'C:\projects\OposDaisy\src\Shared\SocketPort.pas',0,1,1,81,11,0,0
-File_6=SourceModule,'C:\projects\OposDaisy\Test\OposDaisyTest\units\duDaisyFiscalPrinter.pas',0,1,167,42,176,0,0
-File_7=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\oleFiscalPrinter.pas',0,1,1,34,11,0,0
-File_8=SourceModule,'C:\projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas',0,1,1236,1,1239,0,0
+File_0=SourceModule,'C:\Projects2\IBTS\OposDaisy\src\OposTest\Fmu\fmuFptrStatistics.pas',0,1,1,15,14,0,0
+File_1=SourceModule,'C:\Projects2\IBTS\OposDaisy\src\Shared\SerialPort.pas',0,1,1,31,9,0,0
+File_2=SourceModule,'C:\Projects2\IBTS\OposDaisy\src\Shared\DeviceNotification.pas',0,1,1,3,9,0,0
+File_3=SourceModule,'C:\Projects2\IBTS\OposDaisy\src\OposTest\Fmu\fmuAbout.pas',0,1,1,3,9,0,0
+File_4=SourceModule,'D:\Projects\OposDaisy\Test\AcceptanceTest\units\duDPPrintTest.pas',0,1,236,38,243,0,0
+File_5=SourceModule,'D:\Projects\OposDaisy\src\OposDaisy\units\DaisyPrinter.pas',0,1,1,46,10,0,0
+File_6=SourceModule,'D:\Projects\OposDaisy\src\OposDaisy\units\DaisyPrinterInterface.pas',0,1,146,13,163,0,0
+File_7=SourceModule,'D:\Projects\OposDaisy\Test\AcceptanceTest\units\duDPDataTest.pas',0,1,669,1,685,0,0
+File_8=SourceModule,'C:\Program Files (x86)\Borland\Delphi7\Comp\dunit-9.3.0\src\GUITestRunner.pas',0,1,20,19,38,0,0
 
 [Modules]
-Module0=D:\Projects\OposDaisy\src\Opos\OposFptr.pas
-Module1=D:\Projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas
+Module0=C:\Projects2\IBTS\OposDaisy\src\Shared\SocketPort.pas
+Module1=c:\program files (x86)\borland\delphi7\Source\Indy\IdTCPClient.pas
 Count=2
 EditWindowCount=1
 TypeLibWindowCount=1
 
-[D:\Projects\OposDaisy\src\Opos\OposFptr.pas]
+[C:\Projects2\IBTS\OposDaisy\src\Shared\SocketPort.pas]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas]
+[c:\program files (x86)\borland\delphi7\Source\Indy\IdTCPClient.pas]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposDaisy.bpg]
+[C:\Projects2\IBTS\OposDaisy\src\OposDaisy.bpg]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposTest\OposTest.dpr]
+[C:\Projects2\IBTS\OposDaisy\src\OposTest\OposTest.dpr]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposConfig\OposConfig.dpr]
+[C:\Projects2\IBTS\OposDaisy\src\OposConfig\OposConfig.dpr]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposDaisy\OposDaisy.dpr]
+[C:\Projects2\IBTS\OposDaisy\src\OposDaisy\OposDaisy.dpr]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\src\OposDaisy\OposDaisy.tlb]
+[C:\Projects2\IBTS\OposDaisy\src\OposDaisy\OposDaisy.tlb]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\Test\OposDaisyTest\OposDaisyTest.dpr]
+[C:\Projects2\IBTS\OposDaisy\Test\OposDaisyTest\OposDaisyTest.dpr]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\Test\OposDaisyTest\OposDaisyTestLib.dpr]
+[C:\Projects2\IBTS\OposDaisy\Test\OposDaisyTest\OposDaisyTestLib.dpr]
 FormState=0
 FormOnTop=0
 
-[D:\Projects\OposDaisy\Test\AcceptanceTest\AcceptanceTest.dpr]
+[C:\Projects2\IBTS\OposDaisy\Test\AcceptanceTest\AcceptanceTest.dpr]
 FormState=0
 FormOnTop=0
 
 [EditWindow0]
 ViewCount=2
-CurrentView=1
+CurrentView=0
 View0=0
 View1=1
 CodeExplorer=CodeExplorer@EditWindow0
 MessageView=MessageView@EditWindow0
 Create=1
 Visible=1
-State=2
+State=0
 Left=366
 Top=140
 Width=1302
 Height=682
-MaxLeft=-8
-MaxTop=107
-MaxWidth=1936
-MaxHeight=941
-ClientWidth=1920
-ClientHeight=902
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1286
+ClientHeight=643
 LeftPanelSize=0
-LeftPanelClients=CodeExplorer@EditWindow0
-LeftPanelData=00000400010000000C000000436F64654578706C6F7265720000000000000000000000000000000000FFFFFFFF
 RightPanelSize=0
-BottomPanelSize=0
-BottomPanelClients=MessageView@EditWindow0
-BottomPanelData=00000400010000000B0000004D657373616765566965770000000000000000000000000000000000FFFFFFFF
+BottomPanelSize=85
 
 [View0]
-Module=D:\Projects\OposDaisy\src\OposDaisy\units\DaisyFiscalPrinter.pas
-CursorX=24
-CursorY=18
-TopLine=1
+Module=C:\Projects2\IBTS\OposDaisy\src\Shared\SocketPort.pas
+CursorX=38
+CursorY=62
+TopLine=54
 LeftCol=1
 
 [View1]
-Module=D:\Projects\OposDaisy\src\Opos\OposFptr.pas
-CursorX=29
-CursorY=232
-TopLine=214
+Module=c:\program files (x86)\borland\delphi7\Source\Indy\IdTCPClient.pas
+CursorX=1
+CursorY=1
+TopLine=1
 LeftCol=1
 
 [TypeLibEditWindow0]
@@ -105,14 +99,14 @@ Create=1
 Visible=0
 State=0
 Left=200
-Top=117
+Top=125
 Width=647
 Height=458
 MaxLeft=-1
 MaxTop=-1
 ClientWidth=631
 ClientHeight=419
-Module=D:\Projects\OposDaisy\src\OposDaisy\OposDaisy.tlb
+Module=C:\Projects2\IBTS\OposDaisy\src\OposDaisy\OposDaisy.tlb
 
 [Watches]
 Count=0
@@ -162,11 +156,11 @@ Visible=1
 State=0
 Left=-4
 Top=114
-Width=509
+Width=593
 Height=622
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=493
+ClientWidth=577
 ClientHeight=583
 TBDockHeight=681
 LRDockWidth=445
@@ -204,7 +198,7 @@ ClientHeight=60
 
 [PropertyInspector]
 Create=1
-Visible=1
+Visible=0
 State=0
 Left=-8
 Top=118
@@ -409,14 +403,14 @@ Dockable=1
 Create=1
 Visible=0
 State=0
-Left=-170
-Top=-9
+Left=204
+Top=162
 Width=140
 Height=305
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=140
-ClientHeight=305
+ClientWidth=124
+ClientHeight=266
 TBDockHeight=305
 LRDockWidth=140
 Dockable=1
@@ -425,14 +419,14 @@ Dockable=1
 Create=1
 Visible=0
 State=0
-Left=-176
-Top=-707
+Left=198
+Top=107
 Width=443
 Height=85
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=443
-ClientHeight=85
+ClientWidth=427
+ClientHeight=46
 TBDockHeight=85
 LRDockWidth=443
 Dockable=1
@@ -460,5 +454,5 @@ DockClients=CallStackWindow
 DockSiteData=0000040000000000B102000000000000015803000000000000010000000087000000000000000100000002B1020000000000000200000000580300000F00000043616C6C537461636B57696E646F770200000000F7010000000000000100000000080100000000000001000000008C010000000000000100000000100200000000000001000000009802000000000000FFFFFFFF
 
 [ActiveProject]
-ActiveProject=3
+ActiveProject=6
 

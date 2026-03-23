@@ -122,7 +122,7 @@ AutoIncBuild=1
 MajorVer=1
 MinorVer=13
 Release=0
-Build=6
+Build=12
 Debug=0
 PreRelease=0
 Special=0
@@ -133,16 +133,18 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=SHTRIH-M
 FileDescription=DAISY FX 1300 OPOS service
-FileVersion=1.13.0.6
-InternalName=DAISY FX 1300 OPOS service 
-LegalCopyright=SHTRIH-M © 2013 
+FileVersion=1.13.0.12
+InternalName=DAISY FX 1300 OPOS service
+LegalCopyright=SHTRIH-M © 2013
 LegalTrademarks=
 OriginalFilename=OposDaisy.dll
 ProductName=DAISY FX 1300 OPOS driver
 ProductVersion=1.13
 Comments=http://www.shtrih-m.ru
 [Excluded Packages]
-C:\Program Files (x86)\Borland\Delphi7\Projects\Bpl\PngComponentsD7.bpl=Png components
+C:\Program Files (x86)\Borland\Delphi7\Comp\Indy\D7\IndyCore70.bpl=Indy 10 Core
+C:\Program Files (x86)\Borland\Delphi7\Comp\Indy\D7\IndySystem70.bpl=Indy 10 System
+C:\Program Files (x86)\Borland\Delphi7\Comp\Indy\D7\IndyProtocols70.bpl=Indy 10 Protocols
 [HistoryLists\hlConditionals]
 Count=1
 Item0=DEBUG
