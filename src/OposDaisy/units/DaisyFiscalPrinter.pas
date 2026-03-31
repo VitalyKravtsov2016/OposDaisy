@@ -53,9 +53,7 @@ type
     procedure SetRecEmpty(Value: Boolean);
     procedure StartDeviceThread;
     procedure StopDeviceThread;
-    procedure PrintRefundReceipt(Receipt: TSalesReceipt);
     procedure PrintSalesReceipt(Receipt: TSalesReceipt);
-    function SalesReceiptToText(Receipt: TSalesReceipt): WideString;
     function GetPort: IPrinterPort;
     function CreatePort: IPrinterPort;
   private
@@ -103,6 +101,7 @@ type
       var pData: Integer; var pString: WideString);
     procedure PrinterOutputCompleteEvent(ASender: TObject;
       OutputID: Integer);
+    function SalesReceiptToText(Receipt: TSalesReceipt): WideString;
 
     property Receipt: IFiscalReceipt read FReceipt;
     property Printer: IDaisyPrinter read FPrinter write FPrinter;
@@ -2247,43 +2246,9 @@ end;
 
 procedure TDaisyFiscalPrinter.Print(Receipt: TSalesReceipt);
 begin
-  if Receipt.IsRefund then
-  begin
-    PrintRefundReceipt(Receipt);
-  end else
+  if not Receipt.IsRefund then
   begin
     PrintSalesReceipt(Receipt);
-  end;
-end;
-
-procedure TDaisyFiscalPrinter.PrintRefundReceipt(Receipt: TSalesReceipt);
-var
-  i: Integer;
-  Lines: TTntStrings;
-  RecNumber: Integer;
-  CashRequest: TDFPCashRequest;
-  CashResponse: TDFPCashResponse;
-begin
-  if Receipt.GetCashlessPayment <> 0 then
-    raiseIllegalError('Cashless refund prohibited');
-
-  // CashOut receipt
-  CashRequest.Amount := -Abs(Receipt.GetTotal);
-  CashRequest.Text1 := Params.RefundCashoutLine1;
-  CashRequest.Text2 := Params.RefundCashoutLine2;
-  Printer.Check(Printer.PrintCash(CashRequest, CashResponse));
-  // Print nonfiscal receipt
-  Lines := TTntStringList.Create;
-  try
-    Lines.Text := SalesReceiptToText(Receipt);
-    Printer.Check(Printer.StartNonfiscalReceipt(RecNumber));
-    for i := 0 to Lines.Count-1 do
-    begin
-      Printer.Check(Printer.PrintNonfiscalText(Lines[i]));
-    end;
-    Printer.Check(Printer.EndNonfiscalReceipt(RecNumber));
-  finally
-    Lines.Free;
   end;
 end;
 

@@ -586,26 +586,7 @@ end;
 
 procedure TDaisyFiscalPrinterTest.TestRefundReceipt;
 var
-  i: Integer;
   ResultCode: Integer;
-const
-  Lines: array [0..12] of string = (
-    'REFUND1',
-    'REFUND2',
-    'PrintRecMessage.1',
-    'Receipt item 1',
-    '                     590.00 x 1.000 = 590.00',
-    'Discount 40                         = -40.00',
-    'Receipt item 2',
-    '                     123.00 x 1.000 = 123.00',
-    'DISCOUNT                            = -20.00',
-    'PrintRecMessage.2',
-    'Discount 10%                        -10.00 %',
-    'TOTAL                               = 587.70',
-    'PrintRecMessage.3'
-  );
-
-
 begin
   Params.RefundCashoutLine1 := 'REFUND1';
   Params.RefundCashoutLine2 := 'REFUND2';
@@ -636,36 +617,13 @@ begin
   FptrCheck(Driver.PrintRecMessage('PrintRecMessage.3'));
   FptrCheck(Driver.EndFiscalReceipt(False));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-
-  CheckEquals(Length(Lines), FPrinter.Lines.Count, 'Lines.Count');
-  for i := Low(Lines) to High(Lines) do
-  begin
-    CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
-  end;
+  // Nothing can be printed
+  CheckEquals(0, FPrinter.Lines.Count, 'Lines.Count');
 end;
 
 procedure TDaisyFiscalPrinterTest.TestRefundReceipt2;
 var
-  i: Integer;
   ResultCode: Integer;
-const
-  Lines: array [0..12] of string = (
-    'REFUND1',
-    'REFUND2',
-    'PrintRecMessage.1',
-    'Receipt item 1',
-    '                     590.00 x 1.000 = 590.00',
-    'Discount 40                         = -40.00',
-    'Receipt item 2',
-    '                     123.00 x 1.000 = 123.00',
-    'DISCOUNT                            = -20.00',
-    'PrintRecMessage.2',
-    'Discount 10%                        -10.00 %',
-    'TOTAL                               = 587.70',
-    'PrintRecMessage.3'
-  );
-
-
 begin
   Params.RefundCashoutLine1 := 'REFUND1';
   Params.RefundCashoutLine2 := 'REFUND2';
@@ -697,16 +655,10 @@ begin
   FptrCheck(Driver.EndFiscalReceipt(False));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
 
-  CheckEquals(Length(Lines), FPrinter.Lines.Count, 'Lines.Count');
-  for i := Low(Lines) to High(Lines) do
-  begin
-    CheckEquals(Lines[i], FPrinter.Lines[i], Format('Lines[%d]', [i]));
-  end;
+  CheckEquals(0, FPrinter.Lines.Count, 'Lines.Count');
 end;
 
 procedure TDaisyFiscalPrinterTest.TestRefundReceipt3;
-var
-  ResultCode: Integer;
 begin
   OpenClaimEnable;
   Driver.SetPropertyNumber(PIDXFptr_FiscalReceiptType, FPTR_RT_SALES);
@@ -715,9 +667,7 @@ begin
   FptrCheck(Driver.PrintRecItemRefund('Receipt item 1', 590, 1000, 4, 590, 'pcs'));
   FptrCheck(Driver.PrintRecTotal(590, 100, '0'));
   FptrCheck(Driver.PrintRecTotal(590, 490, '1'));
-  ResultCode := Driver.EndFiscalReceipt(False);
-  CheckEquals(OPOS_E_ILLEGAL, ResultCode, 'PrintRecTotal');
-  CheckEquals('Cashless refund prohibited', Driver.GetPropertyString(PIDXFptr_ErrorString), 'PIDXFptr_ErrorString');
+  FptrCheck(Driver.EndFiscalReceipt(False));
 end;
 
 procedure TDaisyFiscalPrinterTest.TestPowerState;

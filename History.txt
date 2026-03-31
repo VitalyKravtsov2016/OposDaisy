@@ -5,6 +5,13 @@
 
 *******************************************************************
 
+  OposDaisy_1.13_12.exe
+  31 March 2026
+
+  [-] Changed refund receipt processing: no cashout and no lines printed
+  
+*******************************************************************
+
   OposDaisy_1.13_11.exe
   23 March 2026
 
