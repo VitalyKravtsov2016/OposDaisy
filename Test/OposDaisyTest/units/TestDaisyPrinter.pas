@@ -245,6 +245,7 @@ end;
 
 function TTestDaisyPrinter.FullCut: Integer;
 begin
+  Lines.Add('FullCut');
   Result := 0;
 end;
 
@@ -306,50 +307,59 @@ end;
 
 function TTestDaisyPrinter.PaperCut(CutMode: Integer): Integer;
 begin
+  Lines.Add('PaperCut');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PaperFeed(LineCount: Integer): Integer;
 begin
+  Lines.Add('PaperFeed');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PartialCut: Integer;
 begin
+  Lines.Add('PartialCut');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintBarcode(const Data: AnsiString): Integer;
 begin
+  Lines.Add('PrintBarcode: ' + Data);
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintBarcode2(
   const Barcode: TDFPBarcode): Integer;
 begin
+  Lines.Add('PrintBarcode2: ' + Barcode.Data);
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintCash(const P: TDFPCashRequest;
   var R: TDFPCashResponse): Integer;
 begin
+  Lines.Add('PrintCash');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintDiagnosticInfo: Integer;
 begin
+  Lines.Add('PrintDiagnosticInfo');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintFiscalText(
   const Text: WideString): Integer;
 begin
+  Lines.Add(Text);
   Result := 0;
 end;
 
 function TTestDaisyPrinter.PrintNonfiscalLine(
   const Text: WideString): Integer;
 begin
+  Lines.Add(Text);
   Result := 0;
 end;
 
@@ -496,6 +506,7 @@ end;
 
 function TTestDaisyPrinter.Sale(const P: TDFPSale): Integer;
 begin
+  Lines.Add('Sale');
   Result := 0;
 end;
 
@@ -555,18 +566,21 @@ end;
 function TTestDaisyPrinter.StartFiscalReceipt(
   const P: TDFPOperatorPassword; var R: TDFPRecNumber): Integer;
 begin
+  Lines.Clear;
   Result := 0;
 end;
 
 function TTestDaisyPrinter.StartNonfiscalReceipt(
   var RecNumber: Integer): Integer;
 begin
+  Lines.Clear;
   Result := 0;
 end;
 
 function TTestDaisyPrinter.Subtotal(const P: TDFPSubtotal;
   var R: TDFPSubtotalResponse): Integer;
 begin
+  Lines.Add('Subtotal');
   Result := 0;
 end;
 
@@ -649,11 +663,13 @@ end;
 function TTestDaisyPrinter.XReport(var R: TDFPReportAnswer): Integer;
 begin
   CheckOnline;
+  Lines.Add('XReport');
   Result := 0;
 end;
 
 function TTestDaisyPrinter.ZReport(var R: TDFPReportAnswer): Integer;
 begin
+  Lines.Add('ZReport');
   Result := 0;
 end;
 

@@ -2420,6 +2420,7 @@ begin
       Printer.Check(Printer.PrintTotal(Total, TotalResponse));
     end;
   end;
+  PrintText(Receipt.Lines.Text);
   PrintText(FAdditionalTrailer);
   // EndFiscalReceipt
   Printer.Check(Printer.EndFiscalReceipt(RecNumber));

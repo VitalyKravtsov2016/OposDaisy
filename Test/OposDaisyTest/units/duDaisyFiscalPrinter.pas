@@ -41,6 +41,7 @@ type
     function DirectIO2(Command: Integer; const pData: Integer;
       const pString: WideString): Integer;
 
+    property Printer: TTestDaisyPrinter read FPrinter;
     property Params: TPrinterParameters read GetParams;
   protected
     procedure SetUp; override;
@@ -282,8 +283,23 @@ var
   ResultCode: Integer;
   Description: WideString;
 const
-  AdditionalHeader = 'AdditionalHeader line 1' + CRLF + 'AdditionalHeader line 2';
-  AdditionalTrailer = 'AdditionalTrailer line 1' + CRLF + 'AdditionalTrailer line 2';
+  AdditionalHeader =
+    'AdditionalHeader line 1' + CRLF +
+    'AdditionalHeader line 2';
+
+  AdditionalTrailer =
+    'AdditionalTrailer line 1' + CRLF +
+    'AdditionalTrailer line 2';
+
+  ReceiptText =
+    'AdditionalHeader line 1' + CRLF +
+    'AdditionalHeader line 2' + CRLF +
+    'Sale' + CRLF +
+    'TEXT LINE 1' + CRLF +
+    'TEXT LINE 2' + CRLF +
+    'AdditionalTrailer line 1' + CRLF +
+    'AdditionalTrailer line 2' + CRLF;
+
 begin
   OpenClaimEnable;
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
@@ -305,8 +321,13 @@ begin
 
   FptrCheck(Driver.PrintRecTotal(590, 590, '0'));
   CheckEquals(FPTR_PS_FISCAL_RECEIPT_ENDING, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  FptrCheck(Driver.PrintRecMessage('TEXT LINE 1'));
+  FptrCheck(Driver.PrintRecMessage('TEXT LINE 2'));
+
   FptrCheck(Driver.EndFiscalReceipt(False));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
+  CheckEquals(7, Printer.Lines.Count, 'Printer.Lines.Count');
+  CheckEquals(ReceiptText, Printer.Lines.Text, 'Printer.Lines.Text');
 end;
 
 procedure TDaisyFiscalPrinterTest.TestFiscalReceipt2;
@@ -617,8 +638,7 @@ begin
   FptrCheck(Driver.PrintRecMessage('PrintRecMessage.3'));
   FptrCheck(Driver.EndFiscalReceipt(False));
   CheckEquals(FPTR_PS_MONITOR, Driver.GetPropertyNumber(PIDXFptr_PrinterState));
-  // Nothing can be printed
-  CheckEquals(0, FPrinter.Lines.Count, 'Lines.Count');
+  CheckEquals(0, Printer.Lines.Count, 'Printer.Lines.Count');
 end;
 
 procedure TDaisyFiscalPrinterTest.TestRefundReceipt2;
